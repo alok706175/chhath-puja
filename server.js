@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const PORT = process.env.PORT || 3000;
-const ROOT = __dirname;
+const ROOT = path.resolve(__dirname);
 const SONGS_DIR = path.join(ROOT, "songs");
 
 // Content Type Map
@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // URL path decode karein
+    // URL path decode
     let parsedUrl = req.url.split("?")[0];
     let decodedPath = "";
     try {
@@ -77,9 +77,15 @@ const server = http.createServer((req, res) => {
 
     // 3. Static Files & MP3 Streaming
     let relativePath = decodedPath === "/" ? "/index.html" : decodedPath;
-    let filePath = path.join(ROOT, relativePath);
+    let filePath = path.resolve(ROOT, "." + relativePath);
 
-    // File check karein
+    // Prevent Directory Traversal Attack
+    if (!filePath.startsWith(ROOT)) {
+        res.writeHead(403, { "Content-Type": "text/plain" });
+        res.end("Forbidden");
+        return;
+    }
+
     fs.stat(filePath, (err, stats) => {
         if (err || !stats.isFile()) {
             res.writeHead(404, { "Content-Type": "text/plain" });
@@ -90,7 +96,7 @@ const server = http.createServer((req, res) => {
         const ext = path.extname(filePath).toLowerCase();
         const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
-        // MP3 Audio Range Support (Streaming)
+        // MP3 Audio Range Support (High-speed Instant Streaming)
         if (ext === ".mp3") {
             const range = req.headers.range;
             const fileSize = stats.size;
@@ -100,7 +106,7 @@ const server = http.createServer((req, res) => {
                 const start = parseInt(parts[0], 10);
                 const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
-                if (start >= fileSize || end >= fileSize || start > end) {
+                if (isNaN(start) || isNaN(end) || start >= fileSize || end >= fileSize || start > end) {
                     res.writeHead(416, { "Content-Range": `bytes */${fileSize}` });
                     res.end();
                     return;
@@ -113,28 +119,44 @@ const server = http.createServer((req, res) => {
                     "Content-Length": chunkSize,
                     "Content-Type": "audio/mpeg"
                 });
-                fs.createReadStream(filePath, { start, end }).pipe(res);
+
+                const stream = fs.createReadStream(filePath, { 
+                    start, 
+                    end,
+                    highWaterMark: 64 * 1024 // 64 KB buffer for fast seek
+                });
+
+                stream.on("error", () => res.end());
+                stream.pipe(res);
             } else {
                 res.writeHead(200, {
                     "Content-Length": fileSize,
                     "Content-Type": "audio/mpeg",
                     "Accept-Ranges": "bytes"
                 });
-                fs.createReadStream(filePath).pipe(res);
+
+                const stream = fs.createReadStream(filePath, {
+                    highWaterMark: 64 * 1024
+                });
+
+                stream.on("error", () => res.end());
+                stream.pipe(res);
             }
             return;
         }
 
-        // Normal HTML/CSS/Images Static Serve
+        // Static Files (HTML / CSS / Images)
         res.writeHead(200, {
             "Content-Type": contentType,
-            "Cache-Control": "no-cache"
+            "Cache-Control": "public, max-age=3600"
         });
-        fs.createReadStream(filePath).pipe(res);
+
+        const stream = fs.createReadStream(filePath);
+        stream.on("error", () => res.end());
+        stream.pipe(res);
     });
 });
 
-// Render host '0.0.0.0' par bind karta hai
 server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
