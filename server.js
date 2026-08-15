@@ -374,7 +374,7 @@ const server = http.createServer((req, res) => {
     ) {
 
         requestedPath =
-            "/chhath-puja.html";
+            "/index.html";
 
     }
 
