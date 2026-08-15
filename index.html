@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Chhath Puja Music</title>
+   <link rel="icon" type="image/png" href="/images/logo.png">
+
+  <meta name="description" content="Chhath Puja geet — bina ads ke, ek jagah.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Mukta:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Khula:wght@300;400;600;700;800&family=Yatra+One&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --maroon-deep: #24080a;
+      --maroon: #4a1210;
+      --sindoor: #c1392b;
+      --marigold: #e8a33d;
+      --marigold-bright: #ffb84d;
+      --cream: #fdf3e2;
+      --cream-dim: #e8d4b8;
+      --glow: rgba(255, 184, 77, 0.35);
+    }
+
+
+    * {
+      box-sizing: border-box;
+    }
+
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: "Mukta", sans-serif;
+      color: var(--cream);
+      overflow-x: hidden;
+    }
+
+
+    body {
+      min-height: 100vh;
+      position: relative;
+      background: #160609;
+    }
+
+
+    /* =========================================================
+       BACKGROUND
+    ========================================================= */
+
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+
+      background-color: var(--maroon-deep);
+
+      background-image:
+        radial-gradient(circle at 50% 20%,
+          rgba(232, 163, 61, 0.18),
+          transparent 55%),
+
+        linear-gradient(180deg,
+          var(--maroon-deep) 0%,
+          #170406 100%);
+
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      transition: background-image 0.6s ease;
+    }
+
+
+    .bg-layer.has-image {
+      background-image:
+        linear-gradient(180deg,
+          rgba(15, 4, 5, 0.12),
+          rgba(15, 4, 5, 0.28)),
+        var(--user-bg);
+    }
+
+
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+
+      background:
+        linear-gradient(180deg,
+          rgba(0, 0, 0, 0.03),
+          rgba(0, 0, 0, 0.12));
+    }
+
+
+    /* =========================================================
+       TOP BAR
+    ========================================================= */
+
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 80px;
+
+      padding: 22px 24px;
+
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      z-index: 50;
+
+      pointer-events: none;
+    }
+
+
+    .time {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+
+      text-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.45);
+    }
+
+
+    /* =========================================================
+       CUSTOM OFFLINE PLAYER
+    ========================================================= */
+
+    #offlinePlayer {
+      position: fixed;
+
+      left: 50%;
+
+      bottom: 45px;
+
+      transform:
+        translateX(-50%);
+
+      width: min(725px, 92vw);
+
+      min-height: 104px;
+
+      padding: 14px 24px;
+
+      z-index: 30;
+
+      display: grid;
+
+      grid-template-columns:
+        64px 1fr auto;
+
+      align-items: center;
+
+      gap: 18px;
+
+      border-radius: 55px;
+
+      background:
+        linear-gradient(135deg,
+          rgba(42, 18, 27, 0.96),
+          rgba(19, 9, 20, 0.96));
+
+      border:
+        1px solid rgba(232, 163, 61, 0.30);
+
+      box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.55),
+
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+      backdrop-filter:
+        blur(12px);
+
+      -webkit-backdrop-filter:
+        blur(12px);
+    }
+
+
+    /* =========================================================
+       COVER
+    ========================================================= */
+
+    .offline-cover {
+      width: 62px;
+      height: 62px;
+
+      border-radius: 50%;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      font-size: 28px;
+
+      background:
+        linear-gradient(135deg,
+          #ff8a65,
+          #e53935);
+
+      box-shadow:
+        0 8px 22px rgba(229, 57, 53, 0.35);
+
+      flex-shrink: 0;
+    }
+
+
+    /* =========================================================
+       SONG INFO
+    ========================================================= */
+
+    .offline-info {
+      min-width: 0;
+    }
+
+
+    .offline-song-title {
+      font-size: 18px;
+
+      font-weight: 700;
+
+      color: white;
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      margin-bottom: 1px;
+    }
+
+
+    .offline-subtitle {
+      font-size: 14px;
+
+      color:
+        rgba(255, 255, 255, 0.65);
+
+      margin-bottom: 5px;
+    }
+
+
+    /* =========================================================
+       PROGRESS ROW
+    ========================================================= */
+
+    .offline-progress-row {
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+    }
+
+
+    .offline-time {
+      font-size: 12px;
+
+      color:
+        rgba(255, 255, 255, 0.65);
+
+      min-width: 32px;
+    }
+
+
+    /* =========================================================
+       PROGRESS BAR
+    ========================================================= */
+
+    .offline-progress {
+      flex: 1;
+      height: 6px;
+      appearance: none;
+      -webkit-appearance: none;
+
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+
+      cursor: pointer;
+      outline: none;
+
+      accent-color: #ffb84d;
+    }
+
+    /* Chrome / Edge */
+    .offline-progress::-webkit-slider-runnable-track {
+      height: 6px;
+      background: linear-gradient(to right,
+          #ffb84d var(--progress, 0%),
+          rgba(255, 255, 255, 0.16) var(--progress, 0%));
+      border-radius: 10px;
+    }
+
+    .offline-progress::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+
+      width: 14px;
+      height: 14px;
+
+      margin-top: -4px;
+
+      border: none;
+      border-radius: 50%;
+
+      background: #ffb84d;
+
+      box-shadow:
+        0 0 8px rgba(255, 184, 77, 0.8);
+
+      cursor: pointer;
+    }
+
+    /* Firefox */
+    .offline-progress::-moz-range-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+    }
+
+    .offline-progress::-moz-range-progress {
+      height: 6px;
+      background: #ffb84d;
+      border-radius: 10px;
+    }
+
+    .offline-progress::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+
+      border: none;
+      border-radius: 50%;
+
+      background: #ffb84d;
+
+      cursor: pointer;
+    }
+
+
+    /* =========================================================
+       CONTROLS
+    ========================================================= */
+
+    .offline-controls {
+      display: flex;
+
+      align-items: center;
+
+      gap: 16px;
+    }
+
+
+    .offline-control-btn {
+      width: 28px;
+      height: 28px;
+
+      border: none;
+
+      background: transparent;
+
+      color: white;
+
+      font-size: 18px;
+
+      cursor: pointer;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+    }
+
+
+    .offline-control-btn:hover {
+      transform: scale(1.15);
+
+      opacity: 0.8;
+    }
+
+
+    .offline-play-btn {
+      width: 50px;
+      height: 50px;
+
+      border: none;
+
+      border-radius: 50%;
+
+      background: white;
+
+      color: #24101b;
+
+      font-size: 20px;
+
+      cursor: pointer;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      box-shadow:
+        0 8px 25px rgba(255, 255, 255, 0.20);
+
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+
+    .offline-play-btn:hover {
+      transform: scale(1.08);
+
+      box-shadow:
+        0 10px 30px rgba(255, 255, 255, 0.30);
+    }
+
+
+    #offlineAudio {
+      display: none;
+    }
+
+
+    .offline-list {
+      display: none;
+    }
+
+
+    /* =========================================================
+       VOLUME CONTROL
+    ========================================================= */
+
+    .offline-volume {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .offline-volume-btn {
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.85;
+      transition: opacity 0.2s ease;
+    }
+
+    .offline-volume-btn:hover {
+      opacity: 1;
+    }
+
+    .offline-volume-slider {
+      width: 60px;
+      height: 4px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      cursor: pointer;
+      outline: none;
+      accent-color: #ffb84d;
+    }
+
+    .offline-volume-slider::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 11px;
+      height: 11px;
+      border: none;
+      border-radius: 50%;
+      background: #ffb84d;
+      cursor: pointer;
+    }
+
+    .offline-volume-slider::-moz-range-thumb {
+      width: 11px;
+      height: 11px;
+      border: none;
+      border-radius: 50%;
+      background: #ffb84d;
+      cursor: pointer;
+    }
+
+
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    @media (max-width: 650px) {
+
+      .top-bar {
+        height: 65px;
+
+        padding:
+          15px 16px;
+      }
+
+
+      .time {
+        font-size: 14px;
+      }
+
+
+      #offlinePlayer {
+        width: 94vw;
+
+        min-height: 92px;
+
+        padding:
+          11px 15px;
+
+        grid-template-columns:
+          50px 1fr auto;
+
+        gap: 11px;
+
+        border-radius: 30px;
+      }
+
+
+      .offline-cover {
+        width: 50px;
+
+        height: 50px;
+
+        font-size: 22px;
+      }
+
+
+      .offline-song-title {
+        font-size: 14px;
+      }
+
+
+      .offline-subtitle {
+        font-size: 11px;
+      }
+
+
+      .offline-controls {
+        gap: 7px;
+      }
+
+
+      .offline-control-btn {
+        font-size: 15px;
+      }
+
+
+      .offline-play-btn {
+        width: 42px;
+
+        height: 42px;
+
+        font-size: 17px;
+      }
+
+
+      .offline-progress {
+        height: 6px;
+      }
+
+
+      .offline-progress::after {
+        width: 11px;
+
+        height: 11px;
+      }
+
+
+      .offline-volume-slider {
+        width: 40px;
+      }
+
+    }
+
+
+    /* =========================================================
+       SMALL PHONE
+    ========================================================= */
+
+    @media (max-width: 400px) {
+
+      #offlinePlayer {
+        width: 95vw;
+
+        bottom: 18px;
+
+        padding:
+          10px 12px;
+
+        gap: 8px;
+      }
+
+
+      .offline-cover {
+        width: 44px;
+
+        height: 44px;
+
+        font-size: 19px;
+      }
+
+
+      .offline-song-title {
+        font-size: 13px;
+      }
+
+
+      .offline-subtitle {
+        display: none;
+      }
+
+
+      .offline-volume {
+        display: none;
+      }
+
+    }
+
+    .logo{
+      font-size: 240px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: rgb(255, 255, 255);
+
+      font-family: "Yatra One", system-ui;
+      font-weight: 400;
+      font-style: normal;
+    }
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- =========================================================
+       BACKGROUND
+  ========================================================= -->
+
+  <div class="bg-layer" id="bgLayer"></div>
+
+
+  <div class="bg-overlay"></div>
+
+
+  <!-- =========================================================
+       TOP BAR
+  ========================================================= -->
+
+  <div class="top-bar">
+
+    <div class="time" id="currentTime">
+      11:54 pm
+    </div>
+
+  </div>
+
+  <div class="logo">छठ घाट</div>
+
+
+  <script>
+
+    /* =========================================================
+       BACKGROUND
+    ========================================================= */
+
+    const backgrounds = [
+
+      "images/ChatGPT Image Aug 14, 2026, 07_34_48 PM.png",
+
+      "images/ChatGPT Image Aug 14, 2026, 07_36_50 PM.png",
+
+      "images/ChatGPT Image Aug 14, 2026, 07_43_15 PM.png"
+
+    ];
+
+
+    const bgLayer =
+      document.getElementById(
+        "bgLayer"
+      );
+
+
+    function tryBackground(index) {
+
+      if (!backgrounds[index]) {
+        return;
+      }
+
+
+      const img =
+        new Image();
+
+
+      img.onload =
+        function () {
+
+          bgLayer.style.setProperty(
+            "--user-bg",
+            `url("${backgrounds[index]}")`
+          );
+
+
+          bgLayer.classList.add(
+            "has-image"
+          );
+
+        };
+
+
+      img.onerror =
+        function () {
+
+          console.warn(
+            "Background image not found:",
+            backgrounds[index]
+          );
+
+        };
+
+
+      img.src =
+        backgrounds[index];
+
+    }
+
+
+    tryBackground(0);
+
+
+    /* =========================================================
+       CLOCK
+    ========================================================= */
+
+    function updateClock() {
+
+      const now =
+        new Date();
+
+
+      let hours =
+        now.getHours();
+
+
+      const minutes =
+        now.getMinutes()
+          .toString()
+          .padStart(
+            2,
+            "0"
+          );
+
+
+      const suffix =
+        hours >= 12
+          ? "pm"
+          : "am";
+
+
+      hours =
+        hours % 12 || 12;
+
+
+      document.getElementById(
+        "currentTime"
+      ).textContent =
+        `${hours}:${minutes} ${suffix}`;
+
+    }
+
+
+    updateClock();
+
+
+    setInterval(
+      updateClock,
+      30000
+    );
+
+
+    /* =========================================================
+       OFFLINE MUSIC PLAYER
+    ========================================================= */
+
+    let songs =
+      [];
+
+
+    let currentSong =
+      0;
+
+
+    let offlineAudio =
+      null;
+
+
+    /*
+      Live Server:
+      http://127.0.0.1:5500
+
+      Node Server:
+      http://localhost:3000
+
+      MP3 files Node server se load hongi.
+    */
+
+    const API_URL =
+      "http://localhost:3000";
+
+
+    /*
+      Page load hote hi
+      offline songs load karo.
+    */
+
+    loadOfflineSongs();
+
+
+    /* =========================================================
+       LOAD SONGS
+    ========================================================= */
+
+    async function loadOfflineSongs() {
+
+      try {
+
+        const response =
+          await fetch(
+            `${API_URL}/songs`
+          );
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Songs API failed"
+          );
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          !Array.isArray(data) ||
+          data.length === 0
+        ) {
+
+          alert(
+            "songs folder mein koi MP3 file nahi mili."
+          );
+
+          return;
+
+        }
+
+
+        songs =
+          data;
+
+
+        currentSong =
+          0;
+
+
+        createOfflinePlayer();
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Offline songs error:",
+          error
+        );
+
+
+        alert(
+          "Songs load nahi ho rahe.\n\n" +
+          "Check karo ki node server.js chal raha hai."
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       CREATE CUSTOM OFFLINE PLAYER
+    ========================================================= */
+
+    function createOfflinePlayer() {
+
+      const oldPlayer =
+        document.getElementById(
+          "offlinePlayer"
+        );
+
+
+      if (oldPlayer) {
+        oldPlayer.remove();
+      }
+
+
+      const player =
+        document.createElement(
+          "div"
+        );
+
+
+      player.id =
+        "offlinePlayer";
+
+
+      player.innerHTML = `
+
+        <!-- COVER -->
+
+        <div class="offline-cover">
+          🌅
+        </div>
+
+
+        <!-- SONG INFORMATION -->
+
+        <div class="offline-info">
+
+          <div
+            class="offline-song-title"
+            id="offlineSongName"
+          >
+            ${escapeHTML(
+        songs[0].name
+      )}
+          </div>
+
+
+          <div class="offline-subtitle">
+            छठ महापर्व
+          </div>
+
+
+          <!-- PROGRESS -->
+
+          <div class="offline-progress-row">
+
+            <span
+              class="offline-time"
+              id="currentSongTime"
+            >
+              0:00
+            </span>
+
+
+            <input
+              type="range"
+              class="offline-progress"
+              id="offlineProgress"
+              min="0"
+              max="100"
+              step="0.1"
+              value="0"
+              title="Drag to seek"
+            >
+
+
+            <span
+              class="offline-time"
+              id="totalSongTime"
+            >
+              0:00
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- CONTROLS -->
+
+        <div class="offline-controls">
+
+          <button
+            class="offline-control-btn"
+            id="prevSong"
+            title="Previous"
+            type="button"
+          >
+            ⏮
+          </button>
+
+
+          <button
+            class="offline-play-btn"
+            id="offlinePlay"
+            title="Play"
+            type="button"
+          >
+            ▶
+          </button>
+
+
+          <button
+            class="offline-control-btn"
+            id="nextSong"
+            title="Next"
+            type="button"
+          >
+            ⏭
+          </button>
+
+
+          <!-- VOLUME -->
+
+          <div class="offline-volume">
+
+            <button
+              class="offline-volume-btn"
+              id="muteBtn"
+              title="Mute"
+              type="button"
+            >
+              🔊
+            </button>
+
+
+            <input
+              type="range"
+              class="offline-volume-slider"
+              id="volumeSlider"
+              min="0"
+              max="100"
+              value="100"
+              title="Volume"
+            >
+
+          </div>
+
+        </div>
+
+
+        <!-- AUDIO -->
+
+        <audio
+          id="offlineAudio"
+          preload="metadata"
+        ></audio>
+
+
+        <div
+          class="offline-list"
+          id="offlineList"
+        ></div>
+
+      `;
+
+
+      document.body.appendChild(
+        player
+      );
+
+
+      /* =====================================================
+         ELEMENTS
+      ===================================================== */
+
+      offlineAudio =
+        document.getElementById(
+          "offlineAudio"
+        );
+
+
+      const songName =
+        document.getElementById(
+          "offlineSongName"
+        );
+
+
+      const playButton =
+        document.getElementById(
+          "offlinePlay"
+        );
+
+
+      const progress =
+        document.getElementById(
+          "offlineProgress"
+        );
+
+
+      const currentTime =
+        document.getElementById(
+          "currentSongTime"
+        );
+
+
+      const totalTime =
+        document.getElementById(
+          "totalSongTime"
+        );
+
+
+      const muteBtn =
+        document.getElementById(
+          "muteBtn"
+        );
+
+
+      const volumeSlider =
+        document.getElementById(
+          "volumeSlider"
+        );
+
+
+      let lastVolume =
+        1;
+
+
+      /* =====================================================
+         FORMAT TIME
+      ===================================================== */
+
+      function formatTime(seconds) {
+
+        if (
+          !isFinite(seconds)
+        ) {
+
+          return "0:00";
+
+        }
+
+
+        const minutes =
+          Math.floor(
+            seconds / 60
+          );
+
+
+        const secondsPart =
+          Math.floor(
+            seconds % 60
+          )
+            .toString()
+            .padStart(
+              2,
+              "0"
+            );
+
+
+        return `${minutes}:${secondsPart}`;
+
+      }
+
+
+      /* =====================================================
+         PLAY SONG
+      ===================================================== */
+
+      function playSong(index) {
+
+        if (!songs[index]) {
+          return;
+        }
+
+
+        currentSong =
+          index;
+
+
+        offlineAudio.src = songs[index].file;
+
+
+        songName.textContent =
+          songs[index].name;
+
+
+        currentTime.textContent =
+          "0:00";
+
+
+        totalTime.textContent =
+          "0:00";
+
+
+        progress.value =
+          0;
+
+
+        progress.style.setProperty(
+          "--progress",
+          "0%"
+        );
+
+
+        offlineAudio.load();
+
+
+        offlineAudio
+          .play()
+          .then(
+            function () {
+
+              playButton.textContent =
+                "❚❚";
+
+            }
+          )
+          .catch(
+            function () {
+
+              playButton.textContent =
+                "▶";
+
+            }
+          );
+
+      }
+
+
+      /* =====================================================
+         PLAY / PAUSE
+      ===================================================== */
+
+      playButton.addEventListener(
+        "click",
+        function () {
+
+          if (
+            offlineAudio.paused
+          ) {
+
+            offlineAudio
+              .play()
+              .then(
+                function () {
+
+                  playButton.textContent =
+                    "❚❚";
+
+                }
+              )
+              .catch(
+                function (error) {
+
+                  console.error(
+                    "Play error:",
+                    error
+                  );
+
+                }
+              );
+
+          }
+
+          else {
+
+            offlineAudio.pause();
+
+            playButton.textContent =
+              "▶";
+
+          }
+
+        }
+      );
+
+
+      /* =====================================================
+         PREVIOUS
+      ===================================================== */
+
+      document
+        .getElementById(
+          "prevSong"
+        )
+        .addEventListener(
+          "click",
+          function () {
+
+            currentSong--;
+
+
+            if (
+              currentSong < 0
+            ) {
+
+              currentSong =
+                songs.length - 1;
+
+            }
+
+
+            playSong(
+              currentSong
+            );
+
+          }
+        );
+
+
+      /* =====================================================
+         NEXT
+      ===================================================== */
+
+      document
+        .getElementById(
+          "nextSong"
+        )
+        .addEventListener(
+          "click",
+          function () {
+
+            currentSong++;
+
+
+            if (
+              currentSong >=
+              songs.length
+            ) {
+
+              currentSong =
+                0;
+
+            }
+
+
+            playSong(
+              currentSong
+            );
+
+          }
+        );
+
+
+      /* =====================================================
+         LOADED METADATA
+      ===================================================== */
+
+      offlineAudio.addEventListener(
+        "loadedmetadata",
+        function () {
+
+          totalTime.textContent =
+            formatTime(
+              offlineAudio.duration
+            );
+
+        }
+      );
+
+
+      /* =====================================================
+         UPDATE PROGRESS
+      ===================================================== */
+
+      let isSeeking =
+        false;
+
+
+      offlineAudio.addEventListener(
+        "timeupdate",
+        function () {
+
+          /*
+            Jab tak user khud slider
+            drag kar raha hai, audio ke
+            timeupdate se value overwrite
+            mat karo.
+          */
+
+          if (isSeeking) {
+            return;
+          }
+
+
+          if (
+            offlineAudio.duration &&
+            isFinite(
+              offlineAudio.duration
+            )
+          ) {
+
+            const percent =
+              (
+                offlineAudio.currentTime /
+                offlineAudio.duration
+              ) * 100;
+
+
+            progress.value =
+              percent;
+
+
+            progress.style.setProperty(
+              "--progress",
+              `${percent}%`
+            );
+
+          }
+
+
+          currentTime.textContent =
+            formatTime(
+              offlineAudio.currentTime
+            );
+
+        }
+      );
+
+
+      /* =====================================================
+         SEEK — SLIDER KO DRAG YA CLICK KARTE WAQT
+      ===================================================== */
+
+      progress.addEventListener(
+        "input",
+        function () {
+
+          if (
+            !offlineAudio.duration ||
+            !isFinite(
+              offlineAudio.duration
+            )
+          ) {
+
+            return;
+
+          }
+
+
+          isSeeking =
+            true;
+
+
+          const newTime =
+            (
+              progress.value / 100
+            ) *
+            offlineAudio.duration;
+
+
+          offlineAudio.currentTime =
+            newTime;
+
+
+          progress.style.setProperty(
+            "--progress",
+            `${progress.value}%`
+          );
+
+
+          currentTime.textContent =
+            formatTime(
+              newTime
+            );
+
+        }
+      );
+
+
+      /* =====================================================
+         SEEK KHATAM — DRAG CHHODNE PAR
+      ===================================================== */
+
+      progress.addEventListener(
+        "change",
+        function () {
+
+          isSeeking =
+            false;
+
+        }
+      );
+
+
+      /* =====================================================
+         PLAY EVENT
+      ===================================================== */
+
+      offlineAudio.addEventListener(
+        "play",
+        function () {
+
+          playButton.textContent =
+            "❚❚";
+
+        }
+      );
+
+
+      /* =====================================================
+         PAUSE EVENT
+      ===================================================== */
+
+      offlineAudio.addEventListener(
+        "pause",
+        function () {
+
+          playButton.textContent =
+            "▶";
+
+        }
+      );
+
+
+      /* =====================================================
+         AUTO NEXT
+      ===================================================== */
+
+      offlineAudio.addEventListener(
+        "ended",
+        function () {
+
+          currentSong++;
+
+
+          if (
+            currentSong >=
+            songs.length
+          ) {
+
+            currentSong =
+              0;
+
+          }
+
+
+          playSong(
+            currentSong
+          );
+
+        }
+      );
+
+
+      /* =====================================================
+         VOLUME SLIDER
+      ===================================================== */
+
+      volumeSlider.addEventListener(
+        "input",
+        function () {
+
+          const vol =
+            volumeSlider.value / 100;
+
+
+          offlineAudio.volume =
+            vol;
+
+
+          muteBtn.textContent =
+            vol === 0
+              ? "🔇"
+              : vol < 0.5
+                ? "🔉"
+                : "🔊";
+
+        }
+      );
+
+
+      /* =====================================================
+         MUTE TOGGLE
+      ===================================================== */
+
+      muteBtn.addEventListener(
+        "click",
+        function () {
+
+          if (
+            offlineAudio.volume > 0
+          ) {
+
+            lastVolume =
+              offlineAudio.volume;
+
+
+            offlineAudio.volume =
+              0;
+
+
+            volumeSlider.value =
+              0;
+
+
+            muteBtn.textContent =
+              "🔇";
+
+          }
+
+          else {
+
+            offlineAudio.volume =
+              lastVolume;
+
+
+            volumeSlider.value =
+              lastVolume * 100;
+
+
+            muteBtn.textContent =
+              lastVolume < 0.5
+                ? "🔉"
+                : "🔊";
+
+          }
+
+        }
+      );
+
+
+      /* =====================================================
+         FIRST SONG
+      ===================================================== */
+
+      playSong(0);
+
+    }
+
+
+    /* =========================================================
+       ESCAPE HTML
+    ========================================================= */
+
+    function escapeHTML(
+      text
+    ) {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.textContent =
+        text;
+
+
+      return div.innerHTML;
+
+    }
+
+  </script>
+
+</body>
+
+</html>
