@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Chhath Puja Music</title>
   <link rel="icon" type="image/png" href="/images/logo.png">
   <meta name="description" content="Chhath Puja geet — bina ads ke, ek jagah.">
@@ -24,10 +24,13 @@
       --cream: #fdf3e2;
       --cream-dim: #e8d4b8;
       --glow: rgba(255, 184, 77, 0.35);
+      --safe-bottom: env(safe-area-inset-bottom, 12px);
+      --safe-top: env(safe-area-inset-top, 12px);
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html,
@@ -35,59 +38,64 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      min-height: 100%;
+      height: 100%;
       font-family: "Mukta", sans-serif;
       color: var(--cream);
       overflow-x: hidden;
+      background-color: var(--maroon-deep);
     }
 
-    body {
-      min-height: 100vh;
-      position: relative;
-      background: #160609;
-    }
-
-    /* BACKGROUND */
+    /* ========================================================
+       RESPONSIVE BACKGROUND LAYER
+       ======================================================== */
     .bg-layer {
       position: fixed;
       inset: 0;
-      z-index: -3;
+      width: 100vw;
+      height: 100dvh;
+      z-index: 0;
       background-color: var(--maroon-deep);
       background-image:
-        radial-gradient(circle at 50% 20%, rgba(232, 163, 61, 0.18), transparent 55%),
+        radial-gradient(circle at 50% 20%, rgba(232, 163, 61, 0.22), transparent 60%),
         linear-gradient(180deg, var(--maroon-deep) 0%, #170406 100%);
       background-size: cover;
-      background-position: center;
+      background-position: center center;
       background-repeat: no-repeat;
-      transition: background-image 0.6s ease;
-    }
-
-    .bg-layer.has-image {
-      background-image:
-        linear-gradient(180deg, rgba(15, 4, 5, 0.12), rgba(15, 4, 5, 0.28)),
-        var(--user-bg);
+      transition: background-image 0.4s ease-in-out;
+      transform: scale(1.02);
     }
 
     .bg-overlay {
       position: fixed;
       inset: 0;
-      z-index: -2;
+      width: 100vw;
+      height: 100dvh;
+      z-index: 1;
       pointer-events: none;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.12));
+      background: linear-gradient(180deg, rgba(15, 4, 5, 0.35) 0%, rgba(15, 4, 5, 0.70) 100%);
     }
 
-    /* TOP BAR */
-    .top-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
+    /* MAIN APP WRAPPER */
+    .app-container {
+      position: relative;
+      z-index: 2;
       width: 100%;
-      height: 80px;
-      padding: 22px 24px;
+      min-height: 100dvh;
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
       justify-content: space-between;
-      z-index: 50;
+      align-items: center;
+      padding: calc(14px + var(--safe-top)) 16px calc(14px + var(--safe-bottom));
+      gap: 16px;
+    }
+
+    /* TOP BAR / CLOCK */
+    .top-bar {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
       pointer-events: none;
     }
 
@@ -96,104 +104,101 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 2px;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 16px;
-      border-radius: 14px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.45);
+      padding: 6px 14px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      pointer-events: auto;
     }
 
     .time-main {
-      font-size: 20px;
+      font-size: clamp(13px, 3.5vw, 17px);
       font-weight: 700;
       color: #ffffff;
-      letter-spacing: 0.5px;
       line-height: 1.1;
-      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
     }
 
     .date-sub {
-      font-size: 13px;
+      font-size: clamp(10px, 2.5vw, 12px);
       font-weight: 500;
       color: var(--marigold-bright);
-      letter-spacing: 0.5px;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      line-height: 1.2;
     }
 
+    /* LOGO SECTION */
     .logo-container {
-      position: absolute;
-      top: 26%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       text-align: center;
       user-select: none;
       pointer-events: none;
+      margin: auto 0;
+      padding: 10px 0;
       width: 100%;
     }
 
     .logo {
-      font-size: clamp(65px, 15vw, 190px);
+      font-size: clamp(40px, 11vw, 110px);
       color: #FFFFFF;
       font-family: "Yatra One", system-ui;
       font-weight: 400;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75);
       margin: 0;
-      line-height: 1;
+      line-height: 1.05;
+      letter-spacing: 1px;
     }
 
     .tagline {
-      font-size: clamp(16px, 3vw, 24px);
+      font-size: clamp(13px, 3vw, 20px);
       color: var(--marigold-bright);
-      margin-top: 10px;
+      margin-top: 6px;
       letter-spacing: 2px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
     }
 
-    /* CUSTOM OFFLINE PLAYER */
+    /* ========================================================
+       RESPONSIVE AUDIO PLAYER (Desktop: 1 Row, Mobile: 2 Rows)
+       ======================================================== */
     #offlinePlayer {
-      position: fixed;
-      left: 50%;
-      bottom: 35px;
-      transform: translateX(-50%);
-      width: min(800px, 95vw);
-      min-height: 100px;
-      padding: 14px 24px;
-      z-index: 30;
+      width: min(850px, 100%);
+      padding: 12px 18px;
       display: grid;
-      grid-template-columns: 60px 1fr auto;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
-      gap: 18px;
-      border-radius: 55px;
-      background: linear-gradient(135deg, rgba(42, 18, 27, 0.96), rgba(19, 9, 20, 0.96));
-      border: 1px solid rgba(232, 163, 61, 0.30);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      gap: 14px;
+      border-radius: 40px;
+      background: linear-gradient(135deg, rgba(38, 14, 22, 0.94), rgba(18, 7, 18, 0.96));
+      border: 1px solid rgba(232, 163, 61, 0.35);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: all 0.3s ease;
     }
 
-    /* COVER */
     .offline-cover {
-      width: 58px;
-      height: 58px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
+      font-size: 22px;
       background: linear-gradient(135deg, #ff8a65, #e53935);
-      box-shadow: 0 8px 22px rgba(229, 57, 53, 0.35);
+      box-shadow: 0 6px 16px rgba(229, 57, 53, 0.35);
       flex-shrink: 0;
-      user-select: none;
     }
 
-    /* SONG INFO */
     .offline-info {
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
     }
 
     .offline-song-title {
-      font-size: 17px;
+      font-size: clamp(13px, 2.8vw, 15px);
       font-weight: 700;
       color: white;
       white-space: nowrap;
@@ -203,29 +208,29 @@
     }
 
     .offline-subtitle {
-      font-size: 13px;
+      font-size: 11px;
       color: rgba(255, 255, 255, 0.65);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
-    /* PROGRESS ROW */
     .offline-progress-row {
       display: flex;
       align-items: center;
       gap: 8px;
+      width: 100%;
     }
 
     .offline-time {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.65);
-      min-width: 32px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      min-width: 28px;
       user-select: none;
+      font-variant-numeric: tabular-nums;
     }
 
-    /* PROGRESS BAR */
     .offline-progress {
       flex: 1;
-      height: 6px;
+      height: 5px;
       appearance: none;
       -webkit-appearance: none;
       background: rgba(255, 255, 255, 0.16);
@@ -235,43 +240,14 @@
       accent-color: #ffb84d;
     }
 
-    .offline-progress::-webkit-slider-runnable-track {
-      height: 6px;
-      background: linear-gradient(to right, #ffb84d var(--progress, 0%), rgba(255, 255, 255, 0.16) var(--progress, 0%));
-      border-radius: 10px;
-    }
-
     .offline-progress::-webkit-slider-thumb {
       appearance: none;
       -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      margin-top: -4px;
-      border: none;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: #ffb84d;
-      box-shadow: 0 0 8px rgba(255, 184, 77, 0.8);
-      cursor: pointer;
-    }
-
-    .offline-progress::-moz-range-track {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.16);
-      border-radius: 10px;
-    }
-
-    .offline-progress::-moz-range-progress {
-      height: 6px;
-      background: #ffb84d;
-      border-radius: 10px;
-    }
-
-    .offline-progress::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
-      border: none;
-      border-radius: 50%;
-      background: #ffb84d;
+      box-shadow: 0 0 6px rgba(255, 184, 77, 0.8);
       cursor: pointer;
     }
 
@@ -279,146 +255,102 @@
     .offline-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
     .offline-control-btn {
-      width: 30px;
-      height: 30px;
-      border: none;
-      background: transparent;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-    }
-
-    .offline-control-btn:hover {
-      transform: scale(1.15);
-      opacity: 0.8;
-    }
-
-    .offline-play-btn {
-      width: 48px;
-      height: 48px;
-      border: none;
-      border-radius: 50%;
-      background: white;
-      color: #24101b;
-      font-size: 20px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.20);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .offline-play-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.30);
-    }
-
-    /* VOLUME CONTROL */
-    .offline-volume {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .offline-volume-btn {
-      width: 24px;
-      height: 24px;
-      border: none;
-      background: transparent;
-      color: white;
-      font-size: 15px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.85;
-      transition: opacity 0.2s ease;
-    }
-
-    .offline-volume-btn:hover {
-      opacity: 1;
-    }
-
-    .offline-volume-slider {
-      width: 55px;
-      height: 4px;
-      appearance: none;
-      -webkit-appearance: none;
-      background: rgba(255, 255, 255, 0.16);
-      border-radius: 10px;
-      cursor: pointer;
-      outline: none;
-      accent-color: #ffb84d;
-    }
-
-    .offline-volume-slider::-webkit-slider-thumb {
-      appearance: none;
-      -webkit-appearance: none;
-      width: 11px;
-      height: 11px;
-      border: none;
-      border-radius: 50%;
-      background: #ffb84d;
-      cursor: pointer;
-    }
-
-    .offline-volume-slider::-moz-range-thumb {
-      width: 11px;
-      height: 11px;
-      border: none;
-      border-radius: 50%;
-      background: #ffb84d;
-      cursor: pointer;
-    }
-
-    /* PLAYLIST BUTTON */
-    .playlist-toggle-btn {
       width: 32px;
       height: 32px;
-      border-radius: 50%;
-      border: 1px solid rgba(232, 163, 61, 0.4);
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--marigold-bright);
+      border: none;
+      background: transparent;
+      color: white;
       font-size: 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
-      margin-left: 2px;
+      transition: transform 0.15s ease;
     }
 
-    .playlist-toggle-btn:hover,
-    .playlist-toggle-btn.active {
-      background: var(--marigold-bright);
-      color: var(--maroon-deep);
-      transform: scale(1.08);
-      box-shadow: 0 0 12px var(--glow);
+    .offline-control-btn:active {
+      transform: scale(0.88);
     }
 
-    /* PLAYLIST DRAWER POPUP */
+    .offline-play-btn {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 50%;
+      background: white;
+      color: #24101b;
+      font-size: 17px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.25);
+    }
+
+    .offline-play-btn:active {
+      transform: scale(0.92);
+    }
+
+    .offline-volume {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .offline-volume-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .offline-volume-slider {
+      width: 50px;
+      height: 4px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      cursor: pointer;
+      accent-color: #ffb84d;
+    }
+
+    .playlist-toggle-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(232, 163, 61, 0.4);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--marigold-bright);
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* PLAYLIST MODAL */
     .playlist-modal {
       position: fixed;
-      bottom: 145px;
+      bottom: calc(110px + var(--safe-bottom));
       left: 50%;
       transform: translateX(-50%) translateY(20px);
-      width: min(500px, 92vw);
-      max-height: 380px;
-      background: linear-gradient(135deg, rgba(38, 14, 22, 0.96), rgba(18, 7, 18, 0.98));
+      width: min(520px, 94vw);
+      max-height: min(380px, 45dvh);
+      background: linear-gradient(135deg, rgba(38, 14, 22, 0.98), rgba(18, 7, 18, 0.98));
       border: 1px solid rgba(232, 163, 61, 0.35);
-      border-radius: 24px;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       z-index: 40;
       display: flex;
       flex-direction: column;
@@ -437,64 +369,43 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 20px;
+      padding: 12px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .playlist-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--marigold-bright);
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .playlist-close {
       background: transparent;
       border: none;
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.7);
       font-size: 18px;
       cursor: pointer;
       padding: 4px;
     }
 
-    .playlist-close:hover {
-      color: white;
-    }
-
     .playlist-list {
       list-style: none;
       margin: 0;
-      padding: 10px 12px;
+      padding: 8px 10px;
       overflow-y: auto;
       flex: 1;
-    }
-
-    .playlist-list::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    .playlist-list::-webkit-scrollbar-thumb {
-      background: rgba(232, 163, 61, 0.4);
-      border-radius: 10px;
+      overscroll-behavior: contain;
     }
 
     .playlist-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: 12px;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.1s ease;
-      font-size: 14px;
+      font-size: 13.5px;
       color: rgba(255, 255, 255, 0.85);
-    }
-
-    .playlist-item:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
     }
 
     .playlist-item.active {
@@ -504,12 +415,6 @@
       border-left: 3px solid var(--marigold-bright);
     }
 
-    .playlist-item-index {
-      font-size: 12px;
-      opacity: 0.6;
-      width: 20px;
-    }
-
     .playlist-item-name {
       flex: 1;
       white-space: nowrap;
@@ -517,114 +422,166 @@
       text-overflow: ellipsis;
     }
 
-    #offlineAudio {
-      display: none;
-    }
-
-    /* RESPONSIVENESS */
-    @media (max-width: 650px) {
-      .time-widget {
-        padding: 6px 12px;
-      }
-
-      .time-main {
-        font-size: 16px;
-      }
-
-      .date-sub {
-        font-size: 11px;
-      }
-
-      .logo-container {
-        top: 22%;
-      }
-
-      .top-bar {
-        height: 65px;
-        padding: 15px 16px;
-      }
-
+    /* ========================================================
+       MOBILE & NARROW SCREEN OPTIMIZATIONS (<= 640px)
+       ======================================================== */
+    @media (max-width: 640px) {
       #offlinePlayer {
-        width: 96vw;
-        min-height: 85px;
+        grid-template-columns: 44px 1fr;
+        grid-template-rows: auto auto;
         padding: 10px 14px;
-        grid-template-columns: 44px 1fr auto;
-        gap: 10px;
-        border-radius: 30px;
-        bottom: 18px;
+        border-radius: 22px;
+        gap: 8px 10px;
       }
 
       .offline-cover {
         width: 44px;
         height: 44px;
         font-size: 20px;
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
       }
 
-      .offline-song-title {
-        font-size: 14px;
-      }
-
-      .offline-subtitle {
-        font-size: 11px;
+      .offline-info {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
       }
 
       .offline-controls {
+        grid-column: 1 / 3;
+        grid-row: 2 / 3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         gap: 6px;
+        width: 100%;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .offline-control-btn {
+        width: 28px;
+        height: 28px;
         font-size: 15px;
       }
 
       .offline-play-btn {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         font-size: 15px;
+        margin: 0 2px;
+      }
+
+      .playlist-toggle-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+      }
+
+      .offline-volume {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-left: 2px;
+      }
+
+      .offline-volume-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 13px;
       }
 
       .offline-volume-slider {
-        width: 32px;
+        width: 38px;
+        height: 3px;
       }
 
       .playlist-modal {
-        bottom: 115px;
-        width: 95vw;
-        max-height: 320px;
-      }
-    }
-
-    @media (max-width: 420px) {
-      .offline-volume {
-        display: none;
-      }
-
-      .offline-subtitle {
-        display: none;
+        bottom: calc(130px + var(--safe-bottom));
+        width: 94vw;
+        border-radius: 16px;
       }
     }
   </style>
 </head>
 
 <body>
-
   <div class="bg-layer" id="bgLayer"></div>
   <div class="bg-overlay"></div>
 
-  <div class="top-bar">
-    <div class="time-widget">
-      <div class="time-main" id="currentTime">--:-- -- IST</div>
-      <div class="date-sub" id="currentDate">--</div>
+  <div class="app-container">
+    <header class="top-bar">
+      <div class="time-widget">
+        <div class="time-main" id="currentTime">--:-- -- IST</div>
+        <div class="date-sub" id="currentDate">--</div>
+      </div>
+    </header>
+
+    <main class="logo-container">
+      <h1 class="logo">छठ घाट</h1>
+      <div class="tagline">॥ जय छठी मईया ॥</div>
+    </main>
+
+    <!-- PLAYER -->
+    <div id="offlinePlayer">
+      <div class="offline-cover">🌅</div>
+
+      <div class="offline-info">
+        <div class="offline-song-title" id="offlineSongName">Loading Geet...</div>
+        <div class="offline-subtitle">छठ महापर्व</div>
+
+        <div class="offline-progress-row">
+          <span class="offline-time" id="currentSongTime">0:00</span>
+          <input type="range" class="offline-progress" id="offlineProgress" min="0" max="100" step="0.1" value="0"
+            title="Seek">
+          <span class="offline-time" id="totalSongTime">0:00</span>
+        </div>
+      </div>
+
+      <div class="offline-controls">
+        <button class="playlist-toggle-btn" id="playlistToggleBtn" title="Geet Suchi (Playlist)" type="button"
+          aria-label="Open Playlist">☰</button>
+        <button class="offline-control-btn" id="prevSong" title="Previous" type="button"
+          aria-label="Previous Song">⏮</button>
+        <button class="offline-play-btn" id="offlinePlay" title="Play" type="button"
+          aria-label="Play or Pause">▶</button>
+        <button class="offline-control-btn" id="nextSong" title="Next" type="button" aria-label="Next Song">⏭</button>
+
+        <div class="offline-volume">
+          <button class="offline-volume-btn" id="muteBtn" title="Mute" type="button"
+            aria-label="Mute Volume">🔊</button>
+          <input type="range" class="offline-volume-slider" id="volumeSlider" min="0" max="100" value="100"
+            title="Volume">
+        </div>
+      </div>
+
+      <audio id="offlineAudio" preload="metadata"></audio>
+    </div>
+
+    <!-- PLAYLIST MODAL -->
+    <div class="playlist-modal" id="playlistModal">
+      <div class="playlist-header">
+        <div class="playlist-title" id="playlistTitle">🎵 Chhath Geet List</div>
+        <button class="playlist-close" id="playlistCloseBtn" aria-label="Close Playlist">✕</button>
+      </div>
+      <ul class="playlist-list" id="playlistList"></ul>
     </div>
   </div>
 
-  <div class="logo-container">
-    <div class="logo">छठ घाट</div>
-    <div class="tagline">॥ जय छठी मईया ॥</div>
-  </div>
-
   <script>
-    /* BACKGROUND */
-    const backgrounds = [
+    /* ========================================================
+       DIMENSION-BASED RESPONSIVE BACKGROUND HANDLER
+       ======================================================== */
+    const imageBreakpoints = [
+      { maxWidth: 400, src: "images/chhath_puja_400x838.png" },      // Mobile Small (<= 400px)
+      { maxWidth: 540, src: "images/chhath_puja_540x838.png" },      // Mobile Regular / Large (<= 540px)
+      { maxWidth: 780, src: "images/chhath_puja_780x838.png" },      // Tablet / Foldable (<= 780px)
+      { maxWidth: 780, src: "images/chhath_puja_1180x838.png" },      // small laptop (<= 1180px)
+      { maxWidth: Infinity, src: "images/ChatGPT Image Aug 14, 2026, 07_34_48 PM.png" } // Desktop / Large Screen (> 780px)
+    ];
+
+    // Fallback backgrounds in case individual breakpoint images are not found
+    const fallbackBackgrounds = [
       "images/ChatGPT Image Aug 14, 2026, 07_34_48 PM.png",
       "images/ChatGPT Image Aug 14, 2026, 07_36_50 PM.png",
       "images/ChatGPT Image Aug 14, 2026, 07_43_15 PM.png",
@@ -632,24 +589,48 @@
     ];
 
     const bgLayer = document.getElementById("bgLayer");
+    let currentLoadedSrc = "";
 
-    function tryBackground(index) {
-      if (!backgrounds[index]) return;
-      const img = new Image();
-      img.onload = function () {
-        bgLayer.style.setProperty("--user-bg", `url("${backgrounds[index]}")`);
-        bgLayer.classList.add("has-image");
-      };
-      img.onerror = function () {
-        console.warn("Background not found:", backgrounds[index]);
-        if (index + 1 < backgrounds.length) {
-          tryBackground(index + 1);
-        }
-      };
-      img.src = backgrounds[index];
+    function applyResponsiveBackground() {
+      const screenWidth = window.innerWidth;
+      const target = imageBreakpoints.find(bp => screenWidth <= bp.maxWidth);
+
+      if (target && target.src !== currentLoadedSrc) {
+        const img = new Image();
+        img.onload = () => {
+          bgLayer.style.backgroundImage = `url("${encodeURI(target.src)}")`;
+          currentLoadedSrc = target.src;
+        };
+        img.onerror = () => {
+          // If custom dimension image isn't present, try fallbacks
+          tryFallbackBackground(0);
+        };
+        img.src = target.src;
+      }
     }
 
-    tryBackground(0);
+    function tryFallbackBackground(index) {
+      if (index >= fallbackBackgrounds.length) return;
+      const img = new Image();
+      img.onload = () => {
+        bgLayer.style.backgroundImage = `url("${encodeURI(fallbackBackgrounds[index])}")`;
+        currentLoadedSrc = fallbackBackgrounds[index];
+      };
+      img.onerror = () => {
+        tryFallbackBackground(index + 1);
+      };
+      img.src = fallbackBackgrounds[index];
+    }
+
+    // Initial background load
+    applyResponsiveBackground();
+
+    // Re-calculate background on window resize (Debounced)
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(applyResponsiveBackground, 200);
+    });
 
     /* LIVE CLOCK */
     function updateClock() {
@@ -659,271 +640,188 @@
       const suffix = hours >= 12 ? "pm" : "am";
       hours = hours % 12 || 12;
 
-      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
       document.getElementById("currentTime").textContent = `${hours}:${minutes} ${suffix} IST`;
       document.getElementById("currentDate").textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
     }
-
     updateClock();
     setInterval(updateClock, 1000);
 
-    /* OFFLINE MUSIC PLAYER */
+    /* AUDIO PLAYER LOGIC */
     let songs = [];
     let currentSong = 0;
-    let offlineAudio = null;
-    const API_URL = "";
+    let isSeeking = false;
+    let lastVolume = 1;
 
-    loadOfflineSongs();
+    const offlineAudio = document.getElementById("offlineAudio");
+    const songName = document.getElementById("offlineSongName");
+    const playButton = document.getElementById("offlinePlay");
+    const progress = document.getElementById("offlineProgress");
+    const currentTime = document.getElementById("currentSongTime");
+    const totalTime = document.getElementById("totalSongTime");
+    const muteBtn = document.getElementById("muteBtn");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const playlistToggleBtn = document.getElementById("playlistToggleBtn");
+    const playlistCloseBtn = document.getElementById("playlistCloseBtn");
+    const playlistModal = document.getElementById("playlistModal");
+    const playlistList = document.getElementById("playlistList");
+    const playlistTitle = document.getElementById("playlistTitle");
 
     async function loadOfflineSongs() {
       try {
-        const response = await fetch(`${API_URL}/songs`);
-        if (!response.ok) throw new Error("Songs API failed");
+        const response = await fetch("/songs");
+        if (!response.ok) throw new Error("API error");
+        songs = await response.json();
 
-        const data = await response.json();
-        if (!Array.isArray(data) || data.length === 0) {
-          alert("songs folder mein koi MP3 file nahi mili.");
+        if (!Array.isArray(songs) || songs.length === 0) {
+          songName.textContent = "Koi geet nahi mila";
           return;
         }
 
-        songs = data;
-        currentSong = 0;
-        createOfflinePlayer();
-      } catch (error) {
-        console.error("Offline songs error:", error);
-        alert("Songs load nahi ho rahe.\nCheck karo ki node server.js chal raha hai.");
-      }
-    }
-
-    function createOfflinePlayer() {
-      const oldPlayer = document.getElementById("offlinePlayer");
-      if (oldPlayer) oldPlayer.remove();
-      const oldModal = document.getElementById("playlistModal");
-      if (oldModal) oldModal.remove();
-
-      // 1. Create Player Container
-      const player = document.createElement("div");
-      player.id = "offlinePlayer";
-
-      player.innerHTML = `
-        <div class="offline-cover">🌅</div>
-
-        <div class="offline-info">
-          <div class="offline-song-title" id="offlineSongName">${escapeHTML(songs[0].name)}</div>
-          <div class="offline-subtitle">छठ महापर्व</div>
-
-          <div class="offline-progress-row">
-            <span class="offline-time" id="currentSongTime">0:00</span>
-            <input type="range" class="offline-progress" id="offlineProgress" min="0" max="100" step="0.1" value="0" title="Seek">
-            <span class="offline-time" id="totalSongTime">0:00</span>
-          </div>
-        </div>
-
-        <div class="offline-controls">
-          <button class="offline-control-btn" id="prevSong" title="Previous" type="button">⏮</button>
-          <button class="offline-play-btn" id="offlinePlay" title="Play" type="button">▶</button>
-          <button class="offline-control-btn" id="nextSong" title="Next" type="button">⏭</button>
-
-          <div class="offline-volume">
-            <button class="offline-volume-btn" id="muteBtn" title="Mute" type="button">🔊</button>
-            <input type="range" class="offline-volume-slider" id="volumeSlider" min="0" max="100" value="100" title="Volume">
-          </div>
-
-          <button class="playlist-toggle-btn" id="playlistToggleBtn" title="Geet Suchi (Playlist)" type="button">☰</button>
-        </div>
-
-        <audio id="offlineAudio" preload="auto"></audio>
-      `;
-
-      // 2. Create Playlist Modal
-      const playlistModal = document.createElement("div");
-      playlistModal.id = "playlistModal";
-      playlistModal.className = "playlist-modal";
-      playlistModal.innerHTML = `
-        <div class="playlist-header">
-          <div class="playlist-title">🎵 Chhath Geet List (${songs.length})</div>
-          <button class="playlist-close" id="playlistCloseBtn">✕</button>
-        </div>
-        <ul class="playlist-list" id="playlistList"></ul>
-      `;
-
-      document.body.appendChild(player);
-      document.body.appendChild(playlistModal);
-
-      offlineAudio = document.getElementById("offlineAudio");
-      const songName = document.getElementById("offlineSongName");
-      const playButton = document.getElementById("offlinePlay");
-      const progress = document.getElementById("offlineProgress");
-      const currentTime = document.getElementById("currentSongTime");
-      const totalTime = document.getElementById("totalSongTime");
-      const muteBtn = document.getElementById("muteBtn");
-      const volumeSlider = document.getElementById("volumeSlider");
-      const playlistToggleBtn = document.getElementById("playlistToggleBtn");
-      const playlistCloseBtn = document.getElementById("playlistCloseBtn");
-      const playlistList = document.getElementById("playlistList");
-
-      let lastVolume = 1;
-      let isSeeking = false;
-
-      // Render Playlist Items
-      function renderPlaylist() {
-        playlistList.innerHTML = songs.map((s, idx) => `
-          <li class="playlist-item ${idx === currentSong ? 'active' : ''}" data-index="${idx}">
-            <span class="playlist-item-index">${idx + 1}.</span>
-            <span class="playlist-item-name">${escapeHTML(s.name)}</span>
-            ${idx === currentSong ? '<span>🔊</span>' : ''}
-          </li>
-        `).join('');
-
-        // Attach click listeners to list items
-        playlistList.querySelectorAll(".playlist-item").forEach(item => {
-          item.addEventListener("click", () => {
-            const songIdx = parseInt(item.getAttribute("data-index"), 10);
-            playSong(songIdx);
-          });
-        });
-      }
-
-      function formatTime(seconds) {
-        if (!isFinite(seconds)) return "0:00";
-        const minutes = Math.floor(seconds / 60);
-        const secondsPart = Math.floor(seconds % 60).toString().padStart(2, "0");
-        return `${minutes}:${secondsPart}`;
-      }
-
-      function loadSong(index) {
-        if (!songs[index]) return;
-        currentSong = index;
-        offlineAudio.src = songs[index].file;
-        songName.textContent = songs[index].name;
-        currentTime.textContent = "0:00";
-        totalTime.textContent = "0:00";
-        progress.value = 0;
-        progress.style.setProperty("--progress", "0%");
-        offlineAudio.load();
+        playlistTitle.textContent = `🎵 Chhath Geet List (${songs.length})`;
         renderPlaylist();
+        loadSong(0);
+      } catch (error) {
+        console.error("Songs fetch failed:", error);
+        songName.textContent = "Songs load nahi ho sake";
       }
-
-      function playSong(index) {
-        loadSong(index);
-        offlineAudio.play().catch(err => {
-          console.warn("Autoplay deferred:", err);
-          playButton.textContent = "▶";
-        });
-      }
-
-      /* TOGGLE PLAYLIST MODAL */
-      playlistToggleBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        playlistModal.classList.toggle("open");
-        playlistToggleBtn.classList.toggle("active");
-      });
-
-      playlistCloseBtn.addEventListener("click", () => {
-        playlistModal.classList.remove("open");
-        playlistToggleBtn.classList.remove("active");
-      });
-
-      // Close modal when clicking outside
-      document.addEventListener("click", (e) => {
-        if (!playlistModal.contains(e.target) && e.target !== playlistToggleBtn) {
-          playlistModal.classList.remove("open");
-          playlistToggleBtn.classList.remove("active");
-        }
-      });
-
-      /* PLAY / PAUSE */
-      playButton.addEventListener("click", function () {
-        if (offlineAudio.paused) {
-          offlineAudio.play().catch(e => console.error("Play error:", e));
-        } else {
-          offlineAudio.pause();
-        }
-      });
-
-      /* PREVIOUS / NEXT */
-      document.getElementById("prevSong").addEventListener("click", function () {
-        currentSong = (currentSong - 1 + songs.length) % songs.length;
-        playSong(currentSong);
-      });
-
-      document.getElementById("nextSong").addEventListener("click", function () {
-        currentSong = (currentSong + 1) % songs.length;
-        playSong(currentSong);
-      });
-
-      /* METADATA & TIMEUPDATE */
-      offlineAudio.addEventListener("loadedmetadata", function () {
-        totalTime.textContent = formatTime(offlineAudio.duration);
-      });
-
-      offlineAudio.addEventListener("timeupdate", function () {
-        if (isSeeking) return;
-
-        if (offlineAudio.duration && isFinite(offlineAudio.duration)) {
-          const percent = (offlineAudio.currentTime / offlineAudio.duration) * 100;
-          progress.value = percent;
-          progress.style.setProperty("--progress", `${percent}%`);
-        }
-        currentTime.textContent = formatTime(offlineAudio.currentTime);
-      });
-
-      /* INSTANT SEEKING */
-      progress.addEventListener("input", function () {
-        if (!offlineAudio.duration || !isFinite(offlineAudio.duration)) return;
-        isSeeking = true;
-        const seekPercent = progress.value;
-        const previewTime = (seekPercent / 100) * offlineAudio.duration;
-        progress.style.setProperty("--progress", `${seekPercent}%`);
-        currentTime.textContent = formatTime(previewTime);
-      });
-
-      progress.addEventListener("change", function () {
-        if (!offlineAudio.duration || !isFinite(offlineAudio.duration)) return;
-        const targetTime = (progress.value / 100) * offlineAudio.duration;
-        offlineAudio.currentTime = targetTime;
-        isSeeking = false;
-      });
-
-      /* EVENTS */
-      offlineAudio.addEventListener("play", () => playButton.textContent = "❚❚");
-      offlineAudio.addEventListener("pause", () => playButton.textContent = "▶");
-      offlineAudio.addEventListener("ended", () => {
-        currentSong = (currentSong + 1) % songs.length;
-        playSong(currentSong);
-      });
-
-      /* VOLUME */
-      volumeSlider.addEventListener("input", function () {
-        const vol = volumeSlider.value / 100;
-        offlineAudio.volume = vol;
-        muteBtn.textContent = vol === 0 ? "🔇" : vol < 0.5 ? "🔉" : "🔊";
-      });
-
-      muteBtn.addEventListener("click", function () {
-        if (offlineAudio.volume > 0) {
-          lastVolume = offlineAudio.volume;
-          offlineAudio.volume = 0;
-          volumeSlider.value = 0;
-          muteBtn.textContent = "🔇";
-        } else {
-          offlineAudio.volume = lastVolume;
-          volumeSlider.value = lastVolume * 100;
-          muteBtn.textContent = lastVolume < 0.5 ? "🔉" : "🔊";
-        }
-      });
-
-      // Initial song load
-      loadSong(0);
     }
+
+    function renderPlaylist() {
+      playlistList.innerHTML = songs.map((s, idx) => `
+        <li class="playlist-item ${idx === currentSong ? 'active' : ''}" data-index="${idx}">
+          <span>${idx + 1}.</span>
+          <span class="playlist-item-name">${escapeHTML(s.name)}</span>
+          ${idx === currentSong ? '<span>🔊</span>' : ''}
+        </li>
+      `).join('');
+
+      playlistList.querySelectorAll(".playlist-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const songIdx = parseInt(item.getAttribute("data-index"), 10);
+          playSong(songIdx);
+        });
+      });
+    }
+
+    function formatTime(seconds) {
+      if (!isFinite(seconds) || isNaN(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function loadSong(index) {
+      if (!songs[index]) return;
+      currentSong = index;
+      offlineAudio.src = songs[index].file;
+      songName.textContent = songs[index].name;
+      currentTime.textContent = "0:00";
+      totalTime.textContent = "0:00";
+      progress.value = 0;
+      renderPlaylist();
+    }
+
+    function playSong(index) {
+      loadSong(index);
+      offlineAudio.play().catch(err => {
+        console.warn("Play blocked:", err);
+        playButton.textContent = "▶";
+      });
+    }
+
+    playButton.addEventListener("click", () => {
+      if (offlineAudio.paused) {
+        offlineAudio.play().catch(e => console.error("Play error:", e));
+      } else {
+        offlineAudio.pause();
+      }
+    });
+
+    document.getElementById("prevSong").addEventListener("click", () => {
+      currentSong = (currentSong - 1 + songs.length) % songs.length;
+      playSong(currentSong);
+    });
+
+    document.getElementById("nextSong").addEventListener("click", () => {
+      currentSong = (currentSong + 1) % songs.length;
+      playSong(currentSong);
+    });
+
+    offlineAudio.addEventListener("loadedmetadata", () => {
+      totalTime.textContent = formatTime(offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("timeupdate", () => {
+      if (isSeeking) return;
+      if (offlineAudio.duration && isFinite(offlineAudio.duration)) {
+        progress.value = (offlineAudio.currentTime / offlineAudio.duration) * 100;
+      }
+      currentTime.textContent = formatTime(offlineAudio.currentTime);
+    });
+
+    progress.addEventListener("input", () => {
+      if (!offlineAudio.duration) return;
+      isSeeking = true;
+      currentTime.textContent = formatTime((progress.value / 100) * offlineAudio.duration);
+    });
+
+    progress.addEventListener("change", () => {
+      if (!offlineAudio.duration) return;
+      offlineAudio.currentTime = (progress.value / 100) * offlineAudio.duration;
+      isSeeking = false;
+    });
+
+    offlineAudio.addEventListener("play", () => playButton.textContent = "❚❚");
+    offlineAudio.addEventListener("pause", () => playButton.textContent = "▶");
+    offlineAudio.addEventListener("ended", () => {
+      currentSong = (currentSong + 1) % songs.length;
+      playSong(currentSong);
+    });
+
+    volumeSlider.addEventListener("input", () => {
+      const vol = volumeSlider.value / 100;
+      offlineAudio.volume = vol;
+      muteBtn.textContent = vol === 0 ? "🔇" : vol < 0.5 ? "🔉" : "🔊";
+    });
+
+    muteBtn.addEventListener("click", () => {
+      if (offlineAudio.volume > 0) {
+        lastVolume = offlineAudio.volume;
+        offlineAudio.volume = 0;
+        volumeSlider.value = 0;
+        muteBtn.textContent = "🔇";
+      } else {
+        offlineAudio.volume = lastVolume;
+        volumeSlider.value = lastVolume * 100;
+        muteBtn.textContent = lastVolume < 0.5 ? "🔉" : "🔊";
+      }
+    });
+
+    playlistToggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      playlistModal.classList.toggle("open");
+    });
+
+    playlistCloseBtn.addEventListener("click", () => {
+      playlistModal.classList.remove("open");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!playlistModal.contains(e.target) && e.target !== playlistToggleBtn) {
+        playlistModal.classList.remove("open");
+      }
+    });
 
     function escapeHTML(text) {
       const div = document.createElement("div");
       div.textContent = text;
       return div.innerHTML;
     }
+
+    loadOfflineSongs();
   </script>
 </body>
 

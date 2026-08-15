@@ -6,12 +6,11 @@ const PORT = process.env.PORT || 3000;
 const ROOT = path.resolve(__dirname);
 const SONGS_DIR = path.join(ROOT, "songs");
 
-// Content Type Map
 const MIME_TYPES = {
-    ".html": "text/html",
-    ".css": "text/css",
-    ".js": "text/javascript",
-    ".json": "application/json",
+    ".html": "text/html; charset=UTF-8",
+    ".css": "text/css; charset=UTF-8",
+    ".js": "text/javascript; charset=UTF-8",
+    ".json": "application/json; charset=UTF-8",
     ".png": "image/png",
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
@@ -24,7 +23,7 @@ const MIME_TYPES = {
 const server = http.createServer((req, res) => {
     // 1. CORS Headers
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Range");
 
     if (req.method === "OPTIONS") {
@@ -33,7 +32,6 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // URL path decode
     let parsedUrl = req.url.split("?")[0];
     let decodedPath = "";
     try {
@@ -79,7 +77,7 @@ const server = http.createServer((req, res) => {
     let relativePath = decodedPath === "/" ? "/index.html" : decodedPath;
     let filePath = path.resolve(ROOT, "." + relativePath);
 
-    // Prevent Directory Traversal Attack
+    // Directory Traversal Guard
     if (!filePath.startsWith(ROOT)) {
         res.writeHead(403, { "Content-Type": "text/plain" });
         res.end("Forbidden");
@@ -96,7 +94,7 @@ const server = http.createServer((req, res) => {
         const ext = path.extname(filePath).toLowerCase();
         const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
-        // MP3 Audio Range Support (High-speed Instant Streaming)
+        // Partial Byte-Range Support for MP3 (Mobile seek/buffer optimization)
         if (ext === ".mp3") {
             const range = req.headers.range;
             const fileSize = stats.size;
@@ -120,12 +118,7 @@ const server = http.createServer((req, res) => {
                     "Content-Type": "audio/mpeg"
                 });
 
-                const stream = fs.createReadStream(filePath, { 
-                    start, 
-                    end,
-                    highWaterMark: 64 * 1024 // 64 KB buffer for fast seek
-                });
-
+                const stream = fs.createReadStream(filePath, { start, end, highWaterMark: 128 * 1024 });
                 stream.on("error", () => res.end());
                 stream.pipe(res);
             } else {
@@ -135,17 +128,14 @@ const server = http.createServer((req, res) => {
                     "Accept-Ranges": "bytes"
                 });
 
-                const stream = fs.createReadStream(filePath, {
-                    highWaterMark: 64 * 1024
-                });
-
+                const stream = fs.createReadStream(filePath, { highWaterMark: 128 * 1024 });
                 stream.on("error", () => res.end());
                 stream.pipe(res);
             }
             return;
         }
 
-        // Static Files (HTML / CSS / Images)
+        // Static Assets (HTML/CSS/Images)
         res.writeHead(200, {
             "Content-Type": contentType,
             "Cache-Control": "public, max-age=3600"
@@ -158,5 +148,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Chhath Puja Player is live at http://localhost:${PORT}`);
 });
