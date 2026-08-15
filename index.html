@@ -91,13 +91,6 @@
       pointer-events: none;
     }
 
-    .time {
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-    }
-
     .time-widget {
       display: flex;
       flex-direction: column;
@@ -132,7 +125,6 @@
     .logo-container {
       position: absolute;
       top: 26%;
-      /* 40% से बदलकर 26% कर दिया गया है */
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
@@ -164,7 +156,7 @@
       left: 50%;
       bottom: 35px;
       transform: translateX(-50%);
-      width: min(760px, 94vw);
+      width: min(800px, 95vw);
       min-height: 100px;
       padding: 14px 24px;
       z-index: 30;
@@ -287,7 +279,7 @@
     .offline-controls {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .offline-control-btn {
@@ -388,13 +380,149 @@
       cursor: pointer;
     }
 
+    /* PLAYLIST BUTTON */
+    .playlist-toggle-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(232, 163, 61, 0.4);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--marigold-bright);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      margin-left: 2px;
+    }
+
+    .playlist-toggle-btn:hover,
+    .playlist-toggle-btn.active {
+      background: var(--marigold-bright);
+      color: var(--maroon-deep);
+      transform: scale(1.08);
+      box-shadow: 0 0 12px var(--glow);
+    }
+
+    /* PLAYLIST DRAWER POPUP */
+    .playlist-modal {
+      position: fixed;
+      bottom: 145px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      width: min(500px, 92vw);
+      max-height: 380px;
+      background: linear-gradient(135deg, rgba(38, 14, 22, 0.96), rgba(18, 7, 18, 0.98));
+      border: 1px solid rgba(232, 163, 61, 0.35);
+      border-radius: 24px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .playlist-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .playlist-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .playlist-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--marigold-bright);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .playlist-close {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .playlist-close:hover {
+      color: white;
+    }
+
+    .playlist-list {
+      list-style: none;
+      margin: 0;
+      padding: 10px 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .playlist-list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .playlist-list::-webkit-scrollbar-thumb {
+      background: rgba(232, 163, 61, 0.4);
+      border-radius: 10px;
+    }
+
+    .playlist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .playlist-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+    }
+
+    .playlist-item.active {
+      background: rgba(232, 163, 61, 0.2);
+      color: var(--marigold-bright);
+      font-weight: 600;
+      border-left: 3px solid var(--marigold-bright);
+    }
+
+    .playlist-item-index {
+      font-size: 12px;
+      opacity: 0.6;
+      width: 20px;
+    }
+
+    .playlist-item-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     #offlineAudio {
       display: none;
     }
 
     /* RESPONSIVENESS */
     @media (max-width: 650px) {
-
       .time-widget {
         padding: 6px 12px;
       }
@@ -416,24 +544,20 @@
         padding: 15px 16px;
       }
 
-      .time {
-        font-size: 14px;
-      }
-
       #offlinePlayer {
-        width: 95vw;
-        min-height: 90px;
-        padding: 12px 16px;
-        grid-template-columns: 48px 1fr auto;
-        gap: 12px;
-        border-radius: 32px;
-        bottom: 20px;
+        width: 96vw;
+        min-height: 85px;
+        padding: 10px 14px;
+        grid-template-columns: 44px 1fr auto;
+        gap: 10px;
+        border-radius: 30px;
+        bottom: 18px;
       }
 
       .offline-cover {
-        width: 48px;
-        height: 48px;
-        font-size: 22px;
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
       }
 
       .offline-song-title {
@@ -445,21 +569,27 @@
       }
 
       .offline-controls {
-        gap: 8px;
+        gap: 6px;
       }
 
       .offline-control-btn {
-        font-size: 16px;
+        font-size: 15px;
       }
 
       .offline-play-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
       }
 
       .offline-volume-slider {
-        width: 35px;
+        width: 32px;
+      }
+
+      .playlist-modal {
+        bottom: 115px;
+        width: 95vw;
+        max-height: 320px;
       }
     }
 
@@ -521,28 +651,19 @@
 
     tryBackground(0);
 
-    /* LIVE CLOCK (TIME ON TOP, DATE BELOW) */
+    /* LIVE CLOCK */
     function updateClock() {
       const now = new Date();
-
-      // 1. Time Calculation
       let hours = now.getHours();
       const minutes = now.getMinutes().toString().padStart(2, "0");
       const suffix = hours >= 12 ? "pm" : "am";
       hours = hours % 12 || 12;
 
-      // 2. Day & Date Calculation
       const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-      const dayName = days[now.getDay()];
-      const date = now.getDate();
-      const monthName = months[now.getMonth()];
-      const year = now.getFullYear();
-
-      // Set Elements
       document.getElementById("currentTime").textContent = `${hours}:${minutes} ${suffix} IST`;
-      document.getElementById("currentDate").textContent = `${dayName}, ${date} ${monthName} ${year}`;
+      document.getElementById("currentDate").textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
     }
 
     updateClock();
@@ -579,7 +700,10 @@
     function createOfflinePlayer() {
       const oldPlayer = document.getElementById("offlinePlayer");
       if (oldPlayer) oldPlayer.remove();
+      const oldModal = document.getElementById("playlistModal");
+      if (oldModal) oldModal.remove();
 
+      // 1. Create Player Container
       const player = document.createElement("div");
       player.id = "offlinePlayer";
 
@@ -606,12 +730,27 @@
             <button class="offline-volume-btn" id="muteBtn" title="Mute" type="button">🔊</button>
             <input type="range" class="offline-volume-slider" id="volumeSlider" min="0" max="100" value="100" title="Volume">
           </div>
+
+          <button class="playlist-toggle-btn" id="playlistToggleBtn" title="Geet Suchi (Playlist)" type="button">☰</button>
         </div>
 
         <audio id="offlineAudio" preload="auto"></audio>
       `;
 
+      // 2. Create Playlist Modal
+      const playlistModal = document.createElement("div");
+      playlistModal.id = "playlistModal";
+      playlistModal.className = "playlist-modal";
+      playlistModal.innerHTML = `
+        <div class="playlist-header">
+          <div class="playlist-title">🎵 Chhath Geet List (${songs.length})</div>
+          <button class="playlist-close" id="playlistCloseBtn">✕</button>
+        </div>
+        <ul class="playlist-list" id="playlistList"></ul>
+      `;
+
       document.body.appendChild(player);
+      document.body.appendChild(playlistModal);
 
       offlineAudio = document.getElementById("offlineAudio");
       const songName = document.getElementById("offlineSongName");
@@ -621,9 +760,31 @@
       const totalTime = document.getElementById("totalSongTime");
       const muteBtn = document.getElementById("muteBtn");
       const volumeSlider = document.getElementById("volumeSlider");
+      const playlistToggleBtn = document.getElementById("playlistToggleBtn");
+      const playlistCloseBtn = document.getElementById("playlistCloseBtn");
+      const playlistList = document.getElementById("playlistList");
 
       let lastVolume = 1;
       let isSeeking = false;
+
+      // Render Playlist Items
+      function renderPlaylist() {
+        playlistList.innerHTML = songs.map((s, idx) => `
+          <li class="playlist-item ${idx === currentSong ? 'active' : ''}" data-index="${idx}">
+            <span class="playlist-item-index">${idx + 1}.</span>
+            <span class="playlist-item-name">${escapeHTML(s.name)}</span>
+            ${idx === currentSong ? '<span>🔊</span>' : ''}
+          </li>
+        `).join('');
+
+        // Attach click listeners to list items
+        playlistList.querySelectorAll(".playlist-item").forEach(item => {
+          item.addEventListener("click", () => {
+            const songIdx = parseInt(item.getAttribute("data-index"), 10);
+            playSong(songIdx);
+          });
+        });
+      }
 
       function formatTime(seconds) {
         if (!isFinite(seconds)) return "0:00";
@@ -642,6 +803,7 @@
         progress.value = 0;
         progress.style.setProperty("--progress", "0%");
         offlineAudio.load();
+        renderPlaylist();
       }
 
       function playSong(index) {
@@ -651,6 +813,26 @@
           playButton.textContent = "▶";
         });
       }
+
+      /* TOGGLE PLAYLIST MODAL */
+      playlistToggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        playlistModal.classList.toggle("open");
+        playlistToggleBtn.classList.toggle("active");
+      });
+
+      playlistCloseBtn.addEventListener("click", () => {
+        playlistModal.classList.remove("open");
+        playlistToggleBtn.classList.remove("active");
+      });
+
+      // Close modal when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!playlistModal.contains(e.target) && e.target !== playlistToggleBtn) {
+          playlistModal.classList.remove("open");
+          playlistToggleBtn.classList.remove("active");
+        }
+      });
 
       /* PLAY / PAUSE */
       playButton.addEventListener("click", function () {
@@ -688,7 +870,7 @@
         currentTime.textContent = formatTime(offlineAudio.currentTime);
       });
 
-      /* INSTANT SEEKING LOGIC */
+      /* INSTANT SEEKING */
       progress.addEventListener("input", function () {
         if (!offlineAudio.duration || !isFinite(offlineAudio.duration)) return;
         isSeeking = true;
@@ -733,7 +915,7 @@
         }
       });
 
-      // Initial song load (ready to play)
+      // Initial song load
       loadSong(0);
     }
 
