@@ -768,6 +768,23 @@
       return `${m}:${s}`;
     }
 
+    /* MEDIA SESSION POSITION STATE SYNC (Notification Bar Slider ke liye) */
+    function updateMediaSessionPosition() {
+      if ("mediaSession" in navigator && "setPositionState" in navigator.mediaSession) {
+        if (offlineAudio.duration && isFinite(offlineAudio.duration)) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: offlineAudio.duration,
+              playbackRate: offlineAudio.playbackRate || 1,
+              position: Math.min(offlineAudio.currentTime, offlineAudio.duration)
+            });
+          } catch (e) {
+            console.debug("Position state error:", e);
+          }
+        }
+      }
+    }
+
     /* MEDIA SESSION API SETUP (Notification bar / Lock Screen Widget) */
     function updateMediaSession() {
       if ("mediaSession" in navigator && songs[currentSong]) {
@@ -783,29 +800,37 @@
           ]
         });
 
-        // 1. Play Action
+        // Play Handler
         navigator.mediaSession.setActionHandler("play", () => {
           offlineAudio.play();
         });
 
-        // 2. Pause Action (Sirf Gaana Pause Hoga)
+        // Pause Handler (Sirf Gaana Pause Hoga)
         navigator.mediaSession.setActionHandler("pause", () => {
           offlineAudio.pause();
         });
 
-        // 3. Previous Song Action
+        // Previous Track Handler
         navigator.mediaSession.setActionHandler("previoustrack", () => {
           currentSong = (currentSong - 1 + songs.length) % songs.length;
           playSong(currentSong);
         });
 
-        // 4. Next Song Action
+        // Next Track Handler
         navigator.mediaSession.setActionHandler("nexttrack", () => {
           currentSong = (currentSong + 1) % songs.length;
           playSong(currentSong);
         });
 
-        // 5. Cross / Stop Action (Notification Widget dismiss karega aur audio reset karega)
+        // Seek To Action (Notification slider drag karne ke liye)
+        navigator.mediaSession.setActionHandler("seekto", (details) => {
+          if (details.seekTime && isFinite(details.seekTime)) {
+            offlineAudio.currentTime = details.seekTime;
+            updateMediaSessionPosition();
+          }
+        });
+
+        // Stop / Dismiss Action
         navigator.mediaSession.setActionHandler("stop", () => {
           offlineAudio.pause();
           offlineAudio.currentTime = 0;
@@ -855,12 +880,14 @@
 
     offlineAudio.addEventListener("loadedmetadata", () => {
       totalTime.textContent = formatTime(offlineAudio.duration);
+      updateMediaSessionPosition();
     });
 
     offlineAudio.addEventListener("timeupdate", () => {
       if (isSeeking) return;
       if (offlineAudio.duration && isFinite(offlineAudio.duration)) {
         progress.value = (offlineAudio.currentTime / offlineAudio.duration) * 100;
+        updateMediaSessionPosition();
       }
       currentTime.textContent = formatTime(offlineAudio.currentTime);
     });
@@ -878,6 +905,7 @@
       if (!offlineAudio.duration) return;
       offlineAudio.currentTime = (progress.value / 100) * offlineAudio.duration;
       isSeeking = false;
+      updateMediaSessionPosition();
     });
 
     offlineAudio.addEventListener("play", () => {
@@ -886,6 +914,7 @@
         navigator.mediaSession.playbackState = "playing";
       }
       renderPlaylist();
+      updateMediaSessionPosition();
     });
 
     offlineAudio.addEventListener("pause", () => {
@@ -894,6 +923,7 @@
         navigator.mediaSession.playbackState = "paused";
       }
       renderPlaylist();
+      updateMediaSessionPosition();
     });
 
     offlineAudio.addEventListener("ended", () => {
