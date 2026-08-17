@@ -161,67 +161,69 @@
     /* ========================================================
    EXTRA SMALL SCREENS (<= 400px)
    ======================================================== */
-@media (max-width: 400px) {
-  .logo-container {
-    margin-top: 15vh; /* Chhoti screens par balance banaye rakhne ke liye */
-    padding: 6px 0;
-  }
+    @media (max-width: 400px) {
+      .logo-container {
+        margin-top: 15vh;
+        /* Chhoti screens par balance banaye rakhne ke liye */
+        padding: 6px 0;
+      }
 
-  .logo {
-    font-size: clamp(46px, 15vw, 62px); /* 400px se kam par overflow nahi hoga aur bada dikhega */
-    letter-spacing: 1px;
-  }
+      .logo {
+        font-size: clamp(46px, 15vw, 62px);
+        /* 400px se kam par overflow nahi hoga aur bada dikhega */
+        letter-spacing: 1px;
+      }
 
-  .tagline {
-    font-size: 18px;
-    margin-top: 4px;
-    letter-spacing: 1.5px;
-  }
+      .tagline {
+        font-size: 18px;
+        margin-top: 4px;
+        letter-spacing: 1.5px;
+      }
 
-  /* Player controls optimization for < 400px */
-  #offlinePlayer {
-    padding: 8px 10px;
-    border-radius: 18px;
-    gap: 6px 8px;
-  }
+      /* Player controls optimization for < 400px */
+      #offlinePlayer {
+        padding: 8px 10px;
+        border-radius: 18px;
+        gap: 6px 8px;
+      }
 
-  .offline-cover {
-    width: 38px;
-    height: 38px;
-    font-size: 18px;
-  }
+      .offline-cover {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+      }
 
-  .offline-song-title {
-    font-size: 13px;
-  }
+      .offline-song-title {
+        font-size: 13px;
+      }
 
-  .offline-controls {
-    gap: 4px;
-    padding-top: 4px;
-  }
+      .offline-controls {
+        gap: 4px;
+        padding-top: 4px;
+      }
 
-  .offline-control-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 14px;
-  }
+      .offline-control-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+      }
 
-  .offline-play-btn {
-    width: 34px;
-    height: 34px;
-    font-size: 14px;
-  }
+      .offline-play-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+      }
 
-  .playlist-toggle-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
-  }
+      .playlist-toggle-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+      }
 
-  .offline-volume-slider {
-    width: 30px;
-  }
-}
+      .offline-volume-slider {
+        width: 30px;
+      }
+    }
 
 
     /* ========================================================
@@ -738,12 +740,13 @@
 
     async function loadOfflineSongs() {
       try {
-        const response = await fetch("/songs");
-        if (!response.ok) throw new Error("API error");
+        // ✅ Ab yeh direct static songs.json file ko load karega
+        const response = await fetch("songs.json");
+        if (!response.ok) throw new Error("JSON file nahi mili ya load nahi hui");
         songs = await response.json();
 
         if (!Array.isArray(songs) || songs.length === 0) {
-          songName.textContent = "Koi geet nahi mila";
+          songName.textContent = "No Song Found";
           return;
         }
 
@@ -752,7 +755,7 @@
         loadSong(0);
       } catch (error) {
         console.error("Songs fetch failed:", error);
-        songName.textContent = "Songs load nahi ho sake";
+        songName.textContent = "The songs could not be loaded.";
       }
     }
 
