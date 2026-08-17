@@ -8,7 +8,6 @@
   <link rel="icon" type="image/png" href="/images/logo.png">
   <meta name="description" content="Chhath Puja geet — bina ads ke, ek jagah.">
 
-  <!-- Instant Background Preloading -->
   <link rel="preload" as="image" href="images/chhath_puja_400x838_new.png" media="(max-width: 1180px)">
   <link rel="preload" as="image" href="images/image_background.png" media="(min-width: 1181px)">
 
@@ -636,7 +635,6 @@
       <div class="tagline">॥ जय छठी मईया ॥</div>
     </main>
 
-    <!-- PLAYER -->
     <div id="offlinePlayer">
       <div class="offline-cover">🌅</div>
 
@@ -676,7 +674,6 @@
       <audio id="offlineAudio" preload="metadata"></audio>
     </div>
 
-    <!-- PLAYLIST MODAL -->
     <div class="playlist-modal" id="playlistModal">
       <div class="playlist-header">
         <div class="playlist-title" id="playlistTitle">🎵 Chhath Geet List</div>
@@ -771,6 +768,53 @@
       return `${m}:${s}`;
     }
 
+    /* MEDIA SESSION API SETUP (Notification bar / Lock Screen Widget) */
+    function updateMediaSession() {
+      if ("mediaSession" in navigator && songs[currentSong]) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: songs[currentSong].name,
+          artist: "छठ महापर्व",
+          album: "छठ घाट",
+          artwork: [
+            { src: "/images/logo.png", sizes: "96x96", type: "image/png" },
+            { src: "/images/logo.png", sizes: "128x128", type: "image/png" },
+            { src: "/images/logo.png", sizes: "192x192", type: "image/png" },
+            { src: "/images/logo.png", sizes: "512x512", type: "image/png" }
+          ]
+        });
+
+        // 1. Play Action
+        navigator.mediaSession.setActionHandler("play", () => {
+          offlineAudio.play();
+        });
+
+        // 2. Pause Action (Sirf Gaana Pause Hoga)
+        navigator.mediaSession.setActionHandler("pause", () => {
+          offlineAudio.pause();
+        });
+
+        // 3. Previous Song Action
+        navigator.mediaSession.setActionHandler("previoustrack", () => {
+          currentSong = (currentSong - 1 + songs.length) % songs.length;
+          playSong(currentSong);
+        });
+
+        // 4. Next Song Action
+        navigator.mediaSession.setActionHandler("nexttrack", () => {
+          currentSong = (currentSong + 1) % songs.length;
+          playSong(currentSong);
+        });
+
+        // 5. Cross / Stop Action (Notification Widget dismiss karega aur audio reset karega)
+        navigator.mediaSession.setActionHandler("stop", () => {
+          offlineAudio.pause();
+          offlineAudio.currentTime = 0;
+          navigator.mediaSession.playbackState = "none";
+          renderPlaylist();
+        });
+      }
+    }
+
     function loadSong(index) {
       if (!songs[index]) return;
       currentSong = index;
@@ -780,6 +824,7 @@
       totalTime.textContent = "0:00";
       progress.value = 0;
       renderPlaylist();
+      updateMediaSession();
     }
 
     function playSong(index) {
@@ -837,11 +882,17 @@
 
     offlineAudio.addEventListener("play", () => {
       playButton.textContent = "❚❚";
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+      }
       renderPlaylist();
     });
 
     offlineAudio.addEventListener("pause", () => {
       playButton.textContent = "▶";
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+      }
       renderPlaylist();
     });
 
