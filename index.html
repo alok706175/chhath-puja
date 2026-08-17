@@ -159,18 +159,16 @@
     }
 
     /* ========================================================
-   EXTRA SMALL SCREENS (<= 400px)
-   ======================================================== */
+       EXTRA SMALL SCREENS (<= 400px)
+       ======================================================== */
     @media (max-width: 400px) {
       .logo-container {
         margin-top: 15vh;
-        /* Chhoti screens par balance banaye rakhne ke liye */
         padding: 6px 0;
       }
 
       .logo {
         font-size: clamp(46px, 15vw, 62px);
-        /* 400px se kam par overflow nahi hoga aur bada dikhega */
         letter-spacing: 1px;
       }
 
@@ -180,7 +178,6 @@
         letter-spacing: 1.5px;
       }
 
-      /* Player controls optimization for < 400px */
       #offlinePlayer {
         padding: 8px 10px;
         border-radius: 18px;
@@ -224,7 +221,6 @@
         width: 30px;
       }
     }
-
 
     /* ========================================================
        RESPONSIVE AUDIO PLAYER (Desktop: 1 Row, Mobile: 2 Rows)
@@ -570,18 +566,55 @@
         width: 94vw;
         border-radius: 16px;
       }
-
-      
     }
 
     .offline-volume-btn svg {
-        width: 18px;
-        height: 18px;
-        fill: currentColor;
-        display: block;
-        pointer-events: none;
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      display: block;
+      pointer-events: none;
+    }
+
+    .equalizer {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .equalizer-bar {
+      width: 3px;
+      background-color: var(--marigold-bright);
+      border-radius: 2px;
+      animation: bounce 1s ease-in-out infinite alternate;
+    }
+
+    .equalizer-bar:nth-child(1) {
+      height: 40%;
+      animation-delay: 0.1s;
+    }
+
+    .equalizer-bar:nth-child(2) {
+      height: 100%;
+      animation-delay: 0.3s;
+    }
+
+    .equalizer-bar:nth-child(3) {
+      height: 60%;
+      animation-delay: 0.2s;
+    }
+
+    @keyframes bounce {
+      0% {
+        height: 20%;
       }
 
+      100% {
+        height: 100%;
+      }
+    }
   </style>
 </head>
 
@@ -657,19 +690,15 @@
        DIMENSION-BASED RESPONSIVE BACKGROUND HANDLER
        ======================================================== */
     const imageBreakpoints = [
-      { maxWidth: 400, src: "images/chhath_puja_400x838_new.png" },      // Mobile Small (<= 400px)
-      { maxWidth: 540, src: "images/chhath_puja_540x838.png" },      // Mobile Regular / Large (<= 540px)
-      { maxWidth: 780, src: "images/chhath_puja_780x838.png" },      // Tablet / Foldable (<= 780px)
-      { maxWidth: 1180, src: "images/chhath_puja_1180x838.png" },      // small laptop (<= 1180px)
-      { maxWidth: Infinity, src: "images/ChatGPT Image Aug 14, 2026, 07_34_48 PM.png" } // Desktop / Large Screen (> 780px)
+      { maxWidth: 400, src: "images/chhath_puja_400x838_new.png" },
+      { maxWidth: 540, src: "images/chhath_puja_400x838_new.png" },
+      { maxWidth: 780, src: "images/chhath_puja_400x838_new.png" },
+      { maxWidth: 1180, src: "images/chhath_puja_400x838_new.png" },
+      { maxWidth: Infinity, src: "images/image_background.png" }
     ];
 
-    // Fallback backgrounds in case individual breakpoint images are not found
     const fallbackBackgrounds = [
-      "images/ChatGPT Image Aug 14, 2026, 07_34_48 PM.png",
-      "images/ChatGPT Image Aug 14, 2026, 07_36_50 PM.png",
-      "images/ChatGPT Image Aug 14, 2026, 07_43_15 PM.png",
-      "images/chhath.png"
+      "images/image_background.png"
     ];
 
     const bgLayer = document.getElementById("bgLayer");
@@ -686,7 +715,6 @@
           currentLoadedSrc = target.src;
         };
         img.onerror = () => {
-          // If custom dimension image isn't present, try fallbacks
           tryFallbackBackground(0);
         };
         img.src = target.src;
@@ -706,10 +734,8 @@
       img.src = fallbackBackgrounds[index];
     }
 
-    // Initial background load
     applyResponsiveBackground();
 
-    // Re-calculate background on window resize (Debounced)
     let resizeTimer;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
@@ -755,7 +781,6 @@
 
     async function loadOfflineSongs() {
       try {
-        // ✅ Ab yeh direct static songs.json file ko load karega
         const response = await fetch("songs.json");
         if (!response.ok) throw new Error("JSON file nahi mili ya load nahi hui");
         songs = await response.json();
@@ -775,16 +800,19 @@
     }
 
     function renderPlaylist() {
+      const isPlaying = !offlineAudio.paused;
+
       playlistList.innerHTML = songs.map((s, idx) => `
         <li class="playlist-item ${idx === currentSong ? 'active' : ''}" data-index="${idx}">
           <span>${idx + 1}.</span>
           <span class="playlist-item-name">${escapeHTML(s.name)}</span>
-          ${idx === currentSong ? '<span>🔊</span>' : ''}
+          ${idx === currentSong && isPlaying ? '<span class="equalizer"><span class="equalizer-bar"></span><span class="equalizer-bar"></span><span class="equalizer-bar"></span></span>' : ''}
         </li>
       `).join('');
 
       playlistList.querySelectorAll(".playlist-item").forEach(item => {
-        item.addEventListener("click", () => {
+        item.addEventListener("click", (e) => {
+          e.stopPropagation();
           const songIdx = parseInt(item.getAttribute("data-index"), 10);
           playSong(songIdx);
         });
@@ -862,8 +890,16 @@
       isSeeking = false;
     });
 
-    offlineAudio.addEventListener("play", () => playButton.textContent = "❚❚");
-    offlineAudio.addEventListener("pause", () => playButton.textContent = "▶");
+    offlineAudio.addEventListener("play", () => {
+      playButton.textContent = "❚❚";
+      renderPlaylist();
+    });
+
+    offlineAudio.addEventListener("pause", () => {
+      playButton.textContent = "▶";
+      renderPlaylist();
+    });
+
     offlineAudio.addEventListener("ended", () => {
       currentSong = (currentSong + 1) % songs.length;
       playSong(currentSong);
@@ -880,7 +916,6 @@
     const VOL_LOW_ICON = `<svg viewBox="0 0 24 24"><path d="M7 9v6h4l5 5V4L11 9H7zm11.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>`;
     const VOL_MUTE_ICON = `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
 
-    // Function to update icon
     function updateVolumeIcon(vol) {
       if (vol === 0) {
         muteBtn.innerHTML = VOL_MUTE_ICON;
@@ -891,7 +926,6 @@
       }
     }
 
-    // Mute Button Event Listener
     muteBtn.addEventListener("click", () => {
       if (offlineAudio.volume > 0) {
         lastVolume = offlineAudio.volume;
@@ -910,8 +944,13 @@
       playlistModal.classList.toggle("open");
     });
 
-    playlistCloseBtn.addEventListener("click", () => {
+    playlistCloseBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       playlistModal.classList.remove("open");
+    });
+
+    playlistModal.addEventListener("click", (e) => {
+      e.stopPropagation();
     });
 
     document.addEventListener("click", (e) => {
