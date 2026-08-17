@@ -8,6 +8,10 @@
   <link rel="icon" type="image/png" href="/images/logo.png">
   <meta name="description" content="Chhath Puja geet — bina ads ke, ek jagah.">
 
+  <!-- Instant Background Preloading -->
+  <link rel="preload" as="image" href="images/chhath_puja_400x838_new.png" media="(max-width: 1180px)">
+  <link rel="preload" as="image" href="images/image_background.png" media="(min-width: 1181px)">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -46,7 +50,7 @@
     }
 
     /* ========================================================
-       RESPONSIVE BACKGROUND LAYER
+       RESPONSIVE BACKGROUND LAYER (PURE CSS - ZERO DELAY)
        ======================================================== */
     .bg-layer {
       position: fixed;
@@ -55,14 +59,17 @@
       height: 100dvh;
       z-index: 0;
       background-color: var(--maroon-deep);
-      background-image:
-        radial-gradient(circle at 50% 20%, rgba(232, 163, 61, 0.22), transparent 60%),
-        linear-gradient(180deg, var(--maroon-deep) 0%, #170406 100%);
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
-      transition: background-image 0.4s ease-in-out;
       transform: scale(1.02);
+      background-image: url("images/image_background.png");
+    }
+
+    @media (max-width: 1180px) {
+      .bg-layer {
+        background-image: url("images/chhath_puja_400x838_new.png");
+      }
     }
 
     .bg-overlay {
@@ -158,9 +165,7 @@
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
     }
 
-    /* ========================================================
-       EXTRA SMALL SCREENS (<= 400px)
-       ======================================================== */
+    /* EXTRA SMALL SCREENS (<= 400px) */
     @media (max-width: 400px) {
       .logo-container {
         margin-top: 15vh;
@@ -222,9 +227,7 @@
       }
     }
 
-    /* ========================================================
-       RESPONSIVE AUDIO PLAYER (Desktop: 1 Row, Mobile: 2 Rows)
-       ======================================================== */
+    /* RESPONSIVE AUDIO PLAYER */
     #offlinePlayer {
       width: min(850px, 100%);
       padding: 12px 18px;
@@ -487,9 +490,7 @@
       text-overflow: ellipsis;
     }
 
-    /* ========================================================
-       MOBILE & NARROW SCREEN OPTIMIZATIONS (<= 640px)
-       ======================================================== */
+    /* MOBILE SCREEN OPTIMIZATIONS (<= 640px) */
     @media (max-width: 640px) {
       #offlinePlayer {
         grid-template-columns: 44px 1fr;
@@ -686,62 +687,6 @@
   </div>
 
   <script>
-    /* ========================================================
-       DIMENSION-BASED RESPONSIVE BACKGROUND HANDLER
-       ======================================================== */
-    const imageBreakpoints = [
-      { maxWidth: 400, src: "images/chhath_puja_400x838_new.png" },
-      { maxWidth: 540, src: "images/chhath_puja_400x838_new.png" },
-      { maxWidth: 780, src: "images/chhath_puja_400x838_new.png" },
-      { maxWidth: 1180, src: "images/chhath_puja_400x838_new.png" },
-      { maxWidth: Infinity, src: "images/image_background.png" }
-    ];
-
-    const fallbackBackgrounds = [
-      "images/image_background.png"
-    ];
-
-    const bgLayer = document.getElementById("bgLayer");
-    let currentLoadedSrc = "";
-
-    function applyResponsiveBackground() {
-      const screenWidth = window.innerWidth;
-      const target = imageBreakpoints.find(bp => screenWidth <= bp.maxWidth);
-
-      if (target && target.src !== currentLoadedSrc) {
-        const img = new Image();
-        img.onload = () => {
-          bgLayer.style.backgroundImage = `url("${encodeURI(target.src)}")`;
-          currentLoadedSrc = target.src;
-        };
-        img.onerror = () => {
-          tryFallbackBackground(0);
-        };
-        img.src = target.src;
-      }
-    }
-
-    function tryFallbackBackground(index) {
-      if (index >= fallbackBackgrounds.length) return;
-      const img = new Image();
-      img.onload = () => {
-        bgLayer.style.backgroundImage = `url("${encodeURI(fallbackBackgrounds[index])}")`;
-        currentLoadedSrc = fallbackBackgrounds[index];
-      };
-      img.onerror = () => {
-        tryFallbackBackground(index + 1);
-      };
-      img.src = fallbackBackgrounds[index];
-    }
-
-    applyResponsiveBackground();
-
-    let resizeTimer;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(applyResponsiveBackground, 200);
-    });
-
     /* LIVE CLOCK */
     function updateClock() {
       const now = new Date();
