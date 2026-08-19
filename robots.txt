@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chhath-puja.onrender.com/sitemap.xml
