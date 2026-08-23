@@ -4,27 +4,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <!-- <title>Chhath Puja Geet</title> -->
-  <title>Chhath Puja | Chhath Puja Geet & Songs | Chhath Ghat</title>
+
+  <title>Chhath Puja Geet &amp; Songs | Chhath Ghat</title>
+
   <link rel="canonical" href="https://chhath-puja.onrender.com/">
+
   <link rel="icon" type="image/png" href="/favicon.io/favicon.png">
-  <!-- <meta name="description"
-    content="Listen to Chhath Puja songs, Bhojpuri Chhath Geet, Chhathi Maiya Bhajan and Surya Dev devotional songs online. Enjoy popular traditional Chhath songs in one place."> -->
-  <meta name="description"
-    content="Listen to Chhath Puja Geet, Bhojpuri Chhath songs, Chhathi Maiya Bhajan and Surya Dev devotional songs online. Explore traditional Chhath songs and devotional music at Chhath Ghat.">
+  <link rel="icon" type="ico" sizes="180x180" href="/favicon.io/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon.io/android-chrome-512x512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.io/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon.io/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <meta name="description" content="Listen to Chhath Puja Geet, Chhath Puja songs, Bhojpuri Chhath Geet, Chhathi Maiya Bhajan and Surya Dev devotional songs online at Chhath Ghat.">
+  
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#24080a">
 
   <meta name="google-site-verification" content="JdFt7KZsPG7HDCOE5foabdfFyan0L7QP5itU88UaavA" />
 
+
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Chhath Puja Geet">
+  <meta property="og:title" content="Chhath Puja Geet &amp; Songs | Chhath Ghat">
   <meta property="og:description"
     content="Listen to Chhath Puja songs, Bhojpuri Chhath Geet, Chhathi Maiya Bhajan and Surya Dev devotional songs online.">
   <meta property="og:url" content="https://chhath-puja.onrender.com/">
   <meta property="og:image" content="https://chhath-puja.onrender.com/images/image_background.png">
   <meta property="og:site_name" content="Chhath Ghat">
 
+
   <link rel="preload" as="image" href="images/chhath_puja_400x838.png" media="(max-width: 1180px)">
   <link rel="preload" as="image" href="images/image_background.png" media="(min-width: 1181px)">
+
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,16 +45,31 @@
     href="https://fonts.googleapis.com/css2?family=Khula:wght@400;600;700&family=Mukta:wght@400;500;600;700&family=Yatra+One&display=swap"
     rel="stylesheet">
 
+
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Chhath Ghat",
-  "alternateName": "Chhath Puja",
-  "url": "https://chhath-puja.onrender.com/",
-  "description": "Chhath Puja Geet, Chhath Puja songs, Chhathi Maiya Bhajan and devotional music."
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://chhath-puja.onrender.com/#website",
+      "name": "Chhath Ghat",
+      "alternateName": ["Chhath Puja", "छठ घाट"],
+      "url": "https://chhath-puja.onrender.com/",
+      "description": "Chhath Puja Geet, Chhath Puja songs, Bhojpuri Chhath Geet, Chhathi Maiya Bhajan and Surya Dev devotional music."
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://chhath-puja.onrender.com/#webpage",
+      "url": "https://chhath-puja.onrender.com/",
+      "name": "Chhath Puja Geet & Songs | Chhath Ghat",
+      "isPartOf": {"@id": "https://chhath-puja.onrender.com/#website"},
+      "description": "Listen to Chhath Puja Geet, Chhath Puja songs, Bhojpuri Chhath Geet, Chhathi Maiya Bhajan and Surya Dev devotional songs online.",
+      "inLanguage": ["hi", "en"]
+    }
+  ]
 }
-</script>
+  </script>
 
   <style>
     :root {
@@ -179,10 +207,13 @@
     }
 
     .tagline {
-      font-size: clamp(18px, 4vw, 30px);
+      font-family: "Yatra One", system-ui;
+      font-weight: 400;
+
+      font-size: clamp(18px, 4vw, 100px);
       color: var(--marigold-bright);
       margin-top: 6px;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
     }
 
@@ -636,6 +667,80 @@
         height: 100%;
       }
     }
+
+
+    /* =========================================================
+       SEO CONTENT
+       Keeps the music-first hero design while providing useful,
+       visible and crawlable content for visitors and search engines.
+       ========================================================= */
+    .seo-content {
+      position: relative;
+      z-index: 2;
+      width: min(980px, calc(100% - 32px));
+      margin: 56px auto 40px;
+      padding: 28px clamp(18px, 4vw, 42px);
+      color: var(--cream);
+      background: linear-gradient(135deg, rgba(38, 14, 22, 0.92), rgba(18, 7, 18, 0.94));
+      border: 1px solid rgba(232, 163, 61, 0.28);
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .seo-content h2 {
+      margin: 0 0 10px;
+      color: var(--marigold-bright);
+      font-family: "Mukta", sans-serif;
+      font-size: clamp(22px, 4vw, 32px);
+      line-height: 1.25;
+    }
+
+    .seo-content h2:not(:first-child) {
+      margin-top: 30px;
+    }
+
+    .seo-content p {
+      margin: 0;
+      color: rgba(253, 243, 226, 0.88);
+      font-size: clamp(15px, 2vw, 18px);
+      line-height: 1.75;
+    }
+
+    .seo-content ul {
+      margin: 12px 0 0;
+      padding-left: 22px;
+      color: rgba(253, 243, 226, 0.88);
+      line-height: 1.8;
+      columns: 2;
+      column-gap: 40px;
+    }
+
+    .seo-content li {
+      break-inside: avoid;
+      margin-bottom: 4px;
+    }
+
+    .seo-note {
+      margin-top: 22px !important;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      .seo-content {
+        width: calc(100% - 20px);
+        margin: 42px auto 24px;
+        padding: 22px 18px;
+        border-radius: 18px;
+      }
+
+      .seo-content ul {
+        columns: 1;
+      }
+    }
+
   </style>
 </head>
 
@@ -654,8 +759,11 @@
     </header>
 
     <main class="logo-container">
-      <h1 class="logo">छठ घाट</h1>
-      <div class="tagline">॥ जय छठी मईया ॥</div>
+      <h1 class="logo">Chhath Puja Geet</h1>
+      <div class="tagline">
+        <p>छठ घाट</p> 
+        <p>॥ जय छठी मईया ॥</p>
+      </div>
     </main>
 
     <div id="offlinePlayer">
@@ -747,6 +855,48 @@
 
   </div>
 
+
+  <!-- Visible, useful, crawlable content for visitors and search engines. -->
+  <section class="seo-content" aria-labelledby="chhath-puja-heading">
+    <h2 id="chhath-puja-heading">Chhath Puja Geet &amp; Songs</h2>
+    <p>
+      Welcome to Chhath Ghat, a dedicated place to listen to Chhath Puja Geet,
+      traditional Chhath songs, Bhojpuri Chhath Geet, Chhathi Maiya Bhajan and
+      Surya Dev devotional music online. Use the music player above to enjoy
+      Chhath songs during the Chhath Mahaparv.
+    </p>
+
+    <h2>Chhath Puja Songs</h2>
+    <p>
+      Chhath Puja is a devotional festival associated with Chhathi Maiya and
+      Surya Dev. Traditional songs are an important part of the celebration.
+      This Chhath song collection is designed for devotees who want to listen
+      to Chhath Geet and devotional music online in one place.
+    </p>
+
+    <h2>Chhathi Maiya Bhajan &amp; Surya Dev Songs</h2>
+    <p>
+      Listen to devotional Chhathi Maiya Bhajan and Surya Dev songs along with
+      Bhojpuri Chhath Geet. The playlist is made for peaceful listening during
+      Chhath Puja, Chhath Ghat preparations and the Chhath Mahaparv.
+    </p>
+
+    <h2>Chhath Geet Collection</h2>
+    <ul>
+      <li>Chhath Puja Geet</li>
+      <li>Chhath Puja Songs</li>
+      <li>Bhojpuri Chhath Geet</li>
+      <li>Chhathi Maiya Bhajan</li>
+      <li>Surya Dev Devotional Songs</li>
+      <li>Traditional Chhath Songs</li>
+    </ul>
+
+    <p class="seo-note">
+      Chhath Ghat focuses on devotional music and traditional Chhath Puja songs.
+      Come back for the Chhath Mahaparv and enjoy the latest additions to the
+      Chhath Geet playlist.
+    </p>
+  </section>
 
   <script>
 
