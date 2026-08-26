@@ -701,7 +701,7 @@
   }
 
   /* =========================================================
-     8.5 YOUTUBE VIDEO THEATER & BACKGROUND VIDEO PLAYER
+     8.5 LIVE AMBIENT YOUTUBE BACKGROUND VIDEO PLAYER
      ========================================================= */
   const CHHATH_VIDEOS = [
     {
@@ -732,52 +732,30 @@
   ];
 
   let currentVideoIndex = 0;
-  let isBackgroundVideoMode = false;
+  let isLiveBackgroundVideoActive = false;
 
   const videoPlayBtn = document.getElementById("videoPlayBtn");
-  const videoTheaterModal = document.getElementById("videoTheaterModal");
-  const videoBackdrop = document.getElementById("videoBackdrop");
-  const videoFrameContainer = document.getElementById("videoFrameContainer");
-  const videoChipsList = document.getElementById("videoChipsList");
-  const currentVideoTitle = document.getElementById("currentVideoTitle");
-  const bgModeToggleBtn = document.getElementById("bgModeToggleBtn");
-  const bgModeLabel = document.getElementById("bgModeLabel");
-  const bgModeIcon = document.getElementById("bgModeIcon");
-  const closeVideoBtn = document.getElementById("closeVideoBtn");
+  const bgVideoContainer = document.getElementById("bgVideoContainer");
+  const bgVideoIframeWrap = document.getElementById("bgVideoIframeWrap");
 
-  function renderVideoChips() {
-    if (!videoChipsList) return;
-    videoChipsList.innerHTML = CHHATH_VIDEOS.map((vid, idx) => `
-      <button class="video-chip ${idx === currentVideoIndex ? "active" : ""}" data-idx="${idx}" type="button">
-        ▶ ${escapeHTML(vid.label)}
-      </button>
-    `).join("");
-
-    videoChipsList.querySelectorAll(".video-chip").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const idx = parseInt(chip.getAttribute("data-idx"), 10);
-        loadYouTubeVideo(idx);
-      });
-    });
-  }
-
-  function loadYouTubeVideo(index) {
-    if (!CHHATH_VIDEOS[index] || !videoFrameContainer) return;
+  function startBackgroundVideo(index = 0) {
+    if (!bgVideoContainer || !bgVideoIframeWrap) return;
     currentVideoIndex = index;
     const video = CHHATH_VIDEOS[index];
-
-    if (currentVideoTitle) {
-      currentVideoTitle.textContent = video.title;
-    }
 
     // Pause offline audio player to avoid overlapping sound
     if (offlineAudio && !offlineAudio.paused) {
       offlineAudio.pause();
-      showToast("🎵 ऑडियो प्लेयर पॉज़ किया गया (Video Play Active)");
     }
 
-    // Inject responsive iframe with user's exact playlist & attributes
-    videoFrameContainer.innerHTML = `
+    // Activate live video background mode
+    isLiveBackgroundVideoActive = true;
+    document.body.classList.add("live-video-active");
+    bgVideoContainer.classList.add("active");
+    bgVideoContainer.setAttribute("aria-hidden", "false");
+
+    // Inject responsive full-bleed iframe with user's requested playlist
+    bgVideoIframeWrap.innerHTML = `
       <iframe 
         width="100%" 
         height="100%" 
@@ -790,67 +768,56 @@
       </iframe>
     `;
 
-    renderVideoChips();
-  }
-
-  function openVideoTheater(index = 0) {
-    if (!videoTheaterModal) return;
-    videoTheaterModal.classList.add("open");
-    videoTheaterModal.setAttribute("aria-hidden", "false");
-    loadYouTubeVideo(index);
-    showToast("🎬 छठ पूजा वीडियो दर्शन चालू हुआ");
-  }
-
-  function closeVideoTheater() {
-    if (!videoTheaterModal) return;
-    videoTheaterModal.classList.remove("open", "background-mode");
-    videoTheaterModal.setAttribute("aria-hidden", "true");
-    isBackgroundVideoMode = false;
-    if (bgModeLabel) bgModeLabel.textContent = "Background Mode";
-    if (bgModeIcon) bgModeIcon.textContent = "🖼️";
-
-    // Cleanly remove iframe to stop audio/video
-    if (videoFrameContainer) {
-      videoFrameContainer.innerHTML = "";
+    // Update button UI to indicate active playing state
+    if (videoPlayBtn) {
+      videoPlayBtn.classList.add("playing");
+      videoPlayBtn.innerHTML = `
+        <span style="font-size:13px;">🛑</span>
+        <span class="video-label">Stop Video</span>
+        <span class="video-live-pulse" aria-hidden="true" style="background:#2ae772;box-shadow:0 0 8px #2ae772;"></span>
+      `;
+      videoPlayBtn.title = "लाइव वीडियो बैकग्राउंड रोकें (Stop Background Video)";
     }
+
+    showToast("🎬 लाइव वीडियो स्क्रीन बैकग्राउंड में चालू हुआ!");
   }
 
-  function toggleBackgroundVideoMode() {
-    if (!videoTheaterModal) return;
-    isBackgroundVideoMode = !isBackgroundVideoMode;
-    videoTheaterModal.classList.toggle("background-mode", isBackgroundVideoMode);
-
-    if (isBackgroundVideoMode) {
-      if (bgModeLabel) bgModeLabel.textContent = "Full View";
-      if (bgModeIcon) bgModeIcon.textContent = "🖥️";
-      showToast("🖼️ बैकग्राउंड वीडियो मोड चालू (Mini Player Active)");
-    } else {
-      if (bgModeLabel) bgModeLabel.textContent = "Background Mode";
-      if (bgModeIcon) bgModeIcon.textContent = "🖼️";
-      showToast("🖥️ फुल थिएटर मोड चालू");
+  function stopBackgroundVideo() {
+    isLiveBackgroundVideoActive = false;
+    document.body.classList.remove("live-video-active");
+    
+    if (bgVideoContainer) {
+      bgVideoContainer.classList.remove("active");
+      bgVideoContainer.setAttribute("aria-hidden", "true");
     }
+    if (bgVideoIframeWrap) {
+      bgVideoIframeWrap.innerHTML = "";
+    }
+
+    // Restore button UI
+    if (videoPlayBtn) {
+      videoPlayBtn.classList.remove("playing");
+      videoPlayBtn.innerHTML = `
+        <svg class="video-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <span class="video-label">Video Play</span>
+        <span class="video-live-pulse" aria-hidden="true"></span>
+      `;
+      videoPlayBtn.title = "छठ पूजा वीडियो गीत चलाएं (YouTube Video Background)";
+    }
+
+    showToast("🖼️ बैकग्राउंड इमेज वापस सेट हो गई");
   }
 
   if (videoPlayBtn) {
     videoPlayBtn.addEventListener("click", () => {
-      openVideoTheater(currentVideoIndex);
-    });
-  }
-
-  if (closeVideoBtn) {
-    closeVideoBtn.addEventListener("click", closeVideoTheater);
-  }
-
-  if (videoBackdrop) {
-    videoBackdrop.addEventListener("click", () => {
-      if (!isBackgroundVideoMode) {
-        closeVideoTheater();
+      if (isLiveBackgroundVideoActive) {
+        stopBackgroundVideo();
+      } else {
+        startBackgroundVideo(0);
       }
     });
-  }
-
-  if (bgModeToggleBtn) {
-    bgModeToggleBtn.addEventListener("click", toggleBackgroundVideoMode);
   }
 
   /* =========================================================

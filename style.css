@@ -64,13 +64,67 @@ html, body {
   transform: scale(1.02);
   background-image: url("images/image_background.png");
   filter: saturate(1.15) brightness(0.9);
-  transition: transform 10s ease;
+  transition: transform 10s ease, opacity 0.8s ease, visibility 0.8s ease;
 }
 
 @media (max-width: 1180px) {
   .bg-layer {
     background-image: url("images/chhath_puja_400x838.png");
   }
+}
+
+/* Live Background YouTube Video */
+.bg-video-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+  background: #000000;
+}
+
+body.live-video-active .bg-video-container {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+body.live-video-active .bg-layer {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+body.live-video-active .bg-overlay {
+  background: radial-gradient(circle at 50% 30%, rgba(255, 140, 0, 0.04) 0%, rgba(15, 2, 4, 0.35) 60%, rgba(10, 1, 3, 0.65) 100%);
+}
+
+.bg-video-iframe-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 56.25vw; /* 16:9 ratio */
+  min-height: 100dvh;
+  min-width: 177.77dvh; /* 16:9 ratio */
+}
+
+.bg-video-iframe-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.bg-video-ambient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
 }
 
 .bg-overlay {
@@ -81,6 +135,7 @@ html, body {
   z-index: 1;
   pointer-events: none;
   background: radial-gradient(circle at 50% 25%, rgba(255, 140, 0, 0.15) 0%, rgba(25, 4, 7, 0.65) 60%, rgba(15, 2, 4, 0.95) 100%);
+  transition: background 0.8s ease;
 }
 
 .festive-canvas {
@@ -212,6 +267,18 @@ html, body {
   0% { transform: scale(0.85); opacity: 0.7; }
   50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #FFD700, 0 0 20px #FF9800; }
   100% { transform: scale(0.85); opacity: 0.7; }
+}
+
+.btn-video-play.playing {
+  background: linear-gradient(135deg, #107C41 0%, #0B6A35 50%, #064E24 100%);
+  border-color: #2ae772;
+  box-shadow: 0 4px 20px rgba(42, 231, 114, 0.5), 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.btn-video-play.playing:hover {
+  background: linear-gradient(135deg, #e53935 0%, #c62828 50%, #b71c1c 100%);
+  border-color: #ff8a80;
+  box-shadow: 0 6px 24px rgba(229, 57, 53, 0.65);
 }
 
 /* Top Right Action Buttons */
