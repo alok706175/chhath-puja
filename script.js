@@ -216,7 +216,10 @@
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
       const ctx = new AudioContext();
-      
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+
       const freqs = [528, 792, 1056]; // Auspicious harmonic frequencies
       freqs.forEach((f, i) => {
         const osc = ctx.createOscillator();
@@ -1449,12 +1452,23 @@
     });
   }
 
+  function scrollActivePlaylistItemIntoView() {
+    if (!playlistList) return;
+    const activeItem = playlistList.querySelector(".playlist-item.active");
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
   if (playlistToggleBtn && playlistModal) {
     playlistToggleBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      playlistModal.classList.toggle("open");
-      if (playlistModal.classList.contains("open") && playlistSearch) {
-        setTimeout(() => playlistSearch.focus(), 150);
+      const isOpen = playlistModal.classList.toggle("open");
+      if (isOpen) {
+        scrollActivePlaylistItemIntoView();
+        if (playlistSearch) {
+          setTimeout(() => playlistSearch.focus(), 150);
+        }
       }
     });
   }
@@ -1502,13 +1516,15 @@
   function updateMediaSessionMetadata() {
     if (!MEDIA_SESSION_SUPPORTED || !songs[currentSong]) return;
     try {
+      const art192 = new URL("favicon.io/android-chrome-192x192.png", window.location.href).href;
+      const art512 = new URL("favicon.io/android-chrome-512x512.png", window.location.href).href;
       navigator.mediaSession.metadata = new MediaMetadata({
         title: songs[currentSong].name,
-        artist: songs[currentSong].singer || "छठ महापर्व",
-        album: "छठ घाट",
+        artist: songs[currentSong].singer || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"),
+        album: currentLang === "en" ? "Chhath Ghat" : "छठ घाट",
         artwork: [
-          { src: "/favicon.io/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
-          { src: "/favicon.io/android-chrome-512x512.png", sizes: "512x512", type: "image/png" }
+          { src: art192, sizes: "192x192", type: "image/png" },
+          { src: art512, sizes: "512x512", type: "image/png" }
         ]
       });
     } catch (e) {}
