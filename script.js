@@ -705,29 +705,29 @@
      ========================================================= */
   const CHHATH_VIDEOS = [
     {
-      id: "87Y-OH_mJxM",
-      title: "संपूर्ण छठ पूजा गीत (Superhit Jukebox) — शारदा सिन्हा व अनुराधा पौडवाल",
-      label: "छठ पूजा जुगलबंदी (Jukebox)"
+      url: "https://www.youtube.com/embed/videoseries?si=BNzOSetal4lV7IDh&amp;list=PLPlNvrjDXABmd-q-lwgFguM7hjuRWUm7J&amp;autoplay=1",
+      title: "छठ महापर्व संपूर्ण वीडियो प्लेलिस्ट (Chhath Puja Special Video Playlist)",
+      label: "🎶 संपूर्ण छठ प्लेलिस्ट"
     },
     {
-      id: "HfHkBEjofqk",
+      url: "https://www.youtube.com/embed/HfHkBEjofqk?autoplay=1",
       title: "केलवा के पात पर / हो दीनानाथ — शारदा सिन्हा (Official Video)",
       label: "केलवा के पात पर"
     },
     {
-      id: "_y78meZvgpY",
+      url: "https://www.youtube.com/embed/_y78meZvgpY?autoplay=1",
       title: "पहिले पहिल हम कईनी — अनुराधा पौडवाल",
       label: "पहिले पहिल छठी मईया"
     },
     {
-      id: "9U1hQ3_x8v4",
-      title: "कांच ही बांस के बहंगिया — कल्पना पटवारी",
-      label: "कांच ही बांस के बहंगिया"
+      url: "https://www.youtube.com/embed/87Y-OH_mJxM?autoplay=1",
+      title: "सुपरहिट छठ पूजा जुगलबंदी (Top Chhath Geet)",
+      label: "छठ पूजा जुगलबंदी"
     },
     {
-      id: "W34L_i63B0g",
-      title: "उगी हे दीनानाथ — पारंपरिक छठ महापर्व दर्शन",
-      label: "उगी हे दीनानाथ"
+      url: "https://www.youtube.com/embed/9U1hQ3_x8v4?autoplay=1",
+      title: "कांच ही बांस के बहंगिया — कल्पना पटवारी",
+      label: "कांच ही बांस के बहंगिया"
     }
   ];
 
@@ -776,13 +776,16 @@
       showToast("🎵 ऑडियो प्लेयर पॉज़ किया गया (Video Play Active)");
     }
 
-    // Inject responsive iframe with standard youtube-nocookie embed
+    // Inject responsive iframe with user's exact playlist & attributes
     videoFrameContainer.innerHTML = `
       <iframe 
-        id="ytVideoIframe"
-        src="https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1" 
+        width="100%" 
+        height="100%" 
+        src="${video.url}" 
         title="${escapeHTML(video.title)}" 
+        frameborder="0" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        referrerpolicy="strict-origin-when-cross-origin" 
         allowfullscreen>
       </iframe>
     `;
