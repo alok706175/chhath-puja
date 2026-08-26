@@ -643,6 +643,9 @@
   /* =========================================================
      8. MEDIA SESSION API INTEGRATION
      ========================================================= */
+  /* =========================================================
+     8. MEDIA SESSION API INTEGRATION
+     ========================================================= */
   const MEDIA_SESSION_SUPPORTED = "mediaSession" in navigator;
 
   function updateMediaSessionPosition() {
@@ -702,17 +705,17 @@
      ========================================================= */
   const CHHATH_VIDEOS = [
     {
-      id: "W34L_i63B0g",
-      title: "केलवा के पात पर — शारदा सिन्हा (Official Video)",
+      id: "87Y-OH_mJxM",
+      title: "संपूर्ण छठ पूजा गीत (Superhit Jukebox) — शारदा सिन्हा व अनुराधा पौडवाल",
+      label: "छठ पूजा जुगलबंदी (Jukebox)"
+    },
+    {
+      id: "HfHkBEjofqk",
+      title: "केलवा के पात पर / हो दीनानाथ — शारदा सिन्हा (Official Video)",
       label: "केलवा के पात पर"
     },
     {
-      id: "j1uN5NfM2Fw",
-      title: "उगी हे दीनानाथ — शारदा सिन्हा (पारंपरिक छठ गीत)",
-      label: "उगी हे दीनानाथ"
-    },
-    {
-      id: "7nJjS0oT-Z0",
+      id: "_y78meZvgpY",
       title: "पहिले पहिल हम कईनी — अनुराधा पौडवाल",
       label: "पहिले पहिल छठी मईया"
     },
@@ -722,9 +725,9 @@
       label: "कांच ही बांस के बहंगिया"
     },
     {
-      id: "a-vC7bJqD1M",
-      title: "छठ घाटे बाजे बाजनवा — पवन सिंह",
-      label: "छठ घाटे बाजे बाजनवा"
+      id: "W34L_i63B0g",
+      title: "उगी हे दीनानाथ — पारंपरिक छठ महापर्व दर्शन",
+      label: "उगी हे दीनानाथ"
     }
   ];
 
@@ -773,10 +776,11 @@
       showToast("🎵 ऑडियो प्लेयर पॉज़ किया गया (Video Play Active)");
     }
 
-    // Inject responsive iframe with autoplay
+    // Inject responsive iframe with standard youtube-nocookie embed
     videoFrameContainer.innerHTML = `
       <iframe 
-        src="https://www.youtube.com/embed/${video.id}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1" 
+        id="ytVideoIframe"
+        src="https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1" 
         title="${escapeHTML(video.title)}" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
         allowfullscreen>
