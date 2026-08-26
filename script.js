@@ -6,8 +6,158 @@
   "use strict";
 
   /* =========================================================
+     0. BILINGUAL INTERNATIONALIZATION (HINDI / ENGLISH)
+     ========================================================= */
+  let currentLang = "en"; // Default English
+
+  const i18n = {
+    hi: {
+      langBtnText: "हिंदी",
+      langBtnTitle: "Switch to English (अंग्रेजी में बदलें)",
+      timeWidgetTitle: "भारतीय मानक समय (IST)",
+      navHomeText: "होम",
+      navAboutText: "परिचय",
+      mainLogoText: "छठ घाट",
+      taglineText: "॥ जय छठी मईया ॥",
+      pillNum1: "१",
+      pillText1: "नहाय-खाय",
+      pillNum2: "२",
+      pillText2: "खरना",
+      pillNum3: "३",
+      pillText3: "संध्या अर्घ्य",
+      pillNum4: "४",
+      pillText4: "उषा अर्घ्य",
+      singerPrefix: "छठ महापर्व • ",
+      loadingSong: "Loading Chhath Geet...",
+      playlistTitle: "छठ गीत संग्रह",
+      playlistSubtitle: "पसंदीदा गीत चुनें और सुनें",
+      playlistSearchPlaceholder: "गीत या गायक का नाम खोजें...",
+      noSongsFound: "कोई गीत नहीं मिला",
+      prevSongTitle: "पिछला गीत",
+      playBtnTitle: "चलाएं / रोकें",
+      nextSongTitle: "अगला गीत",
+      playlistBtnTitle: "गीत सूची (Playlist)",
+      muteBtnTitle: "ध्वनि म्यूट / अनम्यूट",
+      ritualsBadge: "पवित्र परंपरा",
+      ritualsHeading: "छठ महापर्व: चार दिवसीय अनुष्ठान",
+      ritualsSubtitle: "लोक आस्था और प्रकृति की आराधना का पावन विधान",
+      ritual1DayBadge: "प्रथम दिवस",
+      ritual1Title: "नहाय-खाय",
+      ritual1Desc: "छठ पर्व की शुरुआत पवित्र स्नान और शुद्ध सात्विक भोजन से होती है। इस दिन व्रती नदी या जलाशय में स्नान कर अरवा चावल, चने की दाल और कद्दू (लौकी) का प्रसाद ग्रहण करते हैं।",
+      ritual1Highlight: "विशेष प्रसाद: कद्दू-भात एवं चना दाल",
+      ritual2DayBadge: "द्वितीय दिवस",
+      ritual2Title: "खरना (लोहंडा)",
+      ritual2Desc: "इस दिन व्रती दिनभर निर्जला उपवास रखते हैं और शाम को मिट्टी के चूल्हे पर गुड़, अरवा चावल और गाय के दूध से बनी खीर तथा रोटी का भोग छठी मईया को अर्पित कर प्रसाद ग्रहण करते हैं।",
+      ritual2Highlight: "विशेष प्रसाद: गुड़ की खीर और रोटी",
+      ritual3DayBadge: "तृतीय दिवस",
+      ritual3Title: "संध्या अर्घ्य (पहला अर्घ्य)",
+      ritual3Desc: "कार्तिक शुक्ल षष्ठी की शाम को सूप, दउरा में ठेकुआ, मौसमी फल लेकर नदी/तालाब के घाट पर जाकर कमर तक जल में खड़े होकर अस्ताचलगामी (डूबते हुए) भगवान सूर्य को अर्घ्य दिया जाता है।",
+      ritual3Highlight: "विशेष अर्घ्य: अस्ताचलगामी सूर्य देव को अर्घ्य",
+      ritual4DayBadge: "चतुर्थ दिवस",
+      ritual4Title: "उषा अर्घ्य (पारन)",
+      ritual4Desc: "सप्तमी की भोर में उदीयमान (उगते हुए) सूर्य को अर्घ्य देकर 36 घंटे के कठिन निर्जला व्रत का समापन (पारन) होता है। छठी मईया से परिवार के सुख, स्वास्थ्य एवं दीर्घायु की प्रार्थना की जाती है।",
+      ritual4Highlight: "विशेष अर्घ्य: उदीयमान सूर्य देव को अर्घ्य व पारन",
+      mantraTitle: "॥ श्री सूर्य गायत्री मंत्र ॥",
+      shareBtnLabel: "शेयर",
+      copyMantraBtnText: "मंत्र कॉपी करें",
+      shareMantraBtnText: "व्हाट्सएप पर भेजें",
+      toastOnline: "🌐 ऑनलाइन वीडियो मोड चालू (YouTube Background Video)",
+      toastOffline: "📴 ऑफ़लाइन ऑडियो मोड चालू (MP3 Music)",
+      toastLangSwitched: "भाषा बदलकर 'हिन्दी' कर दी गई है",
+      toastMantraCopied: "✅ सूर्य गायत्री मंत्र कॉपी हो गया!",
+      toastMuted: "🔇 म्यूट किया गया",
+      toastUnmuted: "🔊 ध्वनि चालू"
+    },
+    en: {
+      langBtnText: "English",
+      langBtnTitle: "Switch to Hindi (हिंदी में बदलें)",
+      timeWidgetTitle: "Indian Standard Time (IST)",
+      navHomeText: "Home",
+      navAboutText: "About",
+      mainLogoText: "Chhath Ghat",
+      taglineText: "॥ Jai Chhathi Maiya ॥",
+      pillNum1: "1",
+      pillText1: "Nahay-Khay",
+      pillNum2: "2",
+      pillText2: "Kharna",
+      pillNum3: "3",
+      pillText3: "Sandhya Arghya",
+      pillNum4: "4",
+      pillText4: "Usha Arghya",
+      singerPrefix: "Chhath Mahaparv • ",
+      loadingSong: "Loading Chhath Songs...",
+      playlistTitle: "Chhath Songs Collection",
+      playlistSubtitle: "Select & listen to devotional songs",
+      playlistSearchPlaceholder: "Search song or singer name...",
+      noSongsFound: "No songs found",
+      prevSongTitle: "Previous Track",
+      playBtnTitle: "Play / Pause",
+      nextSongTitle: "Next Track",
+      playlistBtnTitle: "Playlist",
+      muteBtnTitle: "Mute / Unmute Volume",
+      ritualsBadge: "Sacred Tradition",
+      ritualsHeading: "Chhath Mahaparv: 4-Day Sacred Rituals",
+      ritualsSubtitle: "The sacred celebration of cosmic solar energy, faith, and nature worship",
+      ritual1DayBadge: "Day 1",
+      ritual1Title: "Nahay-Khay",
+      ritual1Desc: "The festival begins with a holy bath and pure satvik meal. Devotees take a sacred bath in holy water bodies and consume pumpkin-rice and chana dal prasad.",
+      ritual1Highlight: "Special Prasad: Bottle Gourd Rice & Chana Dal",
+      ritual2DayBadge: "Day 2",
+      ritual2Title: "Kharna (Lohanda)",
+      ritual2Desc: "Devotees observe a strict day-long fast without water, and in the evening offer jaggery kheer made with cow milk and roti to Chhathi Maiya before breaking the fast.",
+      ritual2Highlight: "Special Prasad: Jaggery Rice Kheer & Roti",
+      ritual3DayBadge: "Day 3",
+      ritual3Title: "Sandhya Arghya (Evening Offering)",
+      ritual3Desc: "On the evening of Kartik Shukla Shashthi, devotees gather at river ghats with bamboo baskets filled with thekua and fruits, standing in water to offer Arghya to the setting Sun.",
+      ritual3Highlight: "Special Offering: Arghya to the Setting Sun",
+      ritual4DayBadge: "Day 4",
+      ritual4Title: "Usha Arghya (Morning Offering)",
+      ritual4Desc: "At dawn on Saptami, devotees offer the final Arghya to the rising Sun, concluding the 36-hour fast with prayers for peace, prosperity and family longevity.",
+      ritual4Highlight: "Special Offering: Arghya to Rising Sun & Paran",
+      mantraTitle: "॥ Shri Surya Gayatri Mantra ॥",
+      shareBtnLabel: "Share",
+      copyMantraBtnText: "Copy Mantra",
+      shareMantraBtnText: "Share on WhatsApp",
+      toastOnline: "🌐 Online Video Mode Active (YouTube Background)",
+      toastOffline: "📴 Offline Audio Mode Active (MP3 Music)",
+      toastLangSwitched: "Language switched to English",
+      toastMantraCopied: "✅ Surya Gayatri Mantra copied!",
+      toastMuted: "🔇 Volume Muted",
+      toastUnmuted: "🔊 Volume Unmuted"
+    }
+  };
+
+  /* =========================================================
      1. LIVE CLOCK (IST)
      ========================================================= */
+  const langDays = {
+    hi: ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"],
+    en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  };
+  const langMonths = {
+    hi: [
+      "जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून",
+      "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"
+    ],
+    en: [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ]
+  };
+
+  let isClockHovered = false;
+  const timeWidget = document.getElementById("timeWidget");
+  if (timeWidget) {
+    timeWidget.addEventListener("mouseenter", () => {
+      isClockHovered = true;
+      updateClock();
+    });
+    timeWidget.addEventListener("mouseleave", () => {
+      isClockHovered = false;
+      updateClock();
+    });
+  }
+
   function updateClock() {
     const now = new Date();
     let hours = now.getHours();
@@ -16,24 +166,27 @@
     const suffix = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
 
-    const days = ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"];
-    const months = [
-      "जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून",
-      "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर"
-    ];
+    const days = langDays[currentLang] || langDays.hi;
+    const months = langMonths[currentLang] || langMonths.hi;
 
     const timeEl = document.getElementById("currentTime");
     const dateEl = document.getElementById("currentDate");
 
     if (timeEl) {
-      timeEl.textContent = `${hours}:${minutes}:${seconds} ${suffix}`;
+      if (isClockHovered) {
+        timeEl.textContent = `${hours}:${minutes}:${seconds} ${suffix}`;
+      } else {
+        timeEl.textContent = `${hours}:${minutes} ${suffix}`;
+      }
     }
     if (dateEl) {
       dateEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
     }
+    if (timeWidget && i18n[currentLang]) {
+      timeWidget.title = i18n[currentLang].timeWidgetTitle;
+    }
   }
 
-  updateClock();
   setInterval(updateClock, 1000);
 
   /* =========================================================
@@ -102,6 +255,24 @@
     window.open(waLink, "_blank", "noopener,noreferrer");
     showToast("✨ व्हाट्सएप पर साझा किया जा रहा है...");
   }
+
+  /* Share Dropdown Trigger & Mobile Tap Support */
+  const shareDropdown = document.getElementById("shareDropdown");
+  const shareMainBtn = document.getElementById("shareMainBtn");
+  if (shareMainBtn && shareDropdown) {
+    shareMainBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = shareDropdown.classList.toggle("open");
+      shareMainBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (shareDropdown && !shareDropdown.contains(e.target)) {
+      shareDropdown.classList.remove("open");
+      if (shareMainBtn) shareMainBtn.setAttribute("aria-expanded", "false");
+    }
+  });
 
   const waShareBtn = document.getElementById("whatsappShareBtn");
   if (waShareBtn) {
@@ -278,12 +449,17 @@
   requestAnimationFrame(animateParticles);
 
   /* =========================================================
-     7. AUDIO PLAYER & PLAYLIST LOGIC
+     7. UNIFIED DEVOTIONAL MUSIC & BACKGROUND VIDEO CONTROLLER
      ========================================================= */
   let songs = [];
   let currentSong = 0;
   let isSeeking = false;
   let lastVolume = 1;
+  let isPlaying = false;
+  let isOnlineMode = false; // Default: Offline Mode
+  let ytPlayer = null;
+  let isYtReady = false;
+  let progressInterval = null;
 
   const offlineAudio = document.getElementById("offlineAudio");
   const songName = document.getElementById("offlineSongName");
@@ -306,8 +482,117 @@
   const playlistModal = document.getElementById("playlistModal");
   const playlistList = document.getElementById("playlistList");
   const playlistTitle = document.getElementById("playlistTitle");
+  const playlistTitleText = document.getElementById("playlistTitleText");
   const playlistSearch = document.getElementById("playlistSearch");
   const searchClearBtn = document.getElementById("searchClearBtn");
+
+  const modeToggleBtn = document.getElementById("modeToggleBtn");
+  const modeText = document.getElementById("modeText");
+  const bgVideoContainer = document.getElementById("bgVideoContainer");
+
+  const langToggleBtn = document.getElementById("langToggleBtn");
+  const langText = document.getElementById("langText");
+  const mainLogoText = document.getElementById("mainLogoText");
+  const taglineText = document.getElementById("taglineText");
+
+  const ritualsHeading = document.getElementById("ritualsHeading");
+
+  const ritual1DayBadge = document.getElementById("ritual1DayBadge");
+  const ritual1Title = document.getElementById("ritual1Title");
+  const ritual1Desc = document.getElementById("ritual1Desc");
+  const ritual1Highlight = document.getElementById("ritual1Highlight");
+
+  const ritual2DayBadge = document.getElementById("ritual2DayBadge");
+  const ritual2Title = document.getElementById("ritual2Title");
+  const ritual2Desc = document.getElementById("ritual2Desc");
+  const ritual2Highlight = document.getElementById("ritual2Highlight");
+
+  const ritual3DayBadge = document.getElementById("ritual3DayBadge");
+  const ritual3Title = document.getElementById("ritual3Title");
+  const ritual3Desc = document.getElementById("ritual3Desc");
+  const ritual3Highlight = document.getElementById("ritual3Highlight");
+
+  const ritual4DayBadge = document.getElementById("ritual4DayBadge");
+  const ritual4Title = document.getElementById("ritual4Title");
+  const ritual4Desc = document.getElementById("ritual4Desc");
+  const ritual4Highlight = document.getElementById("ritual4Highlight");
+
+  const mantraTitle = document.getElementById("mantraTitle");
+  const copyMantraBtnText = document.getElementById("copyMantraBtnText");
+  const shareMantraBtnText = document.getElementById("shareMantraBtnText");
+
+  /* Function to switch language between Hindi and English */
+  function setLanguage(lang, showToastMsg = false) {
+    if (!i18n[lang]) return;
+    currentLang = lang;
+    const t = i18n[lang];
+
+    if (langToggleBtn) {
+      langToggleBtn.setAttribute("data-lang", lang);
+      langToggleBtn.title = t.langBtnTitle;
+    }
+    if (langText) langText.textContent = t.langBtnText;
+
+    if (mainLogoText) mainLogoText.textContent = t.mainLogoText;
+    if (taglineText) taglineText.textContent = t.taglineText;
+
+    if (prevBtn) prevBtn.title = t.prevSongTitle;
+    if (playButton) playButton.title = t.playBtnTitle;
+    if (nextBtn) nextBtn.title = t.nextSongTitle;
+    if (playlistToggleBtn) playlistToggleBtn.title = t.playlistBtnTitle;
+    if (muteBtn) muteBtn.title = t.muteBtnTitle;
+
+    const playlistTitleText = document.getElementById("playlistTitleText");
+    if (playlistTitleText) {
+      playlistTitleText.textContent = `${t.playlistTitle} (${songs.length || 8})`;
+    } else if (playlistTitle) {
+      playlistTitle.textContent = `${t.playlistTitle} (${songs.length || 8})`;
+    }
+    if (playlistSearch) playlistSearch.placeholder = t.playlistSearchPlaceholder;
+
+    if (ritualsHeading) ritualsHeading.textContent = t.ritualsHeading;
+
+    if (ritual1DayBadge) ritual1DayBadge.textContent = t.ritual1DayBadge;
+    if (ritual1Title) ritual1Title.textContent = t.ritual1Title;
+    if (ritual1Desc) ritual1Desc.textContent = t.ritual1Desc;
+    if (ritual1Highlight) ritual1Highlight.textContent = t.ritual1Highlight;
+
+    if (ritual2DayBadge) ritual2DayBadge.textContent = t.ritual2DayBadge;
+    if (ritual2Title) ritual2Title.textContent = t.ritual2Title;
+    if (ritual2Desc) ritual2Desc.textContent = t.ritual2Desc;
+    if (ritual2Highlight) ritual2Highlight.textContent = t.ritual2Highlight;
+
+    if (ritual3DayBadge) ritual3DayBadge.textContent = t.ritual3DayBadge;
+    if (ritual3Title) ritual3Title.textContent = t.ritual3Title;
+    if (ritual3Desc) ritual3Desc.textContent = t.ritual3Desc;
+    if (ritual3Highlight) ritual3Highlight.textContent = t.ritual3Highlight;
+
+    if (ritual4DayBadge) ritual4DayBadge.textContent = t.ritual4DayBadge;
+    if (ritual4Title) ritual4Title.textContent = t.ritual4Title;
+    if (ritual4Desc) ritual4Desc.textContent = t.ritual4Desc;
+    if (ritual4Highlight) ritual4Highlight.textContent = t.ritual4Highlight;
+
+    if (mantraTitle) mantraTitle.textContent = t.mantraTitle;
+    const navHomeText = document.getElementById("navHomeText");
+    const navAboutText = document.getElementById("navAboutText");
+    if (navHomeText && t.navHomeText) navHomeText.textContent = t.navHomeText;
+    if (navAboutText && t.navAboutText) navAboutText.textContent = t.navAboutText;
+    const shareBtnLabel = document.getElementById("shareBtnLabel");
+    if (shareBtnLabel && t.shareBtnLabel) shareBtnLabel.textContent = t.shareBtnLabel;
+    if (copyMantraBtnText) copyMantraBtnText.textContent = t.copyMantraBtnText;
+    if (shareMantraBtnText) shareMantraBtnText.textContent = t.shareMantraBtnText;
+
+    if (songs[currentSong] && songSinger) {
+      songSinger.textContent = `${t.singerPrefix}${songs[currentSong].singer || (lang === 'en' ? 'Devotional Song' : 'भक्ति गीत')}`;
+    }
+
+    updateClock();
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+
+    if (showToastMsg) {
+      showToast(t.toastLangSwitched);
+    }
+  }
 
   /* Escape helper */
   function escapeHTML(text) {
@@ -318,13 +603,299 @@
 
   /* Format seconds to M:SS */
   function formatTime(seconds) {
-    if (!isFinite(seconds) || isNaN(seconds)) return "0:00";
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return "0:00";
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   }
 
-  /* Load songs from songs.json */
+  /* =========================================================
+     7.1 YOUTUBE IFRAME PLAYER INITIALIZATION
+     ========================================================= */
+  let isSwitchingTrack = false;
+
+  function initYouTubePlayer() {
+    if (ytPlayer || !window.YT || !window.YT.Player) return;
+    try {
+      const initialVideoId = (songs[currentSong] && songs[currentSong].videoId) || "W34L_i63B0g";
+
+      const playerVars = {
+        autoplay: 0,
+        controls: 0,
+        rel: 0,
+        showinfo: 0,
+        iv_load_policy: 3,
+        modestbranding: 1,
+        playsinline: 1,
+        enablejsapi: 1,
+        disablekb: 1,
+        fs: 0
+      };
+
+      ytPlayer = new YT.Player("ytBgPlayer", {
+        height: "100%",
+        width: "100%",
+        videoId: initialVideoId,
+        playerVars: playerVars,
+        events: {
+          onReady: onYTPlayerReady,
+          onStateChange: onYTPlayerStateChange,
+          onError: onYTPlayerError
+        }
+      });
+    } catch (e) {
+      console.warn("YouTube API init error:", e);
+    }
+  }
+
+  window.onYouTubeIframeAPIReady = function () {
+    initYouTubePlayer();
+  };
+
+  if (window.YT && window.YT.Player) {
+    initYouTubePlayer();
+  }
+
+  function onYTPlayerReady(event) {
+    isYtReady = true;
+    try {
+      const initialVol = volumeSlider ? parseInt(volumeSlider.value, 10) || 100 : 100;
+      event.target.setVolume(initialVol);
+      if (initialVol > 0 && typeof event.target.unMute === "function") {
+        event.target.unMute();
+      }
+    } catch (e) {}
+
+    // If playback was triggered in Online mode before ready event
+    if (isPlaying && isOnlineMode) {
+      const s = songs[currentSong];
+      if (s && s.videoId) {
+        try {
+          event.target.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
+          event.target.playVideo();
+        } catch (e) {
+          event.target.playVideo();
+        }
+      } else {
+        event.target.playVideo();
+      }
+    }
+  }
+
+  function onYTPlayerStateChange(event) {
+    if (!window.YT) return;
+
+    if (event.data === YT.PlayerState.PLAYING) {
+      isSwitchingTrack = false;
+      if (isOnlineMode) {
+        setPlaybackState(true);
+        if (offlineAudio && !offlineAudio.paused) {
+          offlineAudio.pause();
+        }
+      }
+    } else if (event.data === YT.PlayerState.PAUSED) {
+      if (isOnlineMode && !isSwitchingTrack) {
+        setPlaybackState(false);
+      }
+    } else if (event.data === YT.PlayerState.ENDED) {
+      if (isOnlineMode) {
+        playNext();
+      }
+    } else if (event.data === YT.PlayerState.BUFFERING) {
+      if (albumCover && isOnlineMode) albumCover.classList.add("spinning");
+    }
+  }
+
+  function onYTPlayerError(e) {
+    console.warn("YouTube player error, falling back to seamless audio:", e);
+    if (isOnlineMode && offlineAudio) {
+      const s = songs[currentSong];
+      if (s && offlineAudio.src !== s.file) {
+        offlineAudio.src = s.file;
+      }
+      const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+      offlineAudio.volume = volNum / 100;
+      offlineAudio.play().catch(console.warn);
+      setPlaybackState(true);
+    }
+  }
+
+  /* =========================================================
+     7.2 DUAL MODE (OFFLINE / ONLINE) SWITCHER
+     ========================================================= */
+  function setMode(online, showNotification = true) {
+    isOnlineMode = Boolean(online);
+
+    if (modeToggleBtn) {
+      modeToggleBtn.setAttribute("data-mode", isOnlineMode ? "online" : "offline");
+      modeToggleBtn.title = isOnlineMode 
+        ? "वर्तमान: ऑनलाइन वीडियो मोड (क्लिक करके ऑफ़लाइन मोड पर जाएं)" 
+        : "वर्तमान: ऑफ़लाइन ऑडियो मोड (क्लिक करके ऑनलाइन वीडियो चलाएं)";
+    }
+
+    if (modeText) {
+      modeText.textContent = isOnlineMode ? "Online" : "Offline";
+    }
+
+    if (isOnlineMode) {
+      // Switched to Online Mode: activate video background and sync video
+      document.body.classList.add("live-video-active");
+      if (bgVideoContainer) {
+        bgVideoContainer.classList.add("active");
+        bgVideoContainer.setAttribute("aria-hidden", "false");
+      }
+      if (isPlaying && isYtReady && ytPlayer && songs[currentSong]) {
+        try {
+          const curSec = (offlineAudio && offlineAudio.currentTime) ? offlineAudio.currentTime : 0;
+          ytPlayer.loadVideoById({ videoId: songs[currentSong].videoId, startSeconds: curSec });
+          ytPlayer.mute();
+          ytPlayer.playVideo();
+        } catch (e) {}
+      }
+      if (showNotification) {
+        const msg = (i18n[currentLang] && i18n[currentLang].toastOnline) || "🌐 Online Video Mode Active";
+        showToast(msg);
+      }
+    } else {
+      // Switched to Offline Mode: deactivate video background and pause YouTube video
+      document.body.classList.remove("live-video-active");
+      if (bgVideoContainer) {
+        bgVideoContainer.classList.remove("active");
+        bgVideoContainer.setAttribute("aria-hidden", "true");
+      }
+      if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+        try {
+          ytPlayer.pauseVideo();
+        } catch (e) {}
+      }
+      if (showNotification) {
+        const msg = (i18n[currentLang] && i18n[currentLang].toastOffline) || "📴 Offline Audio Mode Active";
+        showToast(msg);
+      }
+    }
+
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+  }
+
+  const navHomeBtn = document.getElementById("navHomeBtn");
+  if (navHomeBtn) {
+    navHomeBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  const navAboutBtn = document.getElementById("navAboutBtn");
+  if (navAboutBtn) {
+    navAboutBtn.addEventListener("click", () => {
+      const footer = document.getElementById("appFooter") || document.querySelector(".app-footer") || document.querySelector("footer");
+      if (footer) {
+        footer.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      }
+    });
+  }
+
+  if (modeToggleBtn) {
+    modeToggleBtn.addEventListener("click", () => {
+      setMode(!isOnlineMode, true);
+    });
+  }
+
+  if (langToggleBtn) {
+    langToggleBtn.addEventListener("click", () => {
+      const nextLang = currentLang === "en" ? "hi" : "en";
+      setLanguage(nextLang, true);
+    });
+  }
+
+  /* =========================================================
+     7.3 PLAYBACK STATE MANAGEMENT
+     ========================================================= */
+  function setPlaybackState(playing) {
+    isPlaying = playing;
+
+    if (playing) {
+      if (isOnlineMode) {
+        document.body.classList.add("live-video-active");
+        if (bgVideoContainer) {
+          bgVideoContainer.classList.add("active");
+          bgVideoContainer.setAttribute("aria-hidden", "false");
+        }
+      } else {
+        document.body.classList.remove("live-video-active");
+        if (bgVideoContainer) {
+          bgVideoContainer.classList.remove("active");
+          bgVideoContainer.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      if (playIcon) playIcon.textContent = "❚❚";
+      if (albumCover) albumCover.classList.add("spinning");
+      if (playerElem) playerElem.classList.add("playing");
+
+      startProgressSync();
+    } else {
+      if (isOnlineMode) {
+        document.body.classList.remove("live-video-active");
+        if (bgVideoContainer) {
+          bgVideoContainer.classList.remove("active");
+          bgVideoContainer.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      if (playIcon) playIcon.textContent = "▶";
+      if (albumCover) albumCover.classList.remove("spinning");
+      if (playerElem) playerElem.classList.remove("playing");
+
+      stopProgressSync();
+    }
+
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+    updateMediaSessionMetadata();
+  }
+
+  function startProgressSync() {
+    stopProgressSync();
+    progressInterval = setInterval(updateLiveProgress, 250);
+  }
+
+  function stopProgressSync() {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+  }
+
+  function updateLiveProgress() {
+    if (isSeeking) return;
+
+    let cur = 0;
+    let dur = 0;
+
+    if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      cur = offlineAudio.currentTime || 0;
+      dur = offlineAudio.duration || 0;
+    } else if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
+      try {
+        cur = ytPlayer.getCurrentTime() || 0;
+        dur = ytPlayer.getDuration() || 0;
+      } catch (e) {}
+    }
+
+    if (dur > 0 && isFinite(dur)) {
+      const pct = (cur / dur) * 100;
+      if (progress) progress.value = pct;
+      if (progressFill) progressFill.style.width = `${pct}%`;
+      if (totalTime) totalTime.textContent = formatTime(dur);
+    }
+    if (currentTime) currentTime.textContent = formatTime(cur);
+    updateMediaSessionPosition(cur, dur);
+  }
+
+  /* =========================================================
+     7.4 SONG & PLAYLIST MANAGEMENT
+     ========================================================= */
   async function loadOfflineSongs() {
     try {
       const response = await fetch("songs.json", { cache: "no-store" });
@@ -336,21 +907,50 @@
         return;
       }
 
-      if (playlistTitle) playlistTitle.textContent = `🎵 छठ गीत संग्रह (${songs.length})`;
+      const t = i18n[currentLang] || i18n.hi;
+      if (playlistTitleText) {
+        playlistTitleText.textContent = `${t.playlistTitle} (${songs.length})`;
+      } else if (playlistTitle) {
+        playlistTitle.textContent = `${t.playlistTitle} (${songs.length})`;
+      }
 
       renderPlaylist();
-      loadSong(0, false);
+      displaySongInfo(0);
+
+      // Preload first song file in offline audio
+      if (offlineAudio && songs[0] && songs[0].file) {
+        offlineAudio.src = songs[0].file;
+      }
+
+      // Initialize YouTube API for when user switches to Online mode
+      initYouTubePlayer();
     } catch (error) {
       console.error("Songs fetch failed:", error);
-      if (songName) songName.textContent = "गीत लोड नहीं हो सके";
+      if (songName) songName.textContent = currentLang === "en" ? "Failed to load songs" : "गीत लोड नहीं हो सके";
     }
   }
 
-  /* Render Playlist with optional search query */
+  function displaySongInfo(index) {
+    if (!songs[index]) return;
+    currentSong = index;
+    const s = songs[index];
+    const t = i18n[currentLang] || i18n.hi;
+
+    if (songName) songName.textContent = s.name;
+    if (songSinger) songSinger.textContent = `${t.singerPrefix}${s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")}`;
+    if (currentTime) currentTime.textContent = "0:00";
+    if (totalTime) totalTime.textContent = "0:00";
+    if (progress) progress.value = 0;
+    if (progressFill) progressFill.style.width = "0%";
+
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+    updateMediaSessionMetadata();
+  }
+
   function renderPlaylist(filterQuery = "") {
     if (!playlistList) return;
-    const isPlaying = offlineAudio && !offlineAudio.paused;
     const query = filterQuery.toLowerCase().trim();
+    const t = i18n[currentLang] || i18n.hi;
 
     const filtered = songs
       .map((s, idx) => ({ ...s, originalIndex: idx }))
@@ -365,7 +965,12 @@
     if (filtered.length === 0) {
       playlistList.innerHTML = `
         <li class="no-songs-found">
-          <span>🔍 कोई गीत नहीं मिला</span>
+          <svg class="no-songs-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+          <span class="no-songs-text">${t.noSongsFound}</span>
         </li>
       `;
       return;
@@ -380,7 +985,7 @@
             <span class="playlist-item-num">${idx + 1}</span>
             <div class="playlist-item-details">
               <div class="playlist-item-name">${escapeHTML(s.name)}</div>
-              <div class="playlist-item-singer">${escapeHTML(s.singer || "छठ महापर्व")}</div>
+              <div class="playlist-item-singer">${escapeHTML(s.singer || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"))}</div>
             </div>
             ${
               isActive && isPlaying
@@ -408,7 +1013,337 @@
     });
   }
 
-  /* Search Input Event */
+  function playSong(index) {
+    if (!songs[index]) return;
+    currentSong = index;
+    displaySongInfo(index);
+
+    if (isOnlineMode) {
+      playOnlineSong(index);
+    } else {
+      playOfflineSong(index);
+    }
+
+    setPlaybackState(true);
+    showToast(`🎶 अब बज रहा है: ${songs[index].name}`);
+  }
+
+  function playOfflineSong(index) {
+    const s = songs[index];
+    if (!s) return;
+
+    // Pause YouTube video if running
+    if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+      try { ytPlayer.pauseVideo(); } catch (e) {}
+    }
+    document.body.classList.remove("live-video-active");
+    if (bgVideoContainer) {
+      bgVideoContainer.classList.remove("active");
+      bgVideoContainer.setAttribute("aria-hidden", "true");
+    }
+
+    if (offlineAudio) {
+      if (offlineAudio.src !== s.file) {
+        offlineAudio.src = s.file;
+      }
+      const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+      offlineAudio.volume = volNum / 100;
+      offlineAudio.play().catch((err) => {
+        console.warn("Audio play blocked/error:", err);
+      });
+    }
+  }
+
+  function playOnlineSong(index) {
+    const s = songs[index];
+    if (!s) return;
+
+    document.body.classList.add("live-video-active");
+    if (bgVideoContainer) {
+      bgVideoContainer.classList.add("active");
+      bgVideoContainer.setAttribute("aria-hidden", "false");
+    }
+
+    const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+
+    // 1. Play crystal-clear audio directly via offlineAudio so audio ALWAYS plays reliably
+    if (offlineAudio) {
+      if (offlineAudio.src !== s.file) {
+        offlineAudio.src = s.file;
+      }
+      offlineAudio.volume = volNum / 100;
+      offlineAudio.play().catch((err) => {
+        console.warn("Audio play blocked/error:", err);
+      });
+    }
+
+    // 2. Play live YouTube background video in sync
+    if (isYtReady && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
+      try {
+        if (s.videoId) {
+          ytPlayer.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
+          ytPlayer.mute();
+          ytPlayer.playVideo();
+        }
+      } catch (e) {
+        console.warn("YouTube video load error:", e);
+      }
+    } else {
+      initYouTubePlayer();
+    }
+  }
+
+  function togglePlayback() {
+    if (isPlaying) {
+      // Pause
+      if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+        try { ytPlayer.pauseVideo(); } catch (e) {}
+      }
+      if (offlineAudio && !offlineAudio.paused) {
+        offlineAudio.pause();
+      }
+      setPlaybackState(false);
+      showToast("⏸️ गीत पॉज़ किया गया");
+    } else {
+      // Play
+      if (isOnlineMode) {
+        if (isYtReady && ytPlayer && typeof ytPlayer.playVideo === "function") {
+          try {
+            ytPlayer.playVideo();
+          } catch (e) {}
+        }
+      }
+      if (offlineAudio) {
+        const s = songs[currentSong];
+        if (s && offlineAudio.src !== s.file) {
+          offlineAudio.src = s.file;
+        }
+        const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+        offlineAudio.volume = volNum / 100;
+        offlineAudio.play().catch((err) => {
+          console.warn("Audio play error:", err);
+          playSong(currentSong);
+        });
+      }
+      setPlaybackState(true);
+      showToast("▶️ छठ गीत शुरू हुआ!");
+    }
+  }
+
+  function playPrevious() {
+    if (!songs.length) return;
+    currentSong = (currentSong - 1 + songs.length) % songs.length;
+    playSong(currentSong);
+  }
+
+  function playNext() {
+    if (!songs.length) return;
+    currentSong = (currentSong + 1) % songs.length;
+    playSong(currentSong);
+  }
+
+  /* Advance when audio track ends (in both modes) */
+  if (offlineAudio) {
+    offlineAudio.addEventListener("ended", () => {
+      playNext();
+    });
+  }
+
+  /* =========================================================
+     7.5 EVENT LISTENERS & USER CONTROLS
+     ========================================================= */
+  if (playButton) {
+    playButton.addEventListener("click", togglePlayback);
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", playPrevious);
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", playNext);
+  }
+
+  /* Seek interactions (Forward / Backward Scrubbing) */
+  if (progress) {
+    const handleSeekInput = () => {
+      isSeeking = true;
+      let dur = 0;
+      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
+        try {
+          dur = ytPlayer.getDuration() || 0;
+        } catch (e) {}
+      }
+      if (!dur && offlineAudio && offlineAudio.duration) {
+        dur = offlineAudio.duration;
+      }
+      const pct = parseFloat(progress.value) || 0;
+      if (progressFill) progressFill.style.width = `${pct}%`;
+      if (currentTime && dur > 0) {
+        currentTime.textContent = formatTime((pct / 100) * dur);
+      }
+    };
+
+    const handleSeekChange = () => {
+      let dur = 0;
+      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
+        try {
+          dur = ytPlayer.getDuration() || 0;
+        } catch (e) {}
+      }
+      if (!dur && offlineAudio && offlineAudio.duration) {
+        dur = offlineAudio.duration;
+      }
+      const pct = parseFloat(progress.value) || 0;
+      const targetSec = (pct / 100) * dur;
+
+      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
+        try {
+          ytPlayer.seekTo(targetSec, true);
+        } catch (e) {}
+      }
+      if (offlineAudio && offlineAudio.duration) {
+        offlineAudio.currentTime = targetSec;
+      }
+
+      isSeeking = false;
+      updateLiveProgress();
+    };
+
+    progress.addEventListener("mousedown", () => { isSeeking = true; });
+    progress.addEventListener("touchstart", () => { isSeeking = true; }, { passive: true });
+    progress.addEventListener("input", handleSeekInput);
+    progress.addEventListener("change", handleSeekChange);
+  }
+
+  /* Volume & Mute Controls */
+  const VOL_HIGH_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M19.5 5.5C21.5 7.5 22.6 9.7 22.6 12s-1.1 4.5-3.1 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
+  const VOL_MED_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
+  const VOL_LOW_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
+  const VOL_MUTE_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <line x1="22" y1="9" x2="16" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="16" y1="9" x2="22" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  function updateVolumeIcon(vol) {
+    if (!muteBtn) return;
+    if (vol === 0) {
+      muteBtn.innerHTML = VOL_MUTE_ICON;
+    } else if (vol <= 0.33) {
+      muteBtn.innerHTML = VOL_LOW_ICON;
+    } else if (vol <= 0.66) {
+      muteBtn.innerHTML = VOL_MED_ICON;
+    } else {
+      muteBtn.innerHTML = VOL_HIGH_ICON;
+    }
+  }
+
+  function updateVolumeTrack(volNum) {
+    if (volumeSlider) {
+      volumeSlider.style.setProperty('--vol-percent', `${volNum}%`);
+    }
+  }
+
+  if (volumeSlider) {
+    updateVolumeTrack(parseInt(volumeSlider.value, 10) || 100);
+
+    volumeSlider.addEventListener("input", () => {
+      const volNum = parseInt(volumeSlider.value, 10);
+      const volFraction = volNum / 100;
+
+      updateVolumeTrack(volNum);
+
+      if (isYtReady && ytPlayer && typeof ytPlayer.setVolume === "function") {
+        try {
+          ytPlayer.setVolume(volNum);
+          if (volNum > 0 && typeof ytPlayer.isMuted === "function" && ytPlayer.isMuted()) {
+            ytPlayer.unMute();
+          }
+        } catch (e) {}
+      }
+
+      if (offlineAudio) {
+        offlineAudio.volume = volFraction;
+      }
+
+      updateVolumeIcon(volFraction);
+    });
+  }
+
+  if (muteBtn) {
+    muteBtn.addEventListener("click", () => {
+      let isCurrentlyMuted = false;
+      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.isMuted === "function") {
+        try {
+          isCurrentlyMuted = ytPlayer.isMuted() || (typeof ytPlayer.getVolume === "function" && ytPlayer.getVolume() === 0);
+        } catch (e) {}
+      } else if (offlineAudio) {
+        isCurrentlyMuted = offlineAudio.volume === 0;
+      } else {
+        isCurrentlyMuted = volumeSlider ? parseInt(volumeSlider.value, 10) === 0 : false;
+      }
+
+      if (isCurrentlyMuted) {
+        // Unmute
+        const targetVol = lastVolume > 0 ? Math.round(lastVolume * 100) : 100;
+        if (isYtReady && ytPlayer) {
+          try {
+            if (typeof ytPlayer.unMute === "function") ytPlayer.unMute();
+            if (typeof ytPlayer.setVolume === "function") ytPlayer.setVolume(targetVol);
+          } catch (e) {}
+        }
+        if (offlineAudio) {
+          offlineAudio.volume = targetVol / 100;
+        }
+        if (volumeSlider) volumeSlider.value = targetVol;
+        updateVolumeTrack(targetVol);
+        updateVolumeIcon(targetVol / 100);
+        showToast((i18n[currentLang] && i18n[currentLang].toastUnmuted) || "🔊 Volume Unmuted");
+      } else {
+        // Mute
+        const currentVol = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+        if (currentVol > 0) {
+          lastVolume = currentVol / 100;
+        }
+        if (isYtReady && ytPlayer) {
+          try {
+            if (typeof ytPlayer.mute === "function") ytPlayer.mute();
+            if (typeof ytPlayer.setVolume === "function") ytPlayer.setVolume(0);
+          } catch (e) {}
+        }
+        if (offlineAudio) {
+          offlineAudio.volume = 0;
+        }
+        if (volumeSlider) volumeSlider.value = 0;
+        updateVolumeTrack(0);
+        updateVolumeIcon(0);
+        showToast((i18n[currentLang] && i18n[currentLang].toastMuted) || "🔇 Volume Muted");
+      }
+    });
+  }
+
+  /* Playlist Search & Drawer */
   if (playlistSearch) {
     playlistSearch.addEventListener("input", (e) => {
       const q = e.target.value;
@@ -427,187 +1362,6 @@
     });
   }
 
-  /* Load Song */
-  function loadSong(index, shouldAutoPlay = false) {
-    if (!songs[index]) return;
-    currentSong = index;
-
-    offlineAudio.pause();
-    offlineAudio.src = songs[index].file;
-    offlineAudio.load();
-
-    if (songName) songName.textContent = songs[index].name;
-    if (songSinger) songSinger.textContent = `छठ महापर्व • ${songs[index].singer || "भक्ति गीत"}`;
-    if (currentTime) currentTime.textContent = "0:00";
-    if (totalTime) totalTime.textContent = "0:00";
-    if (progress) progress.value = 0;
-    if (progressFill) progressFill.style.width = "0%";
-
-    renderPlaylist(playlistSearch ? playlistSearch.value : "");
-    updateMediaSessionMetadata();
-
-    if (shouldAutoPlay) {
-      offlineAudio.play().catch((err) => console.warn("Auto-play blocked:", err));
-    }
-  }
-
-  /* Play Specific Song */
-  async function playSong(index) {
-    if (!songs[index]) return;
-    loadSong(index, true);
-  }
-
-  /* Play / Pause Toggle */
-  if (playButton) {
-    playButton.addEventListener("click", async () => {
-      if (!offlineAudio.src && songs.length > 0) {
-        loadSong(0, true);
-        return;
-      }
-
-      if (offlineAudio.paused) {
-        try {
-          await offlineAudio.play();
-        } catch (err) {
-          console.error("Play error:", err);
-        }
-      } else {
-        offlineAudio.pause();
-      }
-    });
-  }
-
-  /* Previous Song */
-  function playPrevious() {
-    if (!songs.length) return;
-    currentSong = (currentSong - 1 + songs.length) % songs.length;
-    playSong(currentSong);
-  }
-
-  if (prevBtn) prevBtn.addEventListener("click", playPrevious);
-
-  /* Next Song */
-  function playNext() {
-    if (!songs.length) return;
-    currentSong = (currentSong + 1) % songs.length;
-    playSong(currentSong);
-  }
-
-  if (nextBtn) nextBtn.addEventListener("click", playNext);
-
-  /* Audio Events */
-  offlineAudio.addEventListener("loadedmetadata", () => {
-    if (totalTime) totalTime.textContent = formatTime(offlineAudio.duration);
-    updateMediaSessionPosition();
-  });
-
-  offlineAudio.addEventListener("timeupdate", () => {
-    if (isSeeking) return;
-
-    const cur = offlineAudio.currentTime;
-    const dur = offlineAudio.duration;
-
-    if (dur && isFinite(dur)) {
-      const pct = (cur / dur) * 100;
-      if (progress) progress.value = pct;
-      if (progressFill) progressFill.style.width = `${pct}%`;
-      updateMediaSessionPosition();
-    }
-    if (currentTime) currentTime.textContent = formatTime(cur);
-  });
-
-  /* Seek interactions */
-  if (progress) {
-    const handleSeekInput = () => {
-      if (!offlineAudio.duration) return;
-      isSeeking = true;
-      const pct = progress.value;
-      if (progressFill) progressFill.style.width = `${pct}%`;
-      if (currentTime) {
-        currentTime.textContent = formatTime((pct / 100) * offlineAudio.duration);
-      }
-    };
-
-    const handleSeekChange = () => {
-      if (!offlineAudio.duration) return;
-      offlineAudio.currentTime = (progress.value / 100) * offlineAudio.duration;
-      isSeeking = false;
-      updateMediaSessionPosition();
-    };
-
-    progress.addEventListener("mousedown", () => { isSeeking = true; });
-    progress.addEventListener("touchstart", () => { isSeeking = true; }, { passive: true });
-    progress.addEventListener("input", handleSeekInput);
-    progress.addEventListener("change", handleSeekChange);
-  }
-
-  offlineAudio.addEventListener("play", () => {
-    if (playIcon) playIcon.textContent = "❚❚";
-    if (albumCover) albumCover.classList.add("spinning");
-    if (playerElem) playerElem.classList.add("playing");
-    renderPlaylist(playlistSearch ? playlistSearch.value : "");
-    updateMediaSessionMetadata();
-  });
-
-  offlineAudio.addEventListener("pause", () => {
-    if (playIcon) playIcon.textContent = "▶";
-    if (albumCover) albumCover.classList.remove("spinning");
-    if (playerElem) playerElem.classList.remove("playing");
-    renderPlaylist(playlistSearch ? playlistSearch.value : "");
-  });
-
-  offlineAudio.addEventListener("ended", () => {
-    playNext();
-  });
-
-  /* Volume & Mute */
-  const VOL_HIGH_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20">
-      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-    </svg>
-  `;
-  const VOL_LOW_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20">
-      <path d="M7 9v6h4l5 5V4L11 9H7zm11.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25-2.5-4.02z"/>
-    </svg>
-  `;
-  const VOL_MUTE_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20">
-      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-    </svg>
-  `;
-
-  function updateVolumeIcon(vol) {
-    if (!muteBtn) return;
-    if (vol === 0) muteBtn.innerHTML = VOL_MUTE_ICON;
-    else if (vol < 0.5) muteBtn.innerHTML = VOL_LOW_ICON;
-    else muteBtn.innerHTML = VOL_HIGH_ICON;
-  }
-
-  if (volumeSlider) {
-    volumeSlider.addEventListener("input", () => {
-      const vol = volumeSlider.value / 100;
-      offlineAudio.volume = vol;
-      updateVolumeIcon(vol);
-    });
-  }
-
-  if (muteBtn) {
-    muteBtn.addEventListener("click", () => {
-      if (offlineAudio.volume > 0) {
-        lastVolume = offlineAudio.volume;
-        offlineAudio.volume = 0;
-        if (volumeSlider) volumeSlider.value = 0;
-        updateVolumeIcon(0);
-      } else {
-        offlineAudio.volume = lastVolume || 1;
-        if (volumeSlider) volumeSlider.value = (lastVolume || 1) * 100;
-        updateVolumeIcon(lastVolume || 1);
-      }
-    });
-  }
-
-  /* Playlist Drawer open / close */
   if (playlistToggleBtn && playlistModal) {
     playlistToggleBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -643,28 +1397,19 @@
   /* =========================================================
      8. MEDIA SESSION API INTEGRATION
      ========================================================= */
-  /* =========================================================
-     8. MEDIA SESSION API INTEGRATION
-     ========================================================= */
   const MEDIA_SESSION_SUPPORTED = "mediaSession" in navigator;
 
-  function updateMediaSessionPosition() {
+  function updateMediaSessionPosition(pos = 0, dur = 0) {
     if (!MEDIA_SESSION_SUPPORTED || !("setPositionState" in navigator.mediaSession)) return;
-    const dur = offlineAudio.duration;
-    const pos = offlineAudio.currentTime;
-    const rate = offlineAudio.playbackRate || 1;
-
     if (!isFinite(dur) || dur <= 0 || !isFinite(pos) || pos < 0) return;
 
     try {
       navigator.mediaSession.setPositionState({
         duration: dur,
-        playbackRate: rate,
+        playbackRate: 1,
         position: Math.min(pos, dur)
       });
-    } catch (e) {
-      console.debug("MediaSession position error:", e);
-    }
+    } catch (e) {}
   }
 
   function updateMediaSessionMetadata() {
@@ -679,152 +1424,32 @@
           { src: "/favicon.io/android-chrome-512x512.png", sizes: "512x512", type: "image/png" }
         ]
       });
-    } catch (e) {
-      console.debug("MediaSession metadata error:", e);
-    }
+    } catch (e) {}
   }
 
   if (MEDIA_SESSION_SUPPORTED) {
     try {
-      navigator.mediaSession.setActionHandler("play", () => offlineAudio.play());
-      navigator.mediaSession.setActionHandler("pause", () => offlineAudio.pause());
+      navigator.mediaSession.setActionHandler("play", togglePlayback);
+      navigator.mediaSession.setActionHandler("pause", togglePlayback);
       navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
       navigator.mediaSession.setActionHandler("nexttrack", playNext);
       navigator.mediaSession.setActionHandler("seekto", (details) => {
         if (details.seekTime && isFinite(details.seekTime)) {
-          offlineAudio.currentTime = details.seekTime;
+          if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
+            ytPlayer.seekTo(details.seekTime, true);
+          } else if (offlineAudio) {
+            offlineAudio.currentTime = details.seekTime;
+          }
         }
       });
-    } catch (e) {
-      console.debug("MediaSession action handler error:", e);
-    }
-  }
-
-  /* =========================================================
-     8.5 LIVE AMBIENT YOUTUBE BACKGROUND VIDEO PLAYER
-     ========================================================= */
-  const CHHATH_VIDEOS = [
-    {
-      url: "https://www.youtube.com/embed/videoseries?si=BNzOSetal4lV7IDh&amp;list=PLPlNvrjDXABmd-q-lwgFguM7hjuRWUm7J&amp;autoplay=1",
-      title: "छठ महापर्व संपूर्ण वीडियो प्लेलिस्ट (Chhath Puja Special Video Playlist)",
-      label: "🎶 संपूर्ण छठ प्लेलिस्ट"
-    },
-    {
-      url: "https://www.youtube.com/embed/HfHkBEjofqk?autoplay=1",
-      title: "केलवा के पात पर / हो दीनानाथ — शारदा सिन्हा (Official Video)",
-      label: "केलवा के पात पर"
-    },
-    {
-      url: "https://www.youtube.com/embed/_y78meZvgpY?autoplay=1",
-      title: "पहिले पहिल हम कईनी — अनुराधा पौडवाल",
-      label: "पहिले पहिल छठी मईया"
-    },
-    {
-      url: "https://www.youtube.com/embed/87Y-OH_mJxM?autoplay=1",
-      title: "सुपरहिट छठ पूजा जुगलबंदी (Top Chhath Geet)",
-      label: "छठ पूजा जुगलबंदी"
-    },
-    {
-      url: "https://www.youtube.com/embed/9U1hQ3_x8v4?autoplay=1",
-      title: "कांच ही बांस के बहंगिया — कल्पना पटवारी",
-      label: "कांच ही बांस के बहंगिया"
-    }
-  ];
-
-  let currentVideoIndex = 0;
-  let isLiveBackgroundVideoActive = false;
-
-  const videoPlayBtn = document.getElementById("videoPlayBtn");
-  const bgVideoContainer = document.getElementById("bgVideoContainer");
-  const bgVideoIframeWrap = document.getElementById("bgVideoIframeWrap");
-
-  function startBackgroundVideo(index = 0) {
-    if (!bgVideoContainer || !bgVideoIframeWrap) return;
-    currentVideoIndex = index;
-    const video = CHHATH_VIDEOS[index];
-
-    // Pause offline audio player to avoid overlapping sound
-    if (offlineAudio && !offlineAudio.paused) {
-      offlineAudio.pause();
-    }
-
-    // Activate live video background mode
-    isLiveBackgroundVideoActive = true;
-    document.body.classList.add("live-video-active");
-    bgVideoContainer.classList.add("active");
-    bgVideoContainer.setAttribute("aria-hidden", "false");
-
-    // Inject responsive full-bleed iframe with user's requested playlist
-    bgVideoIframeWrap.innerHTML = `
-      <iframe 
-        width="100%" 
-        height="100%" 
-        src="${video.url}" 
-        title="${escapeHTML(video.title)}" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-        referrerpolicy="strict-origin-when-cross-origin" 
-        allowfullscreen>
-      </iframe>
-    `;
-
-    // Update button UI to indicate active playing state
-    if (videoPlayBtn) {
-      videoPlayBtn.classList.add("playing");
-      videoPlayBtn.innerHTML = `
-        <span style="font-size:13px;">🛑</span>
-        <span class="video-label">Stop Video</span>
-        <span class="video-live-pulse" aria-hidden="true" style="background:#2ae772;box-shadow:0 0 8px #2ae772;"></span>
-      `;
-      videoPlayBtn.title = "लाइव वीडियो बैकग्राउंड रोकें (Stop Background Video)";
-    }
-
-    showToast("🎬 लाइव वीडियो स्क्रीन बैकग्राउंड में चालू हुआ!");
-  }
-
-  function stopBackgroundVideo() {
-    isLiveBackgroundVideoActive = false;
-    document.body.classList.remove("live-video-active");
-    
-    if (bgVideoContainer) {
-      bgVideoContainer.classList.remove("active");
-      bgVideoContainer.setAttribute("aria-hidden", "true");
-    }
-    if (bgVideoIframeWrap) {
-      bgVideoIframeWrap.innerHTML = "";
-    }
-
-    // Restore button UI
-    if (videoPlayBtn) {
-      videoPlayBtn.classList.remove("playing");
-      videoPlayBtn.innerHTML = `
-        <svg class="video-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-        <span class="video-label">Video Play</span>
-        <span class="video-live-pulse" aria-hidden="true"></span>
-      `;
-      videoPlayBtn.title = "छठ पूजा वीडियो गीत चलाएं (YouTube Video Background)";
-    }
-
-    showToast("🖼️ बैकग्राउंड इमेज वापस सेट हो गई");
-  }
-
-  if (videoPlayBtn) {
-    videoPlayBtn.addEventListener("click", () => {
-      if (isLiveBackgroundVideoActive) {
-        stopBackgroundVideo();
-      } else {
-        startBackgroundVideo(0);
-      }
-    });
+    } catch (e) {}
   }
 
   /* =========================================================
      9. STARTUP INITIALIZATION
      ========================================================= */
-  offlineAudio.volume = 1;
   if (volumeSlider) volumeSlider.value = 100;
   updateVolumeIcon(1);
+  setLanguage("en", false);
   loadOfflineSongs();
 })();
