@@ -66,7 +66,8 @@
       toastLangSwitched: "भाषा बदलकर 'हिन्दी' कर दी गई है",
       toastMantraCopied: "✅ सूर्य गायत्री मंत्र कॉपी हो गया!",
       toastMuted: "🔇 म्यूट किया गया",
-      toastUnmuted: "🔊 ध्वनि चालू"
+      toastUnmuted: "🔊 ध्वनि चालू",
+      toastSpeed: "⚡ प्लेबैक गति: "
     },
     en: {
       langBtnText: "English",
@@ -123,7 +124,8 @@
       toastLangSwitched: "Language switched to English",
       toastMantraCopied: "✅ Surya Gayatri Mantra copied!",
       toastMuted: "🔇 Volume Muted",
-      toastUnmuted: "🔊 Volume Unmuted"
+      toastUnmuted: "🔊 Volume Unmuted",
+      toastSpeed: "⚡ Playback Speed: "
     }
   };
 
@@ -475,7 +477,20 @@
   const totalTime = document.getElementById("totalSongTime");
   const muteBtn = document.getElementById("muteBtn");
   const volumeSlider = document.getElementById("volumeSlider");
+  const speedBtn = document.getElementById("speedBtn");
+  const speedLabel = document.getElementById("speedLabel");
   const playerElem = document.getElementById("offlinePlayer");
+
+  let currentSpeedIndex = 0;
+  const PLAYBACK_SPEEDS = [
+    { value: 1.0, label: "1.0x" },
+    { value: 1.25, label: "1.25x" },
+    { value: 1.5, label: "1.50x" },
+    { value: 1.75, label: "1.75x" },
+    { value: 2.0, label: "2.0x" },
+    { value: 0.5, label: "0.5x" },
+    { value: 0.75, label: "0.75x" }
+  ];
 
   const playlistToggleBtn = document.getElementById("playlistToggleBtn");
   const playlistCloseBtn = document.getElementById("playlistCloseBtn");
@@ -610,9 +625,36 @@
   }
 
   /* =========================================================
-     7.1 YOUTUBE IFRAME PLAYER INITIALIZATION
+     7.1 DYNAMIC YOUTUBE IFRAME API LAZY LOADER
      ========================================================= */
   let isSwitchingTrack = false;
+  let isYtScriptLoading = false;
+
+  function ensureYouTubeAPI() {
+    if (window.YT && window.YT.Player) {
+      if (!ytPlayer) {
+        initYouTubePlayer();
+      }
+      return;
+    }
+
+    if (isYtScriptLoading) return;
+    isYtScriptLoading = true;
+
+    window.onYouTubeIframeAPIReady = function () {
+      initYouTubePlayer();
+    };
+
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    tag.async = true;
+    const firstScript = document.getElementsByTagName("script")[0];
+    if (firstScript && firstScript.parentNode) {
+      firstScript.parentNode.insertBefore(tag, firstScript);
+    } else {
+      document.head.appendChild(tag);
+    }
+  }
 
   function initYouTubePlayer() {
     if (ytPlayer || !window.YT || !window.YT.Player) return;
@@ -620,7 +662,8 @@
       const initialVideoId = (songs[currentSong] && songs[currentSong].videoId) || "W34L_i63B0g";
 
       const playerVars = {
-        autoplay: 0,
+        autoplay: 1,
+        mute: 1,
         controls: 0,
         rel: 0,
         showinfo: 0,
@@ -648,21 +691,12 @@
     }
   }
 
-  window.onYouTubeIframeAPIReady = function () {
-    initYouTubePlayer();
-  };
-
-  if (window.YT && window.YT.Player) {
-    initYouTubePlayer();
-  }
-
   function onYTPlayerReady(event) {
     isYtReady = true;
     try {
-      const initialVol = volumeSlider ? parseInt(volumeSlider.value, 10) || 100 : 100;
-      event.target.setVolume(initialVol);
-      if (initialVol > 0 && typeof event.target.unMute === "function") {
-        event.target.unMute();
+      event.target.mute();
+      if (isPlaying && isOnlineMode) {
+        event.target.playVideo();
       }
     } catch (e) {}
 
@@ -671,7 +705,9 @@
       const s = songs[currentSong];
       if (s && s.videoId) {
         try {
-          event.target.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
+          const curSec = (offlineAudio && offlineAudio.currentTime) ? offlineAudio.currentTime : 0;
+          event.target.loadVideoById({ videoId: s.videoId, startSeconds: curSec });
+          event.target.mute();
           event.target.playVideo();
         } catch (e) {
           event.target.playVideo();
@@ -738,6 +774,9 @@
     }
 
     if (isOnlineMode) {
+      // Dynamically load YouTube API on demand (Lazy Loading for faster FCP)
+      ensureYouTubeAPI();
+
       // Switched to Online Mode: activate video background and sync video
       document.body.classList.add("live-video-active");
       if (bgVideoContainer) {
@@ -921,9 +960,6 @@
       if (offlineAudio && songs[0] && songs[0].file) {
         offlineAudio.src = songs[0].file;
       }
-
-      // Initialize YouTube API for when user switches to Online mode
-      initYouTubePlayer();
     } catch (error) {
       console.error("Songs fetch failed:", error);
       if (songName) songName.textContent = currentLang === "en" ? "Failed to load songs" : "गीत लोड नहीं हो सके";
@@ -1047,7 +1083,9 @@
         offlineAudio.src = s.file;
       }
       const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+      const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
       offlineAudio.volume = volNum / 100;
+      offlineAudio.playbackRate = activeRate;
       offlineAudio.play().catch((err) => {
         console.warn("Audio play blocked/error:", err);
       });
@@ -1065,6 +1103,7 @@
     }
 
     const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+    const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
 
     // 1. Play crystal-clear audio directly via offlineAudio so audio ALWAYS plays reliably
     if (offlineAudio) {
@@ -1072,6 +1111,7 @@
         offlineAudio.src = s.file;
       }
       offlineAudio.volume = volNum / 100;
+      offlineAudio.playbackRate = activeRate;
       offlineAudio.play().catch((err) => {
         console.warn("Audio play blocked/error:", err);
       });
@@ -1084,6 +1124,9 @@
           ytPlayer.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
           ytPlayer.mute();
           ytPlayer.playVideo();
+          if (typeof ytPlayer.setPlaybackRate === "function") {
+            ytPlayer.setPlaybackRate(activeRate);
+          }
         }
       } catch (e) {
         console.warn("YouTube video load error:", e);
@@ -1343,6 +1386,50 @@
     });
   }
 
+  /* Playback Speed Controller Function */
+  function setPlaybackRate(speedObj) {
+    const rateItem = (typeof speedObj === "object" && speedObj !== null)
+      ? speedObj 
+      : (PLAYBACK_SPEEDS.find((s) => s.value === parseFloat(speedObj)) || { value: parseFloat(speedObj) || 1.0, label: `${speedObj}x` });
+    
+    const r = parseFloat(rateItem.value) || 1.0;
+    const label = rateItem.label || `${r}x`;
+
+    if (offlineAudio) {
+      offlineAudio.playbackRate = r;
+    }
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.setPlaybackRate === "function") {
+      try {
+        ytPlayer.setPlaybackRate(r);
+      } catch (e) {}
+    }
+
+    if (speedLabel) {
+      speedLabel.textContent = label;
+    }
+    if (speedBtn) {
+      if (r !== 1.0) {
+        speedBtn.classList.add("custom-speed");
+      } else {
+        speedBtn.classList.remove("custom-speed");
+      }
+    }
+
+    const t = i18n[currentLang] || i18n.hi;
+    const speedMsg = (t.toastSpeed || "⚡ प्लेबैक गति: ") + label;
+    showToast(speedMsg);
+  }
+
+  function cyclePlaybackSpeed() {
+    currentSpeedIndex = (currentSpeedIndex + 1) % PLAYBACK_SPEEDS.length;
+    const nextSpeed = PLAYBACK_SPEEDS[currentSpeedIndex];
+    setPlaybackRate(nextSpeed);
+  }
+
+  if (speedBtn) {
+    speedBtn.addEventListener("click", cyclePlaybackSpeed);
+  }
+
   /* Playlist Search & Drawer */
   if (playlistSearch) {
     playlistSearch.addEventListener("input", (e) => {
@@ -1444,6 +1531,131 @@
       });
     } catch (e) {}
   }
+
+  /* =========================================================
+     8.5 KEYBOARD SHORTCUTS & ACCESSIBILITY CONTROLS
+     ========================================================= */
+  function seekRelative(deltaSeconds) {
+    let dur = 0;
+    let cur = 0;
+
+    if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      dur = offlineAudio.duration;
+      cur = offlineAudio.currentTime || 0;
+    } else if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
+      try {
+        dur = ytPlayer.getDuration() || 0;
+        cur = ytPlayer.getCurrentTime() || 0;
+      } catch (e) {}
+    }
+
+    const target = Math.max(0, Math.min(dur || 9999, cur + deltaSeconds));
+
+    if (offlineAudio) {
+      offlineAudio.currentTime = target;
+    }
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
+      try {
+        ytPlayer.seekTo(target, true);
+      } catch (e) {}
+    }
+
+    updateLiveProgress();
+
+    const sign = deltaSeconds > 0 ? `⏩ +${deltaSeconds}s` : `⏪ ${deltaSeconds}s`;
+    showToast(`${sign} (${formatTime(target)})`);
+  }
+
+  window.addEventListener("keydown", (e) => {
+    // Ignore keyboard shortcuts if the user is typing in an input field or textarea
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+    if (activeTag === "input" || activeTag === "textarea" || (document.activeElement && document.activeElement.isContentEditable)) {
+      if (e.key === "Escape" && playlistModal && playlistModal.classList.contains("open")) {
+        playlistModal.classList.remove("open");
+        if (playlistSearch) playlistSearch.blur();
+      }
+      return;
+    }
+
+    // Spacebar or 'k'/'K' -> Toggle Play / Pause
+    if (e.code === "Space" || e.key === " " || e.key === "k" || e.key === "K") {
+      e.preventDefault();
+      togglePlayback();
+      return;
+    }
+
+    // 'm' or 'M' -> Toggle Mute / Unmute
+    if (e.key === "m" || e.key === "M") {
+      e.preventDefault();
+      if (muteBtn) {
+        muteBtn.click();
+      }
+      return;
+    }
+
+    // Arrow Right -> Seek Forward +5s
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      seekRelative(5);
+      return;
+    }
+
+    // Arrow Left -> Seek Backward -5s
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      seekRelative(-5);
+      return;
+    }
+
+    // Arrow Up -> Volume Up +5%
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (volumeSlider) {
+        const curVol = parseInt(volumeSlider.value, 10) || 0;
+        const newVol = Math.min(100, curVol + 5);
+        volumeSlider.value = newVol;
+        volumeSlider.dispatchEvent(new Event("input"));
+        showToast(`🔊 ${newVol}%`);
+      }
+      return;
+    }
+
+    // Arrow Down -> Volume Down -5%
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (volumeSlider) {
+        const curVol = parseInt(volumeSlider.value, 10) || 0;
+        const newVol = Math.max(0, curVol - 5);
+        volumeSlider.value = newVol;
+        volumeSlider.dispatchEvent(new Event("input"));
+        showToast(newVol === 0 ? "🔇 Muted" : `🔉 ${newVol}%`);
+      }
+      return;
+    }
+
+    // Shift + '>' (Period) -> Increase/Cycle Speed
+    if ((e.shiftKey && e.key === ">") || (e.shiftKey && e.key === ".")) {
+      e.preventDefault();
+      cyclePlaybackSpeed();
+      return;
+    }
+
+    // Shift + '<' (Comma) -> Decrease Speed
+    if ((e.shiftKey && e.key === "<") || (e.shiftKey && e.key === ",")) {
+      e.preventDefault();
+      currentSpeedIndex = (currentSpeedIndex - 1 + PLAYBACK_SPEEDS.length) % PLAYBACK_SPEEDS.length;
+      setPlaybackRate(PLAYBACK_SPEEDS[currentSpeedIndex]);
+      return;
+    }
+
+    // Escape -> Close Playlist Modal
+    if (e.key === "Escape") {
+      if (playlistModal && playlistModal.classList.contains("open")) {
+        e.preventDefault();
+        playlistModal.classList.remove("open");
+      }
+    }
+  });
 
   /* =========================================================
      9. STARTUP INITIALIZATION
