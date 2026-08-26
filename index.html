@@ -88,6 +88,17 @@
         </div>
       </div>
 
+      <!-- Top Center Video Play Button -->
+      <div class="top-center">
+        <button class="btn-video-play" id="videoPlayBtn" type="button" title="छठ पूजा वीडियो गीत चलाएं (YouTube Video)" aria-label="Play Chhath Puja Video">
+          <svg class="video-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <span class="video-label">Video Play</span>
+          <span class="video-live-pulse" aria-hidden="true"></span>
+        </button>
+      </div>
+
       <!-- Top Right Action Controls -->
       <div class="top-actions">
         <!-- WhatsApp Share Button -->
@@ -380,6 +391,38 @@
       </p>
     </div>
   </section>
+
+  <!-- Ambient YouTube Video Theater & Background Player -->
+  <div class="video-theater-modal" id="videoTheaterModal" aria-hidden="true">
+    <div class="video-backdrop" id="videoBackdrop"></div>
+    <div class="video-theater-card" id="videoTheaterCard">
+      <div class="video-theater-header">
+        <div class="video-theater-title">
+          <span class="video-theater-icon">🪔</span>
+          <span id="currentVideoTitle">छठ महापर्व वीडियो दर्शन</span>
+        </div>
+        <div class="video-theater-actions">
+          <button class="btn-theater-mode" id="bgModeToggleBtn" type="button" title="बैकग्राउंड वीडियो मोड (Floating / Background)">
+            <span id="bgModeIcon">🖼️</span>
+            <span id="bgModeLabel">Background Mode</span>
+          </button>
+          <button class="btn-theater-close" id="closeVideoBtn" type="button" title="वीडियो बंद करें" aria-label="Close Video">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div class="video-frame-container" id="videoFrameContainer">
+        <!-- YouTube iframe injected dynamically -->
+      </div>
+
+      <!-- Video Selection Tray -->
+      <div class="video-tray">
+        <span class="tray-label">पसंदीदा वीडियो चुनें:</span>
+        <div class="video-chips-list" id="videoChipsList"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Notification Message -->
   <div id="toastNotification" class="toast-notification" role="status" aria-live="polite"></div>

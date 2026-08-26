@@ -698,6 +698,155 @@
   }
 
   /* =========================================================
+     8.5 YOUTUBE VIDEO THEATER & BACKGROUND VIDEO PLAYER
+     ========================================================= */
+  const CHHATH_VIDEOS = [
+    {
+      id: "W34L_i63B0g",
+      title: "केलवा के पात पर — शारदा सिन्हा (Official Video)",
+      label: "केलवा के पात पर"
+    },
+    {
+      id: "j1uN5NfM2Fw",
+      title: "उगी हे दीनानाथ — शारदा सिन्हा (पारंपरिक छठ गीत)",
+      label: "उगी हे दीनानाथ"
+    },
+    {
+      id: "7nJjS0oT-Z0",
+      title: "पहिले पहिल हम कईनी — अनुराधा पौडवाल",
+      label: "पहिले पहिल छठी मईया"
+    },
+    {
+      id: "9U1hQ3_x8v4",
+      title: "कांच ही बांस के बहंगिया — कल्पना पटवारी",
+      label: "कांच ही बांस के बहंगिया"
+    },
+    {
+      id: "a-vC7bJqD1M",
+      title: "छठ घाटे बाजे बाजनवा — पवन सिंह",
+      label: "छठ घाटे बाजे बाजनवा"
+    }
+  ];
+
+  let currentVideoIndex = 0;
+  let isBackgroundVideoMode = false;
+
+  const videoPlayBtn = document.getElementById("videoPlayBtn");
+  const videoTheaterModal = document.getElementById("videoTheaterModal");
+  const videoBackdrop = document.getElementById("videoBackdrop");
+  const videoFrameContainer = document.getElementById("videoFrameContainer");
+  const videoChipsList = document.getElementById("videoChipsList");
+  const currentVideoTitle = document.getElementById("currentVideoTitle");
+  const bgModeToggleBtn = document.getElementById("bgModeToggleBtn");
+  const bgModeLabel = document.getElementById("bgModeLabel");
+  const bgModeIcon = document.getElementById("bgModeIcon");
+  const closeVideoBtn = document.getElementById("closeVideoBtn");
+
+  function renderVideoChips() {
+    if (!videoChipsList) return;
+    videoChipsList.innerHTML = CHHATH_VIDEOS.map((vid, idx) => `
+      <button class="video-chip ${idx === currentVideoIndex ? "active" : ""}" data-idx="${idx}" type="button">
+        ▶ ${escapeHTML(vid.label)}
+      </button>
+    `).join("");
+
+    videoChipsList.querySelectorAll(".video-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const idx = parseInt(chip.getAttribute("data-idx"), 10);
+        loadYouTubeVideo(idx);
+      });
+    });
+  }
+
+  function loadYouTubeVideo(index) {
+    if (!CHHATH_VIDEOS[index] || !videoFrameContainer) return;
+    currentVideoIndex = index;
+    const video = CHHATH_VIDEOS[index];
+
+    if (currentVideoTitle) {
+      currentVideoTitle.textContent = video.title;
+    }
+
+    // Pause offline audio player to avoid overlapping sound
+    if (offlineAudio && !offlineAudio.paused) {
+      offlineAudio.pause();
+      showToast("🎵 ऑडियो प्लेयर पॉज़ किया गया (Video Play Active)");
+    }
+
+    // Inject responsive iframe with autoplay
+    videoFrameContainer.innerHTML = `
+      <iframe 
+        src="https://www.youtube.com/embed/${video.id}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1" 
+        title="${escapeHTML(video.title)}" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+        allowfullscreen>
+      </iframe>
+    `;
+
+    renderVideoChips();
+  }
+
+  function openVideoTheater(index = 0) {
+    if (!videoTheaterModal) return;
+    videoTheaterModal.classList.add("open");
+    videoTheaterModal.setAttribute("aria-hidden", "false");
+    loadYouTubeVideo(index);
+    showToast("🎬 छठ पूजा वीडियो दर्शन चालू हुआ");
+  }
+
+  function closeVideoTheater() {
+    if (!videoTheaterModal) return;
+    videoTheaterModal.classList.remove("open", "background-mode");
+    videoTheaterModal.setAttribute("aria-hidden", "true");
+    isBackgroundVideoMode = false;
+    if (bgModeLabel) bgModeLabel.textContent = "Background Mode";
+    if (bgModeIcon) bgModeIcon.textContent = "🖼️";
+
+    // Cleanly remove iframe to stop audio/video
+    if (videoFrameContainer) {
+      videoFrameContainer.innerHTML = "";
+    }
+  }
+
+  function toggleBackgroundVideoMode() {
+    if (!videoTheaterModal) return;
+    isBackgroundVideoMode = !isBackgroundVideoMode;
+    videoTheaterModal.classList.toggle("background-mode", isBackgroundVideoMode);
+
+    if (isBackgroundVideoMode) {
+      if (bgModeLabel) bgModeLabel.textContent = "Full View";
+      if (bgModeIcon) bgModeIcon.textContent = "🖥️";
+      showToast("🖼️ बैकग्राउंड वीडियो मोड चालू (Mini Player Active)");
+    } else {
+      if (bgModeLabel) bgModeLabel.textContent = "Background Mode";
+      if (bgModeIcon) bgModeIcon.textContent = "🖼️";
+      showToast("🖥️ फुल थिएटर मोड चालू");
+    }
+  }
+
+  if (videoPlayBtn) {
+    videoPlayBtn.addEventListener("click", () => {
+      openVideoTheater(currentVideoIndex);
+    });
+  }
+
+  if (closeVideoBtn) {
+    closeVideoBtn.addEventListener("click", closeVideoTheater);
+  }
+
+  if (videoBackdrop) {
+    videoBackdrop.addEventListener("click", () => {
+      if (!isBackgroundVideoMode) {
+        closeVideoTheater();
+      }
+    });
+  }
+
+  if (bgModeToggleBtn) {
+    bgModeToggleBtn.addEventListener("click", toggleBackgroundVideoMode);
+  }
+
+  /* =========================================================
      9. STARTUP INITIALIZATION
      ========================================================= */
   offlineAudio.volume = 1;
