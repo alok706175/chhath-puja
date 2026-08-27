@@ -122,6 +122,8 @@ body.live-video-active .bg-overlay {
   inset: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
   pointer-events: none;
+  transition: all 0.4s ease;
+  z-index: 2;
 }
 
 .bg-overlay {
@@ -985,6 +987,35 @@ body.live-video-active .bg-overlay {
   transform: translateX(0);
 }
 
+/* Controller Buffering / Loading Animation */
+.offline-play-btn.buffering {
+  background: var(--marigold-bright);
+}
+
+.offline-play-btn.buffering #playIcon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(26, 5, 7, 0.25);
+  border-top-color: #1a0507;
+  border-radius: 50%;
+  animation: playBtnSpinner 0.65s linear infinite;
+  transform: translateX(0);
+}
+
+@keyframes playBtnSpinner {
+  to { transform: rotate(360deg); }
+}
+
+.offline-cover.buffering {
+  animation: coverBufferingPulse 0.9s infinite alternate ease-in-out;
+}
+
+@keyframes coverBufferingPulse {
+  0% { transform: scale(0.95); opacity: 0.85; filter: drop-shadow(0 0 4px var(--marigold-bright)); }
+  100% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 14px var(--marigold-bright)); }
+}
+
 .offline-play-btn:hover {
   transform: scale(1.08);
   background: #ffffff;
@@ -1056,6 +1087,51 @@ body.live-video-active .bg-overlay {
   color: #ffffff;
   border-color: var(--marigold-bright);
   box-shadow: 0 0 8px rgba(255, 184, 77, 0.3);
+}
+
+/* Video Quality Pill Button (Only visible in Online Mode) */
+.offline-quality-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 28px;
+  padding: 2px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 184, 77, 0.4);
+  background: rgba(255, 184, 77, 0.1);
+  color: var(--cream-soft);
+  font-family: var(--font-modern);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  user-select: none;
+  letter-spacing: 0.2px;
+}
+
+body.live-video-active .offline-quality-btn {
+  display: inline-flex;
+}
+
+.offline-quality-btn:hover {
+  background: rgba(255, 184, 77, 0.25);
+  color: var(--marigold-bright);
+  border-color: var(--marigold-bright);
+  box-shadow: 0 0 10px rgba(255, 184, 77, 0.35);
+  transform: translateY(-1px) scale(1.05);
+}
+
+.offline-quality-btn:active {
+  transform: scale(0.92);
+}
+
+.offline-quality-btn.custom-quality {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.35) 0%, rgba(216, 27, 96, 0.35) 100%);
+  color: #ffffff;
+  border-color: var(--marigold-bright);
+  box-shadow: 0 0 8px rgba(255, 184, 77, 0.35);
 }
 
 /* Volume Control */

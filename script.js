@@ -766,7 +766,7 @@
 
       const playerVars = {
         autoplay: 1,
-        mute: 1,
+        mute: 0,
         controls: 0,
         rel: 0,
         showinfo: 0,
@@ -775,7 +775,9 @@
         playsinline: 1,
         enablejsapi: 1,
         disablekb: 1,
-        fs: 0
+        fs: 0,
+        cc_load_policy: 0,
+        cc_lang_pref: "none"
       };
 
       ytPlayer = new YT.Player("ytBgPlayer", {
@@ -794,12 +796,35 @@
     }
   }
 
+  function disableCaptions(player) {
+    if (!player) return;
+    try {
+      if (typeof player.unloadModule === "function") {
+        player.unloadModule("captions");
+        player.unloadModule("cc");
+      }
+      if (typeof player.setOption === "function") {
+        player.setOption("captions", "track", {});
+        player.setOption("cc", "track", {});
+        player.setOption("captions", "fontSize", 0);
+      }
+    } catch (e) { }
+  }
+
   function onYTPlayerReady(event) {
     isYtReady = true;
+    disableCaptions(event.target);
+    const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
     try {
-      event.target.mute();
-      if (isPlaying && isOnlineMode) {
-        event.target.playVideo();
+      if (isOnlineMode) {
+        event.target.unMute();
+        event.target.setVolume(volNum);
+        if (isPlaying) {
+          event.target.playVideo();
+        }
+      } else {
+        event.target.mute();
+        event.target.pauseVideo();
       }
     } catch (e) { }
 
@@ -808,9 +833,10 @@
       const s = songs[currentSong];
       if (s && s.videoId) {
         try {
-          const curSec = (offlineAudio && offlineAudio.currentTime) ? offlineAudio.currentTime : 0;
-          event.target.loadVideoById({ videoId: s.videoId, startSeconds: curSec });
-          event.target.mute();
+          event.target.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
+          event.target.unMute();
+          event.target.setVolume(volNum);
+          disableCaptions(event.target);
           event.target.playVideo();
         } catch (e) {
           event.target.playVideo();
@@ -821,27 +847,50 @@
     }
   }
 
+  function setBufferingState(isBuffering) {
+    if (isBuffering) {
+      if (playButton) playButton.classList.add("buffering");
+      if (albumCover) albumCover.classList.add("buffering");
+      if (playerElem) playerElem.classList.add("buffering");
+      if (playIcon) playIcon.textContent = "";
+    } else {
+      if (playButton) playButton.classList.remove("buffering");
+      if (albumCover) albumCover.classList.remove("buffering");
+      if (playerElem) playerElem.classList.remove("buffering");
+      if (playIcon) playIcon.textContent = isPlaying ? "❚❚" : "▶";
+    }
+  }
+
   function onYTPlayerStateChange(event) {
     if (!window.YT) return;
 
     if (event.data === YT.PlayerState.PLAYING) {
       isSwitchingTrack = false;
+      disableCaptions(event.target);
+      setBufferingState(false);
+      document.body.classList.remove("video-paused", "video-buffering");
       if (isOnlineMode) {
         setPlaybackState(true);
-        if (offlineAudio && !offlineAudio.paused) {
-          offlineAudio.pause();
-        }
+        displaySongInfo(currentSong);
       }
     } else if (event.data === YT.PlayerState.PAUSED) {
-      if (isOnlineMode && !isSwitchingTrack) {
-        setPlaybackState(false);
+      setBufferingState(false);
+      if (isOnlineMode) {
+        document.body.classList.add("video-paused");
+        if (!isSwitchingTrack) {
+          setPlaybackState(false);
+        }
       }
     } else if (event.data === YT.PlayerState.ENDED) {
+      setBufferingState(false);
       if (isOnlineMode) {
         playNext();
       }
     } else if (event.data === YT.PlayerState.BUFFERING) {
-      if (albumCover && isOnlineMode) albumCover.classList.add("spinning");
+      if (isOnlineMode) {
+        setBufferingState(true);
+        document.body.classList.add("video-buffering");
+      }
     }
   }
 
@@ -880,42 +929,44 @@
       // Dynamically load YouTube API on demand (Lazy Loading for faster FCP)
       ensureYouTubeAPI();
 
-      // Switched to Online Mode: activate video background and sync video
+      // Switched to Online Mode: activate video background
       document.body.classList.add("live-video-active");
       if (bgVideoContainer) {
         bgVideoContainer.classList.add("active");
         bgVideoContainer.setAttribute("aria-hidden", "false");
       }
-      if (isPlaying && isYtReady && ytPlayer && songs[currentSong]) {
-        try {
-          const curSec = (offlineAudio && offlineAudio.currentTime) ? offlineAudio.currentTime : 0;
-          ytPlayer.loadVideoById({ videoId: songs[currentSong].videoId, startSeconds: curSec });
-          ytPlayer.mute();
-          ytPlayer.playVideo();
-        } catch (e) { }
-      }
+
+      // Automatically start playback as requested
+      playSong(currentSong);
+
       if (showNotification) {
         const msg = (i18n[currentLang] && i18n[currentLang].toastOnline) || "🌐 Online Video Mode Active";
         showToast(msg);
       }
     } else {
-      // Switched to Offline Mode: deactivate video background and pause YouTube video
-      document.body.classList.remove("live-video-active");
+      // Switched to Offline Mode: deactivate video background and completely stop YouTube video
+      document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
       if (bgVideoContainer) {
         bgVideoContainer.classList.remove("active");
         bgVideoContainer.setAttribute("aria-hidden", "true");
       }
-      if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+      if (isYtReady && ytPlayer) {
         try {
-          ytPlayer.pauseVideo();
+          if (typeof ytPlayer.pauseVideo === "function") ytPlayer.pauseVideo();
+          if (typeof ytPlayer.stopVideo === "function") ytPlayer.stopVideo();
         } catch (e) { }
       }
+      
+      // Automatically start offline audio playback immediately
+      playSong(currentSong);
+
       if (showNotification) {
         const msg = (i18n[currentLang] && i18n[currentLang].toastOffline) || "📴 Offline Audio Mode Active";
         showToast(msg);
       }
     }
 
+    displaySongInfo(currentSong);
     renderPlaylist(playlistSearch ? playlistSearch.value : "");
   }
 
@@ -957,35 +1008,32 @@
   function setPlaybackState(playing) {
     isPlaying = playing;
 
-    if (playing) {
-      if (isOnlineMode) {
-        document.body.classList.add("live-video-active");
-        if (bgVideoContainer) {
-          bgVideoContainer.classList.add("active");
-          bgVideoContainer.setAttribute("aria-hidden", "false");
-        }
-      } else {
-        document.body.classList.remove("live-video-active");
-        if (bgVideoContainer) {
-          bgVideoContainer.classList.remove("active");
-          bgVideoContainer.setAttribute("aria-hidden", "true");
-        }
+    if (isOnlineMode) {
+      document.body.classList.add("live-video-active");
+      if (bgVideoContainer) {
+        bgVideoContainer.classList.add("active");
+        bgVideoContainer.setAttribute("aria-hidden", "false");
       }
+      if (playing) {
+        document.body.classList.remove("video-paused", "video-buffering");
+      } else {
+        document.body.classList.add("video-paused");
+      }
+    } else {
+      document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
+      if (bgVideoContainer) {
+        bgVideoContainer.classList.remove("active");
+        bgVideoContainer.setAttribute("aria-hidden", "true");
+      }
+    }
 
+    if (playing) {
       if (playIcon) playIcon.textContent = "❚❚";
       if (albumCover) albumCover.classList.add("spinning");
       if (playerElem) playerElem.classList.add("playing");
 
       startProgressSync();
     } else {
-      if (isOnlineMode) {
-        document.body.classList.remove("live-video-active");
-        if (bgVideoContainer) {
-          bgVideoContainer.classList.remove("active");
-          bgVideoContainer.setAttribute("aria-hidden", "true");
-        }
-      }
-
       if (playIcon) playIcon.textContent = "▶";
       if (albumCover) albumCover.classList.remove("spinning");
       if (playerElem) playerElem.classList.remove("playing");
@@ -1015,14 +1063,14 @@
     let cur = 0;
     let dur = 0;
 
-    if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
-      cur = offlineAudio.currentTime || 0;
-      dur = offlineAudio.duration || 0;
-    } else if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
       try {
         cur = ytPlayer.getCurrentTime() || 0;
         dur = ytPlayer.getDuration() || 0;
       } catch (e) { }
+    } else if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      cur = offlineAudio.currentTime || 0;
+      dur = offlineAudio.duration || 0;
     }
 
     if (dur > 0 && isFinite(dur)) {
@@ -1040,9 +1088,44 @@
      ========================================================= */
   async function loadOfflineSongs() {
     try {
-      const response = await fetch("songs.json", { cache: "no-store" });
-      if (!response.ok) throw new Error("songs.json fetch failed");
-      songs = await response.json();
+      let cloudList = [];
+      let ytList = [];
+
+      // 1. Fetch Cloudinary songs from data/cloudinary folder
+      try {
+        const cloudRes = await fetch("data/cloudinary/cloudinary_songs.json", { cache: "no-store" });
+        if (cloudRes.ok) cloudList = await cloudRes.json();
+      } catch (e) {
+        console.warn("Cloudinary songs fetch warning:", e);
+      }
+
+      // 2. Fetch YouTube songs from data/youtube folder
+      try {
+        const ytRes = await fetch("data/youtube/youtube_songs.json", { cache: "no-store" });
+        if (ytRes.ok) ytList = await ytRes.json();
+      } catch (e) {
+        console.warn("YouTube songs fetch warning:", e);
+      }
+
+      const maxLen = Math.max(cloudList.length, ytList.length);
+      songs = [];
+      for (let i = 0; i < maxLen; i++) {
+        const c = cloudList[i] || {};
+        const y = ytList[i] || {};
+        songs.push({
+          name: c.name || y.name || `Song ${i + 1}`,
+          nameEn: c.nameEn || y.nameEn || `Song ${i + 1}`,
+          singer: c.singer || y.singer || "Chhath Bhakti",
+          singerEn: c.singerEn || y.singerEn || "Chhath Bhakti",
+          file: c.file || "",
+          ytName: y.name || c.name || "",
+          ytNameEn: y.nameEn || c.nameEn || "",
+          ytSinger: y.singer || c.singer || "",
+          ytSingerEn: y.singerEn || c.singerEn || "",
+          videoId: y.videoId || c.videoId || "",
+          embedUrl: y.embedUrl || ""
+        });
+      }
 
       if (!Array.isArray(songs) || songs.length === 0) {
         if (songName) songName.textContent = "No Song Found";
@@ -1059,9 +1142,33 @@
       renderPlaylist();
       displaySongInfo(0);
 
-      // Preload first song file in offline audio
+      // Preload current song file in offline audio with .load() for 0ms latency start
       if (offlineAudio && songs[0] && songs[0].file) {
         offlineAudio.src = songs[0].file;
+        offlineAudio.load();
+      }
+
+      // Preload all audio tracks in background cache for instant zero-delay playback
+      if ("requestIdleCallback" in window) {
+        requestIdleCallback(() => {
+          songs.forEach((s) => {
+            if (s.file) {
+              const a = new Audio();
+              a.preload = "auto";
+              a.src = s.file;
+            }
+          });
+        });
+      } else {
+        setTimeout(() => {
+          songs.forEach((s) => {
+            if (s.file) {
+              const a = new Audio();
+              a.preload = "auto";
+              a.src = s.file;
+            }
+          });
+        }, 1200);
       }
     } catch (error) {
       console.error("Songs fetch failed:", error);
@@ -1075,11 +1182,26 @@
     const s = songs[index];
     const t = i18n[currentLang] || i18n.en;
 
-    const title = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-    const singer = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
+    let title = "";
+    let singer = "";
+
+    if (isOnlineMode) {
+      title = currentLang === "en"
+        ? (s.ytNameEn || s.nameEn || s.ytName || s.name)
+        : (s.ytName || s.name);
+      singer = currentLang === "en"
+        ? (s.ytSingerEn || s.singerEn || s.ytSinger || s.singer)
+        : (s.ytSinger || s.singer);
+    } else {
+      title = currentLang === "en" ? (s.nameEn || s.name) : s.name;
+      singer = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
+    }
+
+    const fullSinger = `${t.singerPrefix}${singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")}`;
 
     if (songName) songName.textContent = title;
-    if (songSinger) songSinger.textContent = `${t.singerPrefix}${singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")}`;
+    if (songSinger) songSinger.textContent = fullSinger;
+
     if (currentTime) currentTime.textContent = "0:00";
     if (totalTime) totalTime.textContent = "0:00";
     if (progress) progress.value = 0;
@@ -1098,15 +1220,21 @@
       .map((s, idx) => ({ ...s, originalIndex: idx }))
       .filter((s) => {
         if (!query) return true;
-        const name = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-        const singer = currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || "");
+        const name = isOnlineMode
+          ? (currentLang === "en" ? (s.ytNameEn || s.nameEn || s.ytName || s.name) : (s.ytName || s.name))
+          : (currentLang === "en" ? (s.nameEn || s.name) : s.name);
+        const singer = isOnlineMode
+          ? (currentLang === "en" ? (s.ytSingerEn || s.singerEn || s.ytSinger || s.singer) : (s.ytSinger || s.singer || ""))
+          : (currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || ""));
         return (
           name.toLowerCase().includes(query) ||
           singer.toLowerCase().includes(query) ||
           s.name.toLowerCase().includes(query) ||
           (s.nameEn && s.nameEn.toLowerCase().includes(query)) ||
           (s.singer && s.singer.toLowerCase().includes(query)) ||
-          (s.singerEn && s.singerEn.toLowerCase().includes(query))
+          (s.singerEn && s.singerEn.toLowerCase().includes(query)) ||
+          (s.ytName && s.ytName.toLowerCase().includes(query)) ||
+          (s.ytNameEn && s.ytNameEn.toLowerCase().includes(query))
         );
       });
 
@@ -1128,8 +1256,12 @@
       .map((s) => {
         const idx = s.originalIndex;
         const isActive = idx === currentSong;
-        const songTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-        const songSingerName = currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत"));
+        const songTitle = isOnlineMode
+          ? (currentLang === "en" ? (s.ytNameEn || s.nameEn || s.ytName || s.name) : (s.ytName || s.name))
+          : (currentLang === "en" ? (s.nameEn || s.name) : s.name);
+        const songSingerName = isOnlineMode
+          ? (currentLang === "en" ? (s.ytSingerEn || s.singerEn || s.ytSinger || s.singer) : (s.ytSinger || s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")))
+          : (currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")));
         return `
           <li class="playlist-item ${isActive ? "active" : ""}" data-index="${idx}">
             <span class="playlist-item-num">${idx + 1}</span>
@@ -1183,34 +1315,55 @@
   function playOfflineSong(index) {
     const s = songs[index];
     if (!s) return;
+    displaySongInfo(index);
 
-    // Pause YouTube video if running
-    if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-      try { ytPlayer.pauseVideo(); } catch (e) { }
+    // Completely pause and stop YouTube video if running
+    if (isYtReady && ytPlayer) {
+      try {
+        if (typeof ytPlayer.pauseVideo === "function") ytPlayer.pauseVideo();
+        if (typeof ytPlayer.stopVideo === "function") ytPlayer.stopVideo();
+      } catch (e) { }
     }
-    document.body.classList.remove("live-video-active");
+    document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
     if (bgVideoContainer) {
       bgVideoContainer.classList.remove("active");
       bgVideoContainer.setAttribute("aria-hidden", "true");
     }
 
+    // Play high quality audio directly from Cloudinary MP3 file ONLY in offline mode
     if (offlineAudio) {
       if (offlineAudio.src !== s.file) {
         offlineAudio.src = s.file;
+        offlineAudio.load();
       }
       const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
       const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
       offlineAudio.volume = volNum / 100;
       offlineAudio.playbackRate = activeRate;
-      offlineAudio.play().catch((err) => {
-        console.warn("Audio play blocked/error:", err);
-      });
+
+      const playPromise = offlineAudio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setPlaybackState(true);
+          })
+          .catch((err) => {
+            console.warn("Audio play blocked/error:", err);
+          });
+      }
     }
   }
 
   function playOnlineSong(index) {
     const s = songs[index];
     if (!s) return;
+    displaySongInfo(index);
+
+    // 1. Completely stop and pause Cloudinary audio so it NEVER plays in Online mode
+    if (offlineAudio) {
+      offlineAudio.pause();
+      offlineAudio.currentTime = 0;
+    }
 
     document.body.classList.add("live-video-active");
     if (bgVideoContainer) {
@@ -1221,27 +1374,21 @@
     const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
     const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
 
-    // 1. Play crystal-clear audio directly via offlineAudio so audio ALWAYS plays reliably
-    if (offlineAudio) {
-      if (offlineAudio.src !== s.file) {
-        offlineAudio.src = s.file;
-      }
-      offlineAudio.volume = volNum / 100;
-      offlineAudio.playbackRate = activeRate;
-      offlineAudio.play().catch((err) => {
-        console.warn("Audio play blocked/error:", err);
-      });
-    }
-
-    // 2. Play live YouTube background video in sync
+    // 2. Play live YouTube video with audio directly in Online mode
+    setBufferingState(true);
     if (isYtReady && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
       try {
         if (s.videoId) {
           ytPlayer.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
-          ytPlayer.mute();
+          ytPlayer.unMute();
+          ytPlayer.setVolume(volNum);
           ytPlayer.playVideo();
           if (typeof ytPlayer.setPlaybackRate === "function") {
             ytPlayer.setPlaybackRate(activeRate);
+          }
+          if (typeof ytPlayer.setPlaybackQuality === "function") {
+            const activeQuality = VIDEO_QUALITIES[currentQualityIndex] ? VIDEO_QUALITIES[currentQualityIndex].value : "auto";
+            ytPlayer.setPlaybackQuality(activeQuality);
           }
         }
       } catch (e) {
@@ -1255,34 +1402,49 @@
   function togglePlayback() {
     if (isPlaying) {
       // Pause
-      if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-        try { ytPlayer.pauseVideo(); } catch (e) { }
-      }
-      if (offlineAudio && !offlineAudio.paused) {
-        offlineAudio.pause();
+      if (isOnlineMode) {
+        if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+          try { ytPlayer.pauseVideo(); } catch (e) { }
+        }
+      } else {
+        if (offlineAudio && !offlineAudio.paused) {
+          offlineAudio.pause();
+        }
       }
       setPlaybackState(false);
       showToast("⏸️ गीत पॉज़ किया गया");
     } else {
       // Play
       if (isOnlineMode) {
+        if (offlineAudio && !offlineAudio.paused) {
+          offlineAudio.pause();
+        }
         if (isYtReady && ytPlayer && typeof ytPlayer.playVideo === "function") {
           try {
+            const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+            ytPlayer.unMute();
+            ytPlayer.setVolume(volNum);
             ytPlayer.playVideo();
           } catch (e) { }
+        } else {
+          playOnlineSong(currentSong);
         }
-      }
-      if (offlineAudio) {
-        const s = songs[currentSong];
-        if (s && offlineAudio.src !== s.file) {
-          offlineAudio.src = s.file;
+      } else {
+        // Offline Mode: Play Cloudinary audio ONLY
+        if (offlineAudio) {
+          const s = songs[currentSong];
+          if (s && offlineAudio.src !== s.file) {
+            offlineAudio.src = s.file;
+          }
+          const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+          const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
+          offlineAudio.volume = volNum / 100;
+          offlineAudio.playbackRate = activeRate;
+          offlineAudio.play().catch((err) => {
+            console.warn("Audio play error:", err);
+            playSong(currentSong);
+          });
         }
-        const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-        offlineAudio.volume = volNum / 100;
-        offlineAudio.play().catch((err) => {
-          console.warn("Audio play error:", err);
-          playSong(currentSong);
-        });
       }
       setPlaybackState(true);
       showToast("▶️ छठ गीत शुरू हुआ!");
@@ -1544,6 +1706,72 @@
 
   if (speedBtn) {
     speedBtn.addEventListener("click", cyclePlaybackSpeed);
+  }
+
+  /* =========================================================
+     VIDEO QUALITY CONTROLLER (Online Mode Only)
+     ========================================================= */
+  const qualityBtn = document.getElementById("qualityBtn");
+  const qualityLabel = document.getElementById("qualityLabel");
+
+  const VIDEO_QUALITIES = [
+    { value: "auto", label: "Auto", desc: "Auto (अनुकूलित)" },
+    { value: "hd1080", label: "1080p", desc: "Full HD (1080p)" },
+    { value: "hd720", label: "720p", desc: "HD (720p)" },
+    { value: "large", label: "480p", desc: "Standard (480p)" },
+    { value: "medium", label: "360p", desc: "Medium (360p)" },
+    { value: "small", label: "240p", desc: "Data Saver (240p)" }
+  ];
+  let currentQualityIndex = 0;
+
+  function setVideoQuality(qualityObj, showNotification = true) {
+    const qItem = (typeof qualityObj === "object" && qualityObj !== null)
+      ? qualityObj
+      : (VIDEO_QUALITIES.find((q) => q.value === qualityObj) || VIDEO_QUALITIES[0]);
+
+    if (qualityLabel) {
+      qualityLabel.textContent = qItem.label;
+    }
+
+    if (qualityBtn) {
+      if (qItem.value !== "auto") {
+        qualityBtn.classList.add("custom-quality");
+      } else {
+        qualityBtn.classList.remove("custom-quality");
+      }
+      qualityBtn.title = `वीडियो क्वालिटी: ${qItem.desc} (क्लिक करके बदलें)`;
+    }
+
+    // Apply quality to YouTube player in Online Mode
+    if (isOnlineMode && isYtReady && ytPlayer) {
+      try {
+        if (typeof ytPlayer.setPlaybackQuality === "function") {
+          ytPlayer.setPlaybackQuality(qItem.value);
+        }
+        if (typeof ytPlayer.setPlaybackQualityRange === "function") {
+          ytPlayer.setPlaybackQualityRange(qItem.value, qItem.value);
+        }
+      } catch (e) {
+        console.warn("Quality change error:", e);
+      }
+    }
+
+    if (showNotification && isOnlineMode) {
+      const isHi = currentLang !== "en";
+      const msg = isHi
+        ? `📹 वीडियो क्वालिटी: ${qItem.label} (${qItem.desc})`
+        : `📹 Video Quality: ${qItem.label}`;
+      showToast(msg);
+    }
+  }
+
+  function cycleVideoQuality() {
+    currentQualityIndex = (currentQualityIndex + 1) % VIDEO_QUALITIES.length;
+    setVideoQuality(VIDEO_QUALITIES[currentQualityIndex], true);
+  }
+
+  if (qualityBtn) {
+    qualityBtn.addEventListener("click", cycleVideoQuality);
   }
 
   /* Playlist Search & Drawer */

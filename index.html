@@ -228,7 +228,7 @@
         <!-- Player Control Buttons -->
         <div class="offline-controls">
           <!-- Previous Song -->
-          <button class="offline-control-btn" id="prevSong" title="पिछला गीत" type="button" aria-label="Previous Song">
+          <button class="offline-control-btn" id="prevSong" title="Previous Track (पिछला गीत)" type="button" aria-label="Previous Song">
             ⏮
           </button>
 
@@ -239,7 +239,7 @@
           </button>
 
           <!-- Next Song -->
-          <button class="offline-control-btn" id="nextSong" title="अगला गीत" type="button" aria-label="Next Song">
+          <button class="offline-control-btn" id="nextSong" title="Next Track (अगला गीत)" type="button" aria-label="Next Song">
             ⏭
           </button>
 
@@ -254,6 +254,13 @@
             title="प्लेबैक स्पीड बदलें (0.5x, 0.75x, 1.0x, 1.25x, 1.50x, 1.75x, 2.0x)" type="button"
             aria-label="Playback Speed">
             <span id="speedLabel">1.0x</span>
+          </button>
+
+          <!-- Video Quality Control Button (Online Mode Only) -->
+          <button class="offline-quality-btn" id="qualityBtn"
+            title="वीडियो क्वालिटी बदलें (Auto, 1080p, 720p, 480p, 360p, 240p)" type="button"
+            aria-label="Video Quality">
+            <span id="qualityLabel">Auto</span>
           </button>
 
           <!-- Volume Controls -->
@@ -276,7 +283,7 @@
           </div>
         </div>
 
-        <audio id="offlineAudio" preload="metadata"></audio>
+        <audio id="offlineAudio" preload="auto"></audio>
       </div>
     </section>
 
