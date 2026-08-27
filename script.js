@@ -319,13 +319,13 @@
     shareMantraBtn.addEventListener("click", () => {
       const mantraMsg = currentLang === "en"
         ? `☀️ *Shri Surya Gayatri Mantra:*\n` +
-        `Om Bhaskaraya Vidmahe Mahadyutikaraya Dhimahi |\nTanno Adityah Prachodayat ||\n\n` +
-        `"May we meditate upon the radiant Sun God, the supreme source of cosmic light. May that luminous deity illuminate our intellect."\n\n` +
-        `Listen to devotional Chhath songs on Chhath Ghat: ${SHARE_URL}`
+          `Om Adityaaya Vidmahe Divakaraya Dhimahi\nTannah Suryaah Prachodayat\n\n` +
+          `"Om, let me meditate on the Sun God, the maker of the day. Give me higher intellect, and let the Sun God illuminate my mind."\n\n` +
+          `Listen to devotional Chhath songs on Chhath Ghat: ${SHARE_URL}`
         : `☀️ *श्री सूर्य गायत्री मंत्र:*\n` +
-        `ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि।\nतन्नो आदित्यः प्रचोदयात्॥\n\n` +
-        `"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"\n\n` +
-        `छठ घाट पर सुनें भक्तिमय छठ गीत: ${SHARE_URL}`;
+          `ॐ आदित्याय विद्महे दिवाकराय धीमहि।\nतन्नः सूर्यः प्रचोदयात् ॥\n\n` +
+          `"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"` +
+          `\n\nछठ घाट पर सुनें भक्तिमय छठ गीत: ${SHARE_URL}`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mantraMsg)}`, "_blank");
     });
   }
@@ -334,8 +334,8 @@
   if (copyMantraBtn) {
     copyMantraBtn.addEventListener("click", async () => {
       const mantra = currentLang === "en"
-        ? "Om Bhaskaraya Vidmahe Mahadyutikaraya Dhimahi | Tanno Adityah Prachodayat || - \"May we meditate upon the radiant Sun God, the supreme source of cosmic light. May that luminous deity illuminate our intellect.\""
-        : "ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि। तन्नो आदित्यः प्रचोदयात्॥ - \"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।\"";
+        ? "Om Adityaaya Vidmahe Divakaraya Dhimahi Tannah Suryaah Prachodayat - \"Om, let me meditate on the Sun God, the maker of the day. Give me higher intellect, and let the Sun God illuminate my mind.\""
+        : "ॐ आदित्याय विद्महे दिवाकराय धीमहि तन्नः सूर्यः प्रचोदयात् ॥ - \"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।\"";
       try {
         await navigator.clipboard.writeText(mantra);
         showToast(currentLang === "en" ? "📋 Surya Gayatri Mantra copied!" : "📋 सूर्य गायत्री मंत्र भावार्थ सहित कॉपी हो गया!");
@@ -606,14 +606,14 @@
     if (mantraText) {
       if (currentLang === "en") {
         mantraText.innerHTML = `
-          Om Bhaskaraya Vidmahe Mahadyutikaraya Dhimahi |<br>
-          Tanno Adityah Prachodayat ||
-          <span class="mantra-translation">"May we meditate upon the radiant Sun God, the supreme source of cosmic light. May that luminous deity illuminate our intellect."</span>
+          Om Adityaaya Vidmahe Divakaraya Dhimahi <br>
+          Tannah Suryaah Prachodayat
+          <span class="mantra-translation">"Om, let me meditate on the Sun God, the maker of the day. Give me higher intellect, and let the Sun God illuminate my mind."</span>
         `;
       } else {
         mantraText.innerHTML = `
-          ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि।<br>
-          तन्नो आदित्यः प्रचोदयात्॥
+          ॐ आदित्याय विद्महे दिवाकराय धीमहि <br>
+          तन्नः सूर्यः प्रचोदयात् ॥
           <span class="mantra-translation">"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"</span>
         `;
       }
