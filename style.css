@@ -1864,8 +1864,18 @@ body.live-video-active .offline-quality-btn {
 }
 
 /* =========================================================
-   RESPONSIVE DESIGN BREAKPOINTS
+   RESPONSIVE DESIGN BREAKPOINTS FOR ALL DEVICES
    ========================================================= */
+
+/* Tablets & Small Laptops (769px - 1024px) */
+@media (max-width: 1024px) {
+  .rituals-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Medium Tablets & Mobile Landscape (601px - 768px) */
 @media (max-width: 768px) {
   .top-navbar-wrapper {
     padding: calc(6px + var(--safe-top)) 12px 8px;
@@ -1917,23 +1927,47 @@ body.live-video-active .offline-quality-btn {
   }
 
   .offline-play-btn {
-    width: 45px;
-    height: 45px;
-    font-size: 21px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
   }
   .offline-play-btn #playIcon {
-    font-size: 21px;
+    font-size: 20px;
   }
 
-  .offline-control-btn,
-  .offline-extra-btn {
-    width: 30px;
-    height: 30px;
+  .offline-control-btn {
+    width: 32px;
+    height: 32px;
     font-size: 14px;
   }
 
+  .playlist-toggle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .offline-speed-btn {
+    min-width: 36px;
+    height: 26px;
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .offline-quality-btn {
+    min-width: 40px;
+    height: 26px;
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
   .offline-volume-slider {
-    width: 62px;
+    width: 55px;
+  }
+
+  .rituals-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
 
   .playlist-modal {
@@ -1946,74 +1980,7 @@ body.live-video-active .offline-quality-btn {
   }
 }
 
-@media (max-width: 480px) {
-  .top-navbar-wrapper {
-    padding: calc(4px + var(--safe-top)) 8px 6px;
-  }
-
-  .top-bar {
-    gap: 4px;
-  }
-
-  .app-container {
-    padding-left: 8px;
-    padding-right: 8px;
-    padding-top: calc(54px + var(--safe-top));
-    gap: 14px;
-  }
-
-  .time-widget {
-    padding: 5px 12px;
-  }
-
-  .time-main {
-    font-size: 14px;
-  }
-
-  .date-sub {
-    font-size: 11px;
-    display: block;
-  }
-
-  .top-actions {
-    gap: 5px;
-  }
-
-  .btn-action,
-  .btn-share-main {
-    padding: 6px 12px;
-    font-size: 12px;
-    gap: 5px;
-  }
-
-  .share-dropdown-menu {
-    padding: 5px 6px;
-    gap: 5px;
-    border-radius: 30px;
-    max-width: calc(100vw - 24px);
-    right: 0;
-  }
-
-  .share-menu-item {
-    padding: 6px 10px;
-    font-size: 11.5px;
-    gap: 5px;
-  }
-
-  .logo {
-    font-size: clamp(48px, 16vw, 68px);
-  }
-
-  .tagline {
-    font-size: 17px;
-  }
-
-  .festive-pill {
-    padding: 4px 10px;
-    font-size: 11.5px;
-  }
-}
-
+/* Mobile Devices (max-width: 600px) */
 @media (max-width: 600px) {
   .top-bar {
     flex-wrap: wrap;
@@ -2040,5 +2007,183 @@ body.live-video-active .offline-quality-btn {
     justify-content: center;
     padding: 7px 10px;
     font-size: 12px;
+  }
+
+  .rituals-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mantra-card {
+    padding: 20px 16px;
+  }
+
+  .mantra-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-copy-mantra,
+  .btn-share-mantra {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Compact Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  .top-navbar-wrapper {
+    padding: calc(4px + var(--safe-top)) 8px 6px;
+  }
+
+  .top-bar {
+    gap: 4px;
+  }
+
+  .app-container {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: calc(54px + var(--safe-top));
+    gap: 14px;
+  }
+
+  .time-widget {
+    padding: 5px 10px;
+  }
+
+  .time-main {
+    font-size: 13.5px;
+  }
+
+  .date-sub {
+    font-size: 10.5px;
+    display: block;
+  }
+
+  .top-actions {
+    gap: 4px;
+  }
+
+  .btn-action,
+  .btn-share-main {
+    padding: 5px 9px;
+    font-size: 11.5px;
+    gap: 4px;
+  }
+
+  .share-dropdown-menu {
+    padding: 5px 6px;
+    gap: 5px;
+    border-radius: 30px;
+    max-width: calc(100vw - 20px);
+    right: 0;
+  }
+
+  .share-menu-item {
+    padding: 6px 10px;
+    font-size: 11.5px;
+    gap: 5px;
+  }
+
+  .logo {
+    font-size: clamp(40px, 14vw, 64px);
+  }
+
+  .tagline {
+    font-size: 16px;
+  }
+
+  .festive-pill {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  #offlinePlayer {
+    padding: 10px 12px;
+    border-radius: 20px;
+  }
+
+  .offline-controls {
+    gap: 3px;
+  }
+
+  .offline-control-btn,
+  .playlist-toggle-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  .offline-play-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .offline-play-btn #playIcon {
+    font-size: 18px;
+  }
+
+  .offline-speed-btn {
+    min-width: 32px;
+    height: 24px;
+    font-size: 10.5px;
+    padding: 1px 5px;
+  }
+
+  .offline-quality-btn {
+    min-width: 36px;
+    height: 24px;
+    font-size: 10.5px;
+    padding: 1px 5px;
+  }
+
+  .offline-volume-slider {
+    width: clamp(38px, 10vw, 50px);
+  }
+
+  .playlist-modal {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    bottom: calc(140px + var(--safe-bottom));
+  }
+}
+
+/* Extra Small / Foldable Mobile (max-width: 360px) */
+@media (max-width: 360px) {
+  .top-bar {
+    gap: 3px;
+  }
+
+  .time-widget {
+    padding: 4px 8px;
+  }
+
+  .time-main {
+    font-size: 12px;
+  }
+
+  .btn-action span.btn-label,
+  .btn-share-main span.btn-label {
+    display: none;
+  }
+
+  .btn-action,
+  .btn-share-main {
+    padding: 6px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+  }
+
+  .offline-volume-slider {
+    width: 34px;
+  }
+
+  .offline-play-btn {
+    width: 36px;
+    height: 36px;
   }
 }
