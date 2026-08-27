@@ -61,13 +61,14 @@
       shareBtnLabel: "शेयर",
       copyMantraBtnText: "मंत्र कॉपी करें",
       shareMantraBtnText: "व्हाट्सएप पर भेजें",
-      toastOnline: "🌐 ऑनलाइन वीडियो मोड चालू (YouTube Background Video)",
+      toastOnline: "🌐 ऑनलाइन वीडियो मोड चालू (YouTube Background)",
       toastOffline: "📴 ऑफ़लाइन ऑडियो मोड चालू (MP3 Music)",
       toastLangSwitched: "भाषा बदलकर 'हिन्दी' कर दी गई है",
       toastMantraCopied: "✅ सूर्य गायत्री मंत्र कॉपी हो गया!",
       toastMuted: "🔇 म्यूट किया गया",
       toastUnmuted: "🔊 ध्वनि चालू",
-      toastSpeed: "⚡ प्लेबैक गति: "
+      toastSpeed: "⚡ प्लेबैक गति: ",
+      nowPlayingPrefix: "🎶 अब बज रहा है: "
     },
     en: {
       langBtnText: "English",
@@ -97,7 +98,7 @@
       playlistBtnTitle: "Playlist",
       muteBtnTitle: "Mute / Unmute Volume",
       ritualsBadge: "Sacred Tradition",
-      ritualsHeading: "Chhath Mahaparv: 4-Day Sacred Rituals",
+      ritualsHeading: "Chhath Mahaparv : 4-Day Sacred Rituals",
       ritualsSubtitle: "The sacred celebration of cosmic solar energy, faith, and nature worship",
       ritual1DayBadge: "Day 1",
       ritual1Title: "Nahay-Khay",
@@ -117,7 +118,7 @@
       ritual4Highlight: "Special Offering: Arghya to Rising Sun & Paran",
       mantraTitle: "॥ Shri Surya Gayatri Mantra ॥",
       shareBtnLabel: "Share",
-      copyMantraBtnText: "Copy Mantra",
+      copyMantraBtnText: "Copy",
       shareMantraBtnText: "Share on WhatsApp",
       toastOnline: "🌐 Online Video Mode Active (YouTube Background)",
       toastOffline: "📴 Offline Audio Mode Active (MP3 Music)",
@@ -125,7 +126,8 @@
       toastMantraCopied: "✅ Surya Gayatri Mantra copied!",
       toastMuted: "🔇 Volume Muted",
       toastUnmuted: "🔊 Volume Unmuted",
-      toastSpeed: "⚡ Playback Speed: "
+      toastSpeed: "⚡ Playback Speed: ",
+      nowPlayingPrefix: "🎶 Now Playing: "
     }
   };
 
@@ -250,7 +252,7 @@
 
   function shareOnWhatsApp(customHeading) {
     const title = customHeading || "🌅 छठ महापर्व की हार्दिक शुभकामनाएं! 🙏";
-    const body = 
+    const body =
       `${title}\n\n` +
       `सूर्य देव और छठी मईया की कृपा आप और आपके पूरे परिवार पर सदा बनी रहे।\n\n` +
       `🎶 *छठ पूजा के पावन एवं मधुर गीत यहां सुनें:* \n${SHARE_URL}\n\n` +
@@ -315,9 +317,14 @@
   const shareMantraBtn = document.getElementById("shareMantraBtn");
   if (shareMantraBtn) {
     shareMantraBtn.addEventListener("click", () => {
-      const mantraMsg = 
-        `☀️ *श्री सूर्य गायत्री मंत्र:*\n` +
+      const mantraMsg = currentLang === "en"
+        ? `☀️ *Shri Surya Gayatri Mantra:*\n` +
+        `Om Bhaskaraya Vidmahe Mahadyutikaraya Dhimahi |\nTanno Adityah Prachodayat ||\n\n` +
+        `"May we meditate upon the radiant Sun God, the supreme source of cosmic light. May that luminous deity illuminate our intellect."\n\n` +
+        `Listen to devotional Chhath songs on Chhath Ghat: ${SHARE_URL}`
+        : `☀️ *श्री सूर्य गायत्री मंत्र:*\n` +
         `ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि।\nतन्नो आदित्यः प्रचोदयात्॥\n\n` +
+        `"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"\n\n` +
         `छठ घाट पर सुनें भक्तिमय छठ गीत: ${SHARE_URL}`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mantraMsg)}`, "_blank");
     });
@@ -326,12 +333,14 @@
   const copyMantraBtn = document.getElementById("copyMantraBtn");
   if (copyMantraBtn) {
     copyMantraBtn.addEventListener("click", async () => {
-      const mantra = "ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि। तन्नो आदित्यः प्रचोदयात्॥";
+      const mantra = currentLang === "en"
+        ? "Om Bhaskaraya Vidmahe Mahadyutikaraya Dhimahi | Tanno Adityah Prachodayat || - \"May we meditate upon the radiant Sun God, the supreme source of cosmic light. May that luminous deity illuminate our intellect.\""
+        : "ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि। तन्नो आदित्यः प्रचोदयात्॥ - \"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।\"";
       try {
         await navigator.clipboard.writeText(mantra);
-        showToast("📋 सूर्य गायत्री मंत्र कॉपी हो गया!");
+        showToast(currentLang === "en" ? "📋 Surya Gayatri Mantra copied!" : "📋 सूर्य गायत्री मंत्र भावार्थ सहित कॉपी हो गया!");
       } catch (err) {
-        showToast("📋 मंत्र कॉपी हुआ: " + mantra);
+        showToast((currentLang === "en" ? "📋 Copied: " : "📋 कॉपी हुआ: ") + mantra);
       }
     });
   }
@@ -536,6 +545,7 @@
   const ritual4Highlight = document.getElementById("ritual4Highlight");
 
   const mantraTitle = document.getElementById("mantraTitle");
+  const mantraText = document.getElementById("mantraText");
   const copyMantraBtnText = document.getElementById("copyMantraBtnText");
   const shareMantraBtnText = document.getElementById("shareMantraBtnText");
 
@@ -544,6 +554,8 @@
     if (!i18n[lang]) return;
     currentLang = lang;
     const t = i18n[lang];
+
+    document.documentElement.lang = currentLang;
 
     if (langToggleBtn) {
       langToggleBtn.setAttribute("data-lang", lang);
@@ -591,6 +603,22 @@
     if (ritual4Highlight) ritual4Highlight.textContent = t.ritual4Highlight;
 
     if (mantraTitle) mantraTitle.textContent = t.mantraTitle;
+    if (mantraText) {
+      if (currentLang === "en") {
+        mantraText.innerHTML = `
+          Om Bhaskaraya Vidmahe Mahadyutikaraya Dhimahi |<br>
+          Tanno Adityah Prachodayat ||
+          <span class="mantra-translation">"May we meditate upon the radiant Sun God, the supreme source of cosmic light. May that luminous deity illuminate our intellect."</span>
+        `;
+      } else {
+        mantraText.innerHTML = `
+          ॐ भास्कराय विद्महे महाद्युतिकराय धीमहि।<br>
+          तन्नो आदित्यः प्रचोदयात्॥
+          <span class="mantra-translation">"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"</span>
+        `;
+      }
+    }
+
     const navHomeText = document.getElementById("navHomeText");
     const navAboutText = document.getElementById("navAboutText");
     if (navHomeText && t.navHomeText) navHomeText.textContent = t.navHomeText;
@@ -600,15 +628,87 @@
     if (copyMantraBtnText) copyMantraBtnText.textContent = t.copyMantraBtnText;
     if (shareMantraBtnText) shareMantraBtnText.textContent = t.shareMantraBtnText;
 
-    if (songs[currentSong] && songSinger) {
-      songSinger.textContent = `${t.singerPrefix}${songs[currentSong].singer || (lang === 'en' ? 'Devotional Song' : 'भक्ति गीत')}`;
-    }
-
+    displaySongInfo(currentSong);
+    renderSEOContent();
     updateClock();
     renderPlaylist(playlistSearch ? playlistSearch.value : "");
+    updateMediaSessionMetadata();
 
     if (showToastMsg) {
       showToast(t.toastLangSwitched);
+    }
+  }
+
+  function renderSEOContent() {
+    const seoContainer = document.getElementById("seoContentDynamic");
+    if (!seoContainer) return;
+
+    if (currentLang === "en") {
+      seoContainer.innerHTML = `
+        <h2 id="seoHeading">Chhath Puja Geet, Devotional Songs & Mahaparv Significance</h2>
+        <p>
+          Welcome to <strong>Chhath Ghat (छठ घाट)</strong>, a dedicated spiritual platform to listen to traditional Chhath Puja Geet, Bhojpuri Chhath songs, Chhathi Maiya Bhajan, and Lord Surya Dev devotional music online. Our high-definition music player brings you soul-stirring melodies by legends like Sharda Sinha, Anuradha Paudwal, Pawan Singh, Kalpana Patowary, Devi, and Neelkamal Singh.
+        </p>
+
+        <h2>Mythological & Cultural Significance of Chhath Mahaparv</h2>
+        <p>
+          Chhath Mahaparv is one of the most sacred, ancient, and austere Vedic festivals in Hindu culture, dedicated to the visible cosmic deity Lord Surya (the Sun God) and His sister Shashthi Devi (Chhathi Maiya). Celebrated on the Shashthi of Kartik Shukla Paksha, this four-day festival represents unwavering faith, deep spiritual purity, and intimate communion with nature. It is enthusiastically celebrated in Bihar, Jharkhand, Uttar Pradesh, the Terai of Nepal, and across the globe by millions of devotees.
+        </p>
+        <p>
+          Chhath Puja is renowned for its profound environmental and social harmony. Devotees offer gratitude to the life-giving Sun, celebrating nature, water conservation, and cleanliness. Without any priestly intermediaries or caste barriers, people from all walks of life gather together at riverbanks to venerate both the setting and the rising Sun.
+        </p>
+
+        <h2>Popular Chhath Devotional Songs Collection</h2>
+        <ul class="seo-song-list">
+          <li><strong>Ugi Hey Dinanath</strong> — Kalpana Patowary</li>
+          <li><strong>Kelwa Ke Paat Par</strong> — Sharda Sinha</li>
+          <li><strong>Jal Beech Khada Hoyi</strong> — Pawan Singh</li>
+          <li><strong>Uga Ho Surujdev Bhel Bhinsarwa</strong> — Anuradha Paudwal</li>
+          <li><strong>Kerwa Ke Patwa Pe Newta</strong> — Pawan Singh</li>
+          <li><strong>Dihi Darshan Suruj Gosaiya</strong> — Devi</li>
+          <li><strong>Kaanch Hi Baans Ke Bahangiya</strong> — Sharda Sinha</li>
+          <li><strong>Koshiya Bharaye Lagal</strong> — Neelkamal Singh & Priyanka Singh</li>
+        </ul>
+
+        <div class="seo-footer-credit">
+          <p class="seo-note">
+            ॥ Jai Chhathi Maiya • Om Suryaya Namah ॥ — Warm greetings and divine blessings on Chhath Mahaparv to all devotees from Chhath Ghat.
+          </p>
+        </div>
+      `;
+    } else {
+      seoContainer.innerHTML = `
+        <h2 id="seoHeading">छठ पूजा के मधुर गीत एवं महापर्व का महत्व</h2>
+        <p>
+          <strong>छठ घाट (Chhath Ghat)</strong> पर आपका हार्दिक स्वागत है। यह पारंपरिक छठ पूजा के मधुर गीत, भोजपुरी छठ गीत, छठी मईया के भजन और प्रत्यक्ष देव भगवान सूर्य की उपासना का एक पावन भक्ति मंच है। हमारे आधुनिक प्लेयर पर आप शारदा सिन्हा, अनुराधा पौडवाल, पवन सिंह, कल्पना पटवारी, देवी और नीलकमल सिंह जैसे महान कलाकारों के पावन भजन सुन सकते हैं।
+        </p>
+
+        <h2>छठ पर्व का पौराणिक एवं सांस्कृतिक महत्व</h2>
+        <p>
+          छठ पर्व (छठि या षष्ठी पूजा) सनातन धर्म का अत्यंत पवित्र, कठिन और लोक-आस्था का महापर्व है जिसमें प्रत्यक्ष देव भगवान भास्कर (सूर्य) तथा उनकी बहन षष्ठी देवी (छठी मईया) की आराधना की जाती है। यह पर्व कार्तिक मास के शुक्ल पक्ष की षष्ठी को श्रद्धाभाव से मनाया जाता है। यह महापर्व मुख्य रूप से बिहार, झारखण्ड, उत्तर प्रदेश, नेपाल के तराई क्षेत्रों सहित अब संपूर्ण विश्व में भारतीय समुदाय द्वारा धूमधाम से मनाया जाता है।
+        </p>
+        <p>
+          छठ व्रत केवल एक धार्मिक अनुष्ठान नहीं बल्कि प्रकृति संरक्षण, जल-शुद्धता और स्वच्छता का अनुपम संदेश देने वाला महापर्व है। इसमें बिना किसी पुरोहित और बिना किसी भेदभाव के समाज के सभी वर्ग एक साथ घाटों पर एकत्रित होकर अस्ताचलगामी और उदीयमान भगवान सूर्य को नमन करते हैं।
+        </p>
+
+        <h2>लोकप्रिय छठ पूजा गीत संग्रह (Popular Chhath Geet Collection)</h2>
+        <ul class="seo-song-list">
+          <li><strong>उगी हे दीनानाथ</strong> — कल्पना पटवारी</li>
+          <li><strong>केलवा के पात पर</strong> — शारदा सिन्हा</li>
+          <li><strong>जल बीच खड़ा होई जोड़े जोड़े फलवा</strong> — पवन सिंह</li>
+          <li><strong>उगा हो सुरुजदेव भेल भिनसरवा</strong> — अनुराधा पौडवाल</li>
+          <li><strong>केरवा के पातवा पे नेवता</strong> — पवन सिंह</li>
+          <li><strong>दिही दर्शन सुरुज गोसइया</strong> — देवी</li>
+          <li><strong>काँच ही बाँस के बहंगिया</strong> — शारदा सिन्हा</li>
+          <li><strong>कोशिया भराये लागल</strong> — नीलकमल सिंह व प्रियंका सिंह</li>
+        </ul>
+
+        <div class="seo-footer-credit">
+          <p class="seo-note">
+            ॥ जय छठी मईया • ॐ सूर्याय नमः ॥ — छठ घाट की ओर से सभी भक्तों को पावन छठ महापर्व की कोटि-कोटि शुभकामनाएं।
+          </p>
+        </div>
+      `;
     }
   }
 
@@ -701,7 +801,7 @@
       if (isPlaying && isOnlineMode) {
         event.target.playVideo();
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // If playback was triggered in Online mode before ready event
     if (isPlaying && isOnlineMode) {
@@ -767,8 +867,8 @@
 
     if (modeToggleBtn) {
       modeToggleBtn.setAttribute("data-mode", isOnlineMode ? "online" : "offline");
-      modeToggleBtn.title = isOnlineMode 
-        ? "वर्तमान: ऑनलाइन वीडियो मोड (क्लिक करके ऑफ़लाइन मोड पर जाएं)" 
+      modeToggleBtn.title = isOnlineMode
+        ? "वर्तमान: ऑनलाइन वीडियो मोड (क्लिक करके ऑफ़लाइन मोड पर जाएं)"
         : "वर्तमान: ऑफ़लाइन ऑडियो मोड (क्लिक करके ऑनलाइन वीडियो चलाएं)";
     }
 
@@ -792,7 +892,7 @@
           ytPlayer.loadVideoById({ videoId: songs[currentSong].videoId, startSeconds: curSec });
           ytPlayer.mute();
           ytPlayer.playVideo();
-        } catch (e) {}
+        } catch (e) { }
       }
       if (showNotification) {
         const msg = (i18n[currentLang] && i18n[currentLang].toastOnline) || "🌐 Online Video Mode Active";
@@ -808,7 +908,7 @@
       if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
         try {
           ytPlayer.pauseVideo();
-        } catch (e) {}
+        } catch (e) { }
       }
       if (showNotification) {
         const msg = (i18n[currentLang] && i18n[currentLang].toastOffline) || "📴 Offline Audio Mode Active";
@@ -922,7 +1022,7 @@
       try {
         cur = ytPlayer.getCurrentTime() || 0;
         dur = ytPlayer.getDuration() || 0;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (dur > 0 && isFinite(dur)) {
@@ -949,7 +1049,7 @@
         return;
       }
 
-      const t = i18n[currentLang] || i18n.hi;
+      const t = i18n[currentLang] || i18n.en;
       if (playlistTitleText) {
         playlistTitleText.textContent = `${t.playlistTitle} (${songs.length})`;
       } else if (playlistTitle) {
@@ -973,10 +1073,13 @@
     if (!songs[index]) return;
     currentSong = index;
     const s = songs[index];
-    const t = i18n[currentLang] || i18n.hi;
+    const t = i18n[currentLang] || i18n.en;
 
-    if (songName) songName.textContent = s.name;
-    if (songSinger) songSinger.textContent = `${t.singerPrefix}${s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")}`;
+    const title = currentLang === "en" ? (s.nameEn || s.name) : s.name;
+    const singer = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
+
+    if (songName) songName.textContent = title;
+    if (songSinger) songSinger.textContent = `${t.singerPrefix}${singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")}`;
     if (currentTime) currentTime.textContent = "0:00";
     if (totalTime) totalTime.textContent = "0:00";
     if (progress) progress.value = 0;
@@ -989,15 +1092,21 @@
   function renderPlaylist(filterQuery = "") {
     if (!playlistList) return;
     const query = filterQuery.toLowerCase().trim();
-    const t = i18n[currentLang] || i18n.hi;
+    const t = i18n[currentLang] || i18n.en;
 
     const filtered = songs
       .map((s, idx) => ({ ...s, originalIndex: idx }))
       .filter((s) => {
         if (!query) return true;
+        const name = currentLang === "en" ? (s.nameEn || s.name) : s.name;
+        const singer = currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || "");
         return (
+          name.toLowerCase().includes(query) ||
+          singer.toLowerCase().includes(query) ||
           s.name.toLowerCase().includes(query) ||
-          (s.singer && s.singer.toLowerCase().includes(query))
+          (s.nameEn && s.nameEn.toLowerCase().includes(query)) ||
+          (s.singer && s.singer.toLowerCase().includes(query)) ||
+          (s.singerEn && s.singerEn.toLowerCase().includes(query))
         );
       });
 
@@ -1009,7 +1118,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             <line x1="8" y1="11" x2="14" y2="11"></line>
           </svg>
-          <span class="no-songs-text">${t.noSongsFound}</span>
+          <span class="no-songs-text">${escapeHTML(t.noSongsFound)}</span>
         </li>
       `;
       return;
@@ -1019,24 +1128,25 @@
       .map((s) => {
         const idx = s.originalIndex;
         const isActive = idx === currentSong;
+        const songTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
+        const songSingerName = currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत"));
         return `
           <li class="playlist-item ${isActive ? "active" : ""}" data-index="${idx}">
             <span class="playlist-item-num">${idx + 1}</span>
             <div class="playlist-item-details">
-              <div class="playlist-item-name">${escapeHTML(s.name)}</div>
-              <div class="playlist-item-singer">${escapeHTML(s.singer || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"))}</div>
+              <div class="playlist-item-name">${escapeHTML(songTitle)}</div>
+              <div class="playlist-item-singer">${escapeHTML(songSingerName)}</div>
             </div>
-            ${
-              isActive && isPlaying
-                ? `
+            ${isActive && isPlaying
+            ? `
               <div class="equalizer playing" aria-hidden="true">
                 <span class="equalizer-bar"></span>
                 <span class="equalizer-bar"></span>
                 <span class="equalizer-bar"></span>
               </div>
             `
-                : ""
-            }
+            : ""
+          }
           </li>
         `;
       })
@@ -1064,7 +1174,10 @@
     }
 
     setPlaybackState(true);
-    showToast(`🎶 अब बज रहा है: ${songs[index].name}`);
+    const s = songs[index];
+    const t = i18n[currentLang] || i18n.en;
+    const nowTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
+    showToast(`${t.nowPlayingPrefix || "🎶 Now Playing: "}${nowTitle}`);
   }
 
   function playOfflineSong(index) {
@@ -1073,7 +1186,7 @@
 
     // Pause YouTube video if running
     if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-      try { ytPlayer.pauseVideo(); } catch (e) {}
+      try { ytPlayer.pauseVideo(); } catch (e) { }
     }
     document.body.classList.remove("live-video-active");
     if (bgVideoContainer) {
@@ -1143,7 +1256,7 @@
     if (isPlaying) {
       // Pause
       if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-        try { ytPlayer.pauseVideo(); } catch (e) {}
+        try { ytPlayer.pauseVideo(); } catch (e) { }
       }
       if (offlineAudio && !offlineAudio.paused) {
         offlineAudio.pause();
@@ -1156,7 +1269,7 @@
         if (isYtReady && ytPlayer && typeof ytPlayer.playVideo === "function") {
           try {
             ytPlayer.playVideo();
-          } catch (e) {}
+          } catch (e) { }
         }
       }
       if (offlineAudio) {
@@ -1218,7 +1331,7 @@
       if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
         try {
           dur = ytPlayer.getDuration() || 0;
-        } catch (e) {}
+        } catch (e) { }
       }
       if (!dur && offlineAudio && offlineAudio.duration) {
         dur = offlineAudio.duration;
@@ -1235,7 +1348,7 @@
       if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
         try {
           dur = ytPlayer.getDuration() || 0;
-        } catch (e) {}
+        } catch (e) { }
       }
       if (!dur && offlineAudio && offlineAudio.duration) {
         dur = offlineAudio.duration;
@@ -1246,7 +1359,7 @@
       if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
         try {
           ytPlayer.seekTo(targetSec, true);
-        } catch (e) {}
+        } catch (e) { }
       }
       if (offlineAudio && offlineAudio.duration) {
         offlineAudio.currentTime = targetSec;
@@ -1326,7 +1439,7 @@
           if (volNum > 0 && typeof ytPlayer.isMuted === "function" && ytPlayer.isMuted()) {
             ytPlayer.unMute();
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       if (offlineAudio) {
@@ -1343,7 +1456,7 @@
       if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.isMuted === "function") {
         try {
           isCurrentlyMuted = ytPlayer.isMuted() || (typeof ytPlayer.getVolume === "function" && ytPlayer.getVolume() === 0);
-        } catch (e) {}
+        } catch (e) { }
       } else if (offlineAudio) {
         isCurrentlyMuted = offlineAudio.volume === 0;
       } else {
@@ -1357,7 +1470,7 @@
           try {
             if (typeof ytPlayer.unMute === "function") ytPlayer.unMute();
             if (typeof ytPlayer.setVolume === "function") ytPlayer.setVolume(targetVol);
-          } catch (e) {}
+          } catch (e) { }
         }
         if (offlineAudio) {
           offlineAudio.volume = targetVol / 100;
@@ -1376,7 +1489,7 @@
           try {
             if (typeof ytPlayer.mute === "function") ytPlayer.mute();
             if (typeof ytPlayer.setVolume === "function") ytPlayer.setVolume(0);
-          } catch (e) {}
+          } catch (e) { }
         }
         if (offlineAudio) {
           offlineAudio.volume = 0;
@@ -1392,9 +1505,9 @@
   /* Playback Speed Controller Function */
   function setPlaybackRate(speedObj) {
     const rateItem = (typeof speedObj === "object" && speedObj !== null)
-      ? speedObj 
+      ? speedObj
       : (PLAYBACK_SPEEDS.find((s) => s.value === parseFloat(speedObj)) || { value: parseFloat(speedObj) || 1.0, label: `${speedObj}x` });
-    
+
     const r = parseFloat(rateItem.value) || 1.0;
     const label = rateItem.label || `${r}x`;
 
@@ -1404,7 +1517,7 @@
     if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.setPlaybackRate === "function") {
       try {
         ytPlayer.setPlaybackRate(r);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (speedLabel) {
@@ -1510,24 +1623,27 @@
         playbackRate: 1,
         position: Math.min(pos, dur)
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function updateMediaSessionMetadata() {
     if (!MEDIA_SESSION_SUPPORTED || !songs[currentSong]) return;
     try {
+      const s = songs[currentSong];
+      const songTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
+      const songSingerName = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
       const art192 = new URL("favicon.io/android-chrome-192x192.png", window.location.href).href;
       const art512 = new URL("favicon.io/android-chrome-512x512.png", window.location.href).href;
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: songs[currentSong].name,
-        artist: songs[currentSong].singer || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"),
+        title: songTitle,
+        artist: songSingerName || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"),
         album: currentLang === "en" ? "Chhath Ghat" : "छठ घाट",
         artwork: [
           { src: art192, sizes: "192x192", type: "image/png" },
           { src: art512, sizes: "512x512", type: "image/png" }
         ]
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   if (MEDIA_SESSION_SUPPORTED) {
@@ -1545,7 +1661,7 @@
           }
         }
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   /* =========================================================
@@ -1562,7 +1678,7 @@
       try {
         dur = ytPlayer.getDuration() || 0;
         cur = ytPlayer.getCurrentTime() || 0;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const target = Math.max(0, Math.min(dur || 9999, cur + deltaSeconds));
@@ -1573,7 +1689,7 @@
     if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
       try {
         ytPlayer.seekTo(target, true);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     updateLiveProgress();

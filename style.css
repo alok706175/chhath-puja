@@ -1537,6 +1537,18 @@ body.live-video-active .bg-overlay {
   text-shadow: 0 0 16px rgba(255, 184, 77, 0.3);
 }
 
+.mantra-translation {
+  display: block;
+  font-family: var(--font-body);
+  font-size: clamp(13px, 2.2vw, 15px);
+  font-style: italic;
+  color: var(--cream-dim);
+  margin-top: 10px;
+  line-height: 1.6;
+  text-shadow: none;
+  font-weight: 500;
+}
+
 .mantra-actions {
   display: flex;
   align-items: center;
@@ -1666,7 +1678,7 @@ body.live-video-active .bg-overlay {
   padding: 36px 18px calc(40px + var(--safe-bottom));
   margin-top: 40px;
   background: linear-gradient(180deg, transparent 0%, rgba(20, 3, 5, 0.85) 30%, rgba(12, 1, 2, 0.98) 100%);
-  border-top: 1px solid rgba(255, 184, 77, 0.2);
+  border-top: none;
   text-align: center;
 }
 
