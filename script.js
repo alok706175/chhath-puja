@@ -13,10 +13,21 @@
   const i18n = {
     hi: {
       langBtnText: "हिंदी",
-      langBtnTitle: "Switch to English (अंग्रेजी में बदलें)",
-      timeWidgetTitle: "Indian Standard Time (IST)",
-      navHomeText: "Home",
-      navAboutText: "About",
+      langBtnTitle: "भाषा: हिंदी (अंग्रेज़ी में बदलने के लिए क्लिक करें)",
+      langBtnAria: "अंग्रेज़ी भाषा में बदलें",
+      timeWidgetTitle: "भारतीय मानक समय (IST)",
+      navHomeText: "होम",
+      navHomeTitle: "होम",
+      navHomeAria: "होम पर जाएं",
+      navAboutText: "परिचय",
+      navAboutTitle: "छठ महापर्व के बारे में",
+      navAboutAria: "छठ महापर्व के बारे में",
+      modeOfflineText: "ऑफलाइन",
+      modeOfflineTitle: "ऑफलाइन मोड (ऑनलाइन वीडियो मोड चालू करने के लिए क्लिक करें)",
+      modeOfflineAria: "ऑनलाइन वीडियो मोड पर जाएं",
+      modeOnlineText: "ऑनलाइन",
+      modeOnlineTitle: "ऑनलाइन मोड (ऑफलाइन ऑडियो मोड पर जाने के लिए क्लिक करें)",
+      modeOnlineAria: "ऑफलाइन ऑडियो मोड पर जाएं",
       mainLogoText: "छठ घाट",
       taglineText: "॥ जय छठी मईया ॥",
       pillNum1: "१",
@@ -37,7 +48,12 @@
       playBtnTitle: "चलाएं / रोकें",
       nextSongTitle: "अगला गीत",
       playlistBtnTitle: "गीत सूची (Playlist)",
+      playlistCloseTitle: "गीत सूची बंद करें",
       muteBtnTitle: "ध्वनि म्यूट / अनम्यूट",
+      speedBtnTitle: "प्लेबैक स्पीड बदलें",
+      qualityBtnTitle: "वीडियो क्वालिटी बदलें (ऑनलाइन मोड)",
+      volumeSliderTitle: "वॉल्यूम कम या ज्यादा करें",
+      seekSliderTitle: "गीत को आगे या पीछे करें",
       ritualsBadge: "पवित्र परंपरा",
       ritualsHeading: "छठ महापर्व: चार दिवसीय अनुष्ठान",
       ritualsSubtitle: "लोक आस्था और प्रकृति की आराधना का पावन विधान",
@@ -59,8 +75,21 @@
       ritual4Highlight: "विशेष अर्घ्य: उदीयमान सूर्य देव को अर्घ्य व पारन",
       mantraTitle: "॥ श्री सूर्य गायत्री मंत्र ॥",
       shareBtnLabel: "शेयर",
-      copyMantraBtnText: "Copy",
-      shareMantraBtnText: "Share on WhatsApp",
+      shareBtnTitle: "छठ घाट शेयर करें",
+      shareBtnAria: "शेयर विकल्प",
+      whatsappLabel: "व्हाट्सएप",
+      whatsappTitle: "व्हाट्सएप पर शेयर करें",
+      whatsappAria: "व्हाट्सएप पर शेयर करें",
+      facebookLabel: "फेसबुक",
+      facebookTitle: "फेसबुक पर शेयर करें",
+      facebookAria: "फेसबुक पर शेयर करें",
+      instagramLabel: "इंस्टाग्राम",
+      instagramTitle: "इंस्टाग्राम पर शेयर करें",
+      instagramAria: "इंस्टाग्राम पर शेयर करें",
+      copyMantraBtnText: "कॉपी",
+      copyMantraTitle: "सूर्य गायत्री मंत्र कॉपी करें",
+      shareMantraBtnText: "व्हाट्सएप पर शेयर करें",
+      shareMantraTitle: "सूर्य गायत्री मंत्र व्हाट्सएप पर शेयर करें",
       toastOnline: "🌐 ऑनलाइन वीडियो मोड चालू (YouTube Background)",
       toastOffline: "📴 ऑफ़लाइन ऑडियो मोड चालू (MP3 Music)",
       toastLangSwitched: "भाषा बदलकर 'हिन्दी' कर दी गई है",
@@ -72,10 +101,21 @@
     },
     en: {
       langBtnText: "English",
-      langBtnTitle: "Switch to Hindi (हिंदी में बदलें)",
+      langBtnTitle: "Language: English (Click to switch to Hindi)",
+      langBtnAria: "Switch language to Hindi",
       timeWidgetTitle: "Indian Standard Time (IST)",
       navHomeText: "Home",
+      navHomeTitle: "Home",
+      navHomeAria: "Go to Home",
       navAboutText: "About",
+      navAboutTitle: "About Chhath Mahaparv",
+      navAboutAria: "About Chhath Mahaparv",
+      modeOfflineText: "Offline",
+      modeOfflineTitle: "Offline Mode (Click to switch to Online Video Mode)",
+      modeOfflineAria: "Switch to Online Video Mode",
+      modeOnlineText: "Online",
+      modeOnlineTitle: "Online Mode (Click to switch to Offline Audio Mode)",
+      modeOnlineAria: "Switch to Offline Audio Mode",
       mainLogoText: "Chhath Ghat",
       taglineText: "॥ Jai Chhathi Maiya ॥",
       pillNum1: "1",
@@ -96,7 +136,12 @@
       playBtnTitle: "Play / Pause",
       nextSongTitle: "Next Track",
       playlistBtnTitle: "Playlist",
+      playlistCloseTitle: "Close Playlist",
       muteBtnTitle: "Mute / Unmute Volume",
+      speedBtnTitle: "Change Playback Speed",
+      qualityBtnTitle: "Change Video Quality (Online Mode)",
+      volumeSliderTitle: "Adjust Volume",
+      seekSliderTitle: "Seek Track",
       ritualsBadge: "Sacred Tradition",
       ritualsHeading: "Chhath Mahaparv : 4-Day Sacred Rituals",
       ritualsSubtitle: "The sacred celebration of cosmic solar energy, faith, and nature worship",
@@ -118,8 +163,21 @@
       ritual4Highlight: "Special Offering: Arghya to Rising Sun & Paran",
       mantraTitle: "॥ Shri Surya Gayatri Mantra ॥",
       shareBtnLabel: "Share",
+      shareBtnTitle: "Share Chhath Ghat",
+      shareBtnAria: "Share options",
+      whatsappLabel: "WhatsApp",
+      whatsappTitle: "Share on WhatsApp",
+      whatsappAria: "Share on WhatsApp",
+      facebookLabel: "Facebook",
+      facebookTitle: "Share on Facebook",
+      facebookAria: "Share on Facebook",
+      instagramLabel: "Instagram",
+      instagramTitle: "Share on Instagram",
+      instagramAria: "Share on Instagram",
       copyMantraBtnText: "Copy",
+      copyMantraTitle: "Copy Surya Gayatri Mantra",
       shareMantraBtnText: "Share on WhatsApp",
+      shareMantraTitle: "Share Surya Gayatri Mantra on WhatsApp",
       toastOnline: "🌐 Online Video Mode Active (YouTube Background)",
       toastOffline: "📴 Offline Audio Mode Active (MP3 Music)",
       toastLangSwitched: "Language switched to English",
@@ -319,13 +377,13 @@
     shareMantraBtn.addEventListener("click", () => {
       const mantraMsg = currentLang === "en"
         ? `☀️ *Shri Surya Gayatri Mantra:*\n` +
-          `Om Adityaaya Vidmahe Divakaraya Dhimahi\nTannah Suryaah Prachodayat\n\n` +
-          `"Om, let me meditate on the Sun God, the maker of the day. Give me higher intellect, and let the Sun God illuminate my mind."\n\n` +
-          `Listen to devotional Chhath songs on Chhath Ghat: ${SHARE_URL}`
+        `Om Adityaaya Vidmahe Divakaraya Dhimahi\nTannah Suryaah Prachodayat\n\n` +
+        `"Om, let me meditate on the Sun God, the maker of the day. Give me higher intellect, and let the Sun God illuminate my mind."\n\n` +
+        `Listen to devotional Chhath songs on Chhath Ghat: ${SHARE_URL}`
         : `☀️ *श्री सूर्य गायत्री मंत्र:*\n` +
-          `ॐ आदित्याय विद्महे दिवाकराय धीमहि।\nतन्नः सूर्यः प्रचोदयात् ॥\n\n` +
-          `"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"` +
-          `\n\nछठ घाट पर सुनें भक्तिमय छठ गीत: ${SHARE_URL}`;
+        `ॐ आदित्याय विद्महे दिवाकराय धीमहि।\nतन्नः सूर्यः प्रचोदयात् ॥\n\n` +
+        `"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।"` +
+        `\n\nछठ घाट पर सुनें भक्तिमय छठ गीत: ${SHARE_URL}`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mantraMsg)}`, "_blank");
     });
   }
@@ -338,7 +396,16 @@
         : "ॐ आदित्याय विद्महे दिवाकराय धीमहि तन्नः सूर्यः प्रचोदयात् ॥ - \"हम समस्त संसार को प्रकाशित करने वाले परम तेजस्वी भगवान सूर्य देव का ध्यान करते हैं। वे भुवन भास्कर हमारी बुद्धि को ज्ञान और सन्मार्ग की ओर प्रेरित करें।\"";
       try {
         await navigator.clipboard.writeText(mantra);
+        const originalText = copyMantraBtnText ? copyMantraBtnText.textContent : "Copy";
+        if (copyMantraBtnText) copyMantraBtnText.textContent = currentLang === "en" ? "✓ Copied!" : "✓ कॉपी हुआ!";
+        copyMantraBtn.style.background = "linear-gradient(135deg, #107C41 0%, #0B6A35 100%)";
+        copyMantraBtn.style.borderColor = "#2ae772";
         showToast(currentLang === "en" ? "📋 Surya Gayatri Mantra copied!" : "📋 सूर्य गायत्री मंत्र भावार्थ सहित कॉपी हो गया!");
+        setTimeout(() => {
+          if (copyMantraBtnText) copyMantraBtnText.textContent = originalText;
+          copyMantraBtn.style.background = "";
+          copyMantraBtn.style.borderColor = "";
+        }, 2200);
       } catch (err) {
         showToast((currentLang === "en" ? "📋 Copied: " : "📋 कॉपी हुआ: ") + mantra);
       }
@@ -346,12 +413,13 @@
   }
 
   /* =========================================================
-     5. FESTIVE FLOATING PARTICLES CANVAS
+     5. FESTIVE FLOATING PARTICLES & GLOWING EMBERS CANVAS
      ========================================================= */
   const canvas = document.getElementById("festiveCanvas");
   let ctx = canvas ? canvas.getContext("2d") : null;
   let particles = [];
   let sparks = [];
+  let embers = [];
 
   function resizeCanvas() {
     if (!canvas) return;
@@ -364,24 +432,24 @@
 
   class Petal {
     constructor() {
-      this.reset();
+      this.reset(true);
     }
-    reset() {
+    reset(initial = false) {
       this.x = Math.random() * (canvas ? canvas.width : window.innerWidth);
-      this.y = -20;
-      this.size = Math.random() * 6 + 4;
-      this.speedY = Math.random() * 0.8 + 0.4;
+      this.y = initial ? Math.random() * (canvas ? canvas.height : window.innerHeight) : -25;
+      this.size = Math.random() * 6.5 + 4;
+      this.speedY = Math.random() * 0.75 + 0.35;
       this.speedX = Math.sin(Math.random() * 4) * 0.6;
       this.angle = Math.random() * 360;
-      this.spin = (Math.random() - 0.5) * 1.5;
-      this.opacity = Math.random() * 0.5 + 0.3;
-      this.color = Math.random() > 0.4 ? "#ffb84d" : "#ff7043";
+      this.spin = (Math.random() - 0.5) * 1.6;
+      this.opacity = Math.random() * 0.45 + 0.35;
+      this.color = Math.random() > 0.35 ? "#ffb84d" : "#ff7043";
     }
     update() {
       this.y += this.speedY;
-      this.x += this.speedX + Math.sin(this.y * 0.015) * 0.4;
+      this.x += this.speedX + Math.sin(this.y * 0.015) * 0.5;
       this.angle += this.spin;
-      if (canvas && this.y > canvas.height + 20) {
+      if (canvas && this.y > canvas.height + 25) {
         this.reset();
       }
     }
@@ -399,21 +467,57 @@
     }
   }
 
+  class GlowEmber {
+    constructor() {
+      this.reset(true);
+    }
+    reset(initial = false) {
+      this.x = Math.random() * (canvas ? canvas.width : window.innerWidth);
+      this.y = initial ? Math.random() * (canvas ? canvas.height : window.innerHeight) : (canvas ? canvas.height + 15 : window.innerHeight + 15);
+      this.size = Math.random() * 2.5 + 1.2;
+      this.speedY = -(Math.random() * 0.5 + 0.2);
+      this.speedX = (Math.random() - 0.5) * 0.4;
+      this.opacity = Math.random() * 0.6 + 0.2;
+      this.pulse = Math.random() * Math.PI;
+    }
+    update() {
+      this.y += this.speedY;
+      this.x += this.speedX + Math.sin(this.y * 0.02) * 0.3;
+      this.pulse += 0.04;
+      if (canvas && this.y < -20) {
+        this.reset();
+      }
+    }
+    draw() {
+      if (!ctx) return;
+      const alpha = Math.max(0, this.opacity * (0.6 + 0.4 * Math.sin(this.pulse)));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#ffe082";
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "#ffb300";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
   class Spark {
     constructor(x, y) {
       this.x = x || (canvas ? canvas.width / 2 : window.innerWidth / 2);
       this.y = y || (canvas ? canvas.height / 2 : window.innerHeight / 2);
-      this.vx = (Math.random() - 0.5) * 5;
-      this.vy = (Math.random() - 0.5) * 5 - 2;
-      this.size = Math.random() * 4 + 2;
+      this.vx = (Math.random() - 0.5) * 4.5;
+      this.vy = (Math.random() - 0.5) * 4.5 - 1.5;
+      this.size = Math.random() * 3.5 + 1.5;
       this.life = 1;
-      this.decay = Math.random() * 0.02 + 0.015;
-      this.color = Math.random() > 0.3 ? "#ffd54f" : "#ff6f00";
+      this.decay = Math.random() * 0.025 + 0.015;
+      this.color = Math.random() > 0.3 ? "#ffe082" : "#ff9100";
     }
     update() {
       this.x += this.vx;
       this.y += this.vy;
-      this.vy += 0.06;
+      this.vy += 0.05;
       this.life -= this.decay;
     }
     draw() {
@@ -421,6 +525,8 @@
       ctx.save();
       ctx.globalAlpha = Math.max(0, this.life);
       ctx.fillStyle = this.color;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = "#ffa000";
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fill();
@@ -429,11 +535,19 @@
   }
 
   if (canvas) {
-    for (let i = 0; i < 20; i++) {
-      const p = new Petal();
-      p.y = Math.random() * canvas.height;
-      particles.push(p);
+    for (let i = 0; i < 24; i++) {
+      particles.push(new Petal());
     }
+    for (let i = 0; i < 20; i++) {
+      embers.push(new GlowEmber());
+    }
+
+    // Interactive pointer trails
+    window.addEventListener("pointermove", (e) => {
+      if (Math.random() > 0.55 && sparks.length < 40) {
+        sparks.push(new Spark(e.clientX, e.clientY));
+      }
+    }, { passive: true });
   }
 
   function spawnFestiveSparks(count) {
@@ -441,13 +555,17 @@
     const centerX = canvas.width / 2;
     const centerY = canvas.height * 0.4;
     for (let i = 0; i < count; i++) {
-      sparks.push(new Spark(centerX + (Math.random() - 0.5) * 80, centerY + (Math.random() - 0.5) * 40));
+      sparks.push(new Spark(centerX + (Math.random() - 0.5) * 100, centerY + (Math.random() - 0.5) * 50));
     }
   }
 
   function animateParticles() {
     if (ctx && canvas) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      embers.forEach((emb) => {
+        emb.update();
+        emb.draw();
+      });
       particles.forEach((p) => {
         p.update();
         p.draw();
@@ -549,6 +667,18 @@
   const copyMantraBtnText = document.getElementById("copyMantraBtnText");
   const shareMantraBtnText = document.getElementById("shareMantraBtnText");
 
+  function updateModeButtonUI() {
+    const t = i18n[currentLang] || i18n.en;
+    if (modeToggleBtn) {
+      modeToggleBtn.setAttribute("data-mode", isOnlineMode ? "online" : "offline");
+      modeToggleBtn.title = isOnlineMode ? t.modeOnlineTitle : t.modeOfflineTitle;
+      modeToggleBtn.setAttribute("aria-label", isOnlineMode ? t.modeOnlineAria : t.modeOfflineAria);
+    }
+    if (modeText) {
+      modeText.textContent = isOnlineMode ? t.modeOnlineText : t.modeOfflineText;
+    }
+  }
+
   /* Function to switch language between Hindi and English */
   function setLanguage(lang, showToastMsg = false) {
     if (!i18n[lang]) return;
@@ -557,20 +687,89 @@
 
     document.documentElement.lang = currentLang;
 
+    // 1. Language Toggle Button
     if (langToggleBtn) {
       langToggleBtn.setAttribute("data-lang", lang);
       langToggleBtn.title = t.langBtnTitle;
+      langToggleBtn.setAttribute("aria-label", t.langBtnAria);
     }
     if (langText) langText.textContent = t.langBtnText;
 
-    if (mainLogoText) mainLogoText.textContent = t.mainLogoText;
-    if (taglineText) taglineText.textContent = t.taglineText;
+    // 2. Offline / Online Mode Toggle Button
+    updateModeButtonUI();
 
+    // 3. Navigation Buttons (Home & About)
+    const navHomeBtn = document.getElementById("navHomeBtn");
+    const navHomeText = document.getElementById("navHomeText");
+    if (navHomeBtn) {
+      navHomeBtn.title = t.navHomeTitle;
+      navHomeBtn.setAttribute("aria-label", t.navHomeAria);
+    }
+    if (navHomeText) navHomeText.textContent = t.navHomeText;
+
+    const navAboutBtn = document.getElementById("navAboutBtn");
+    const navAboutText = document.getElementById("navAboutText");
+    if (navAboutBtn) {
+      navAboutBtn.title = t.navAboutTitle;
+      navAboutBtn.setAttribute("aria-label", t.navAboutAria);
+    }
+    if (navAboutText) navAboutText.textContent = t.navAboutText;
+
+    // 4. Main Share Button
+    const shareMainBtn = document.getElementById("shareMainBtn");
+    const shareBtnLabel = document.getElementById("shareBtnLabel");
+    if (shareMainBtn) {
+      shareMainBtn.title = t.shareBtnTitle;
+      shareMainBtn.setAttribute("aria-label", t.shareBtnAria);
+    }
+    if (shareBtnLabel) shareBtnLabel.textContent = t.shareBtnLabel;
+
+    // 5. Social Share Menu Buttons (WhatsApp, Facebook, Instagram)
+    const waShareBtn = document.getElementById("whatsappShareBtn");
+    const fbShareBtn = document.getElementById("facebookShareBtn");
+    const instaShareBtn = document.getElementById("instagramShareBtn");
+    const whatsappShareText = document.getElementById("whatsappShareText");
+    const facebookShareText = document.getElementById("facebookShareText");
+    const instagramShareText = document.getElementById("instagramShareText");
+
+    if (waShareBtn) {
+      waShareBtn.title = t.whatsappTitle;
+      waShareBtn.setAttribute("aria-label", t.whatsappAria);
+    }
+    if (whatsappShareText) whatsappShareText.textContent = t.whatsappLabel;
+
+    if (fbShareBtn) {
+      fbShareBtn.title = t.facebookTitle;
+      fbShareBtn.setAttribute("aria-label", t.facebookAria);
+    }
+    if (facebookShareText) facebookShareText.textContent = t.facebookLabel;
+
+    if (instaShareBtn) {
+      instaShareBtn.title = t.instagramTitle;
+      instaShareBtn.setAttribute("aria-label", t.instagramAria);
+    }
+    if (instagramShareText) instagramShareText.textContent = t.instagramLabel;
+
+    // 6. Time Widget Tooltip
+    if (timeWidget) {
+      timeWidget.title = t.timeWidgetTitle;
+    }
+
+    // 7. Audio Player Controls & Seekbar Tooltips
     if (prevBtn) prevBtn.title = t.prevSongTitle;
     if (playButton) playButton.title = t.playBtnTitle;
     if (nextBtn) nextBtn.title = t.nextSongTitle;
     if (playlistToggleBtn) playlistToggleBtn.title = t.playlistBtnTitle;
     if (muteBtn) muteBtn.title = t.muteBtnTitle;
+    if (speedBtn) speedBtn.title = t.speedBtnTitle;
+    if (qualityBtn) qualityBtn.title = t.qualityBtnTitle;
+    if (playlistCloseBtn) playlistCloseBtn.title = t.playlistCloseTitle;
+    if (volumeSlider) volumeSlider.title = t.volumeSliderTitle;
+    if (progress) progress.title = t.seekSliderTitle;
+
+    // 8. Headlines, Mantras, Rituals
+    if (mainLogoText) mainLogoText.textContent = t.mainLogoText;
+    if (taglineText) taglineText.textContent = t.taglineText;
 
     const playlistTitleText = document.getElementById("playlistTitleText");
     if (playlistTitleText) {
@@ -619,13 +818,9 @@
       }
     }
 
-    const navHomeText = document.getElementById("navHomeText");
-    const navAboutText = document.getElementById("navAboutText");
-    if (navHomeText && t.navHomeText) navHomeText.textContent = t.navHomeText;
-    if (navAboutText && t.navAboutText) navAboutText.textContent = t.navAboutText;
-    const shareBtnLabel = document.getElementById("shareBtnLabel");
-    if (shareBtnLabel && t.shareBtnLabel) shareBtnLabel.textContent = t.shareBtnLabel;
+    if (copyMantraBtn) copyMantraBtn.title = t.copyMantraTitle;
     if (copyMantraBtnText) copyMantraBtnText.textContent = t.copyMantraBtnText;
+    if (shareMantraBtn) shareMantraBtn.title = t.shareMantraTitle;
     if (shareMantraBtnText) shareMantraBtnText.textContent = t.shareMantraBtnText;
 
     displaySongInfo(currentSong);
@@ -914,16 +1109,7 @@
   function setMode(online, showNotification = true) {
     isOnlineMode = Boolean(online);
 
-    if (modeToggleBtn) {
-      modeToggleBtn.setAttribute("data-mode", isOnlineMode ? "online" : "offline");
-      modeToggleBtn.title = isOnlineMode
-        ? "वर्तमान: ऑनलाइन वीडियो मोड (क्लिक करके ऑफ़लाइन मोड पर जाएं)"
-        : "वर्तमान: ऑफ़लाइन ऑडियो मोड (क्लिक करके ऑनलाइन वीडियो चलाएं)";
-    }
-
-    if (modeText) {
-      modeText.textContent = isOnlineMode ? "Online" : "Offline";
-    }
+    updateModeButtonUI();
 
     if (isOnlineMode) {
       // Dynamically load YouTube API on demand (Lazy Loading for faster FCP)
@@ -936,7 +1122,23 @@
         bgVideoContainer.setAttribute("aria-hidden", "false");
       }
 
-      // Automatically start playback as requested
+      // Pick a random song when switching to Online Mode
+      if (songs && songs.length > 0) {
+        const validIndices = [];
+        songs.forEach((s, idx) => {
+          if (s && (s.videoId || s.embedUrl)) validIndices.push(idx);
+        });
+        const pool = validIndices.length > 0 ? validIndices : songs.map((_, i) => i);
+        if (pool.length > 1) {
+          const otherChoices = pool.filter(idx => idx !== currentSong);
+          const choices = otherChoices.length > 0 ? otherChoices : pool;
+          currentSong = choices[Math.floor(Math.random() * choices.length)];
+        } else {
+          currentSong = pool[0];
+        }
+      }
+
+      // Automatically start playback of the selected song
       playSong(currentSong);
 
       if (showNotification) {
@@ -956,7 +1158,7 @@
           if (typeof ytPlayer.stopVideo === "function") ytPlayer.stopVideo();
         } catch (e) { }
       }
-      
+
       // Automatically start offline audio playback immediately
       playSong(currentSong);
 
