@@ -2525,8 +2525,8 @@ body.live-video-active .bg-overlay {
     left: 50%;
     right: auto;
     width: min(520px, calc(100vw - 18px));
-    bottom: calc(92px + var(--safe-bottom));
-    max-height: min(440px, calc(100dvh - 130px));
+    bottom: calc(130px + var(--safe-bottom));
+    max-height: min(440px, calc(100dvh - 160px));
     border-radius: 22px;
     transform: translateX(-50%) translateY(20px);
     z-index: 200;
@@ -2644,8 +2644,8 @@ body.live-video-active .bg-overlay {
 
   .playlist-modal {
     width: calc(100vw - 12px);
-    bottom: calc(82px + var(--safe-bottom));
-    max-height: min(420px, calc(100dvh - 120px));
+    bottom: calc(118px + var(--safe-bottom));
+    max-height: min(420px, calc(100dvh - 145px));
     border-radius: 18px;
   }
 
