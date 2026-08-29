@@ -254,12 +254,14 @@ body.live-video-active .bg-overlay {
   justify-content: center;
   gap: 8px;
   white-space: nowrap;
-  z-index: 2;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .top-actions {
   margin-left: auto;
-  z-index: 3;
+  position: relative;
+  z-index: 5;
 }
 
 /* Navigation Buttons (Home & About) */
@@ -458,43 +460,33 @@ body.live-video-active .bg-overlay {
   transform: scale(0.95);
 }
 
-/* Floating Dropdown Menu (Transparent Container Centered under Share Button) */
+/* Floating Dropdown Menu (Positioned directly under Share Button) */
 .share-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
-  left: 50%;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: none;
+  right: 0;
+  left: auto;
+  background: rgba(30, 8, 12, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 184, 77, 0.4);
   border-radius: 40px;
-  padding: 4px 0;
+  padding: 5px 8px;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
-  box-shadow: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
   opacity: 0;
   visibility: hidden;
-  transform: translateX(-50%) translateY(-8px) scale(0.92);
-  transform-origin: top center;
-  transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-              transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-              visibility 0.25s;
+  transform: translateY(-8px) scale(0.92);
+  transform-origin: top right;
+  transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              visibility 0.22s;
   pointer-events: none;
   z-index: 999;
   white-space: nowrap;
-}
-
-/* Hover Bridge: keep hover active when transitioning from button to menu */
-.share-dropdown::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: -150px;
-  right: -150px;
-  height: 22px;
-  display: block;
 }
 
 /* Hover & Focus / Open states */
@@ -503,7 +495,7 @@ body.live-video-active .bg-overlay {
 .share-dropdown.open .share-dropdown-menu {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0) scale(1);
+  transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
