@@ -2124,7 +2124,7 @@ body.live-video-active .bg-overlay {
   }
 
   .logo-container {
-    margin: 4px 0 0 0;
+    margin: 20px 0 0 0;
     padding: 8px 0 4px;
     flex-shrink: 0;
   }
@@ -2354,8 +2354,8 @@ body.live-video-active .bg-overlay {
   }
 
   .logo-container {
-    margin: 2px 0 0 0;
-    padding: 4px 0;
+    margin: 18px 0 0 0;
+    padding: 8px 0 4px;
   }
 
   .logo {
@@ -2654,6 +2654,11 @@ body.live-video-active .bg-overlay {
   .offline-volume-slider::-moz-range-thumb {
     width: 13px;
     height: 13px;
+  }
+
+  .logo-container {
+    margin: 14px 0 0 0;
+    padding: 6px 0 2px;
   }
 
   .logo {
