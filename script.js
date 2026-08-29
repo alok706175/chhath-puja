@@ -958,24 +958,31 @@
       initYouTubePlayer();
     };
 
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    tag.async = true;
-    const firstScript = document.getElementsByTagName("script")[0];
-    if (firstScript && firstScript.parentNode) {
-      firstScript.parentNode.insertBefore(tag, firstScript);
-    } else {
-      document.head.appendChild(tag);
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
+      const firstScript = document.getElementsByTagName("script")[0];
+      if (firstScript && firstScript.parentNode) {
+        firstScript.parentNode.insertBefore(tag, firstScript);
+      } else {
+        document.head.appendChild(tag);
+      }
     }
   }
+
+  // Pre-register callback immediately
+  window.onYouTubeIframeAPIReady = function () {
+    initYouTubePlayer();
+  };
 
   function initYouTubePlayer() {
     if (ytPlayer || !window.YT || !window.YT.Player) return;
     try {
-      const initialVideoId = (songs[currentSong] && songs[currentSong].videoId) || "W34L_i63B0g";
+      const initialVideoId = (songs[currentSong] && songs[currentSong].videoId) || "T_YXL_blE3A";
 
       const playerVars = {
-        autoplay: 1,
+        autoplay: 0,
         mute: 0,
         controls: 0,
         rel: 0,
@@ -986,9 +993,7 @@
         enablejsapi: 1,
         disablekb: 1,
         fs: 0,
-        cc_load_policy: 0,
-        cc_lang_pref: "none",
-        vq: "hd1080"
+        origin: window.location.origin || (window.location.protocol + "//" + window.location.host)
       };
 
       ytPlayer = new YT.Player("ytBgPlayer", {
@@ -2359,4 +2364,12 @@
   updateVolumeIcon(1);
   setLanguage("en", false);
   loadOfflineSongs();
+  ensureYouTubeAPI();
+
+  // Mobile audio & media unlock on first user gesture
+  document.addEventListener("touchstart", function unlockMediaOnce() {
+    ensureAudioContext();
+    ensureYouTubeAPI();
+    document.removeEventListener("touchstart", unlockMediaOnce);
+  }, { passive: true, once: true });
 })();
