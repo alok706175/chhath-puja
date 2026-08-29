@@ -2495,12 +2495,19 @@ body.live-video-active .bg-overlay {
   }
 
   .playlist-modal {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    bottom: calc(135px + var(--safe-bottom));
-    max-height: min(420px, calc(100dvh - 210px));
+    position: fixed;
+    left: 50%;
+    right: auto;
+    width: min(520px, calc(100vw - 18px));
+    bottom: calc(122px + var(--safe-bottom));
+    max-height: min(430px, calc(100dvh - 190px));
     border-radius: 22px;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 200;
+  }
+
+  .playlist-modal.open {
+    transform: translateX(-50%) translateY(0);
   }
 
   .seo-content {
@@ -2607,5 +2614,12 @@ body.live-video-active .bg-overlay {
   .offline-volume-slider::-moz-range-thumb {
     width: 13px;
     height: 13px;
+  }
+
+  .playlist-modal {
+    width: calc(100vw - 12px);
+    bottom: calc(115px + var(--safe-bottom));
+    max-height: min(390px, calc(100dvh - 175px));
+    border-radius: 18px;
   }
 }
