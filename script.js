@@ -324,7 +324,7 @@
   /* =========================================================
      4. WHATSAPP SHARING
      ========================================================= */
-  const SHARE_URL = "https://chhath-puja.onrender.com/";
+  const SHARE_URL = "https://www.mahaparvchhathpuja.me/";
 
   function shareOnWhatsApp(customHeading) {
     const title = customHeading || "🌅 छठ महापर्व की हार्दिक शुभकामनाएं! 🙏";

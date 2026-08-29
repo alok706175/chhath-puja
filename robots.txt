@@ -13,5 +13,5 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Sitemap: https://chhath-puja.onrender.com/sitemap.xml
-Host: https://chhath-puja.onrender.com
+Sitemap: https://www.mahaparvchhathpuja.me/sitemap.xml
+Host: https://www.mahaparvchhathpuja.me
