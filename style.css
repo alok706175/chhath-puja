@@ -742,7 +742,7 @@ body.live-video-active .bg-overlay {
   width: 100%;
   padding: 16px 24px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 20px;
   border-radius: 32px;
@@ -763,6 +763,48 @@ body.live-video-active .bg-overlay {
     0 24px 60px rgba(0, 0, 0, 0.85),
     0 0 35px rgba(255, 184, 77, 0.3),
     inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Cover / Vinyl Disc */
+.offline-cover-wrapper {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.offline-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: radial-gradient(circle at 35% 35%, #ff9800 0%, #e65100 50%, #b71c1c 100%);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 6px 20px rgba(230, 81, 0, 0.55), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.vinyl-center {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #1a0407;
+  border: 2.5px solid var(--marigold-bright);
+  box-shadow: 0 0 6px rgba(255, 184, 77, 0.6);
+}
+
+.offline-cover.spinning {
+  animation: rotateVinyl 8s linear infinite;
+}
+
+@keyframes rotateVinyl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Song Meta Information */
@@ -1688,11 +1730,7 @@ body.live-video-active .bg-overlay {
   margin-bottom: 14px;
 }
 
-.mantra-symbol {
-  font-size: 26px;
-  filter: drop-shadow(0 0 10px rgba(255, 184, 77, 0.6));
-  animation: sunBreathe 4s infinite alternate ease-in-out;
-}
+
 
 .mantra-header h3 {
   font-family: var(--font-festive);
@@ -2311,10 +2349,15 @@ body.live-video-active .bg-overlay {
   }
 
   #offlinePlayer {
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-radius: 22px;
-    gap: 8px 12px;
+    gap: 6px 10px;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+  }
+
+  .offline-cover-wrapper {
+    width: 42px;
+    height: 42px;
   }
 
   .offline-song-title {
