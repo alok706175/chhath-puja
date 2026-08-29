@@ -38,9 +38,7 @@
       pillText3: "संध्या अर्घ्य",
       pillNum4: "४",
       pillText4: "उषा अर्घ्य",
-      singerPrefix: "छठ महापर्व • ",
       loadingSong: "Loading Chhath Geet...",
-      playlistTitle: "छठ गीत संग्रह",
       playlistSubtitle: "पसंदीदा गीत चुनें और सुनें",
       playlistSearchPlaceholder: "गीत या गायक का नाम खोजें...",
       noSongsFound: "कोई गीत नहीं मिला",
@@ -50,8 +48,14 @@
       playlistBtnTitle: "गीत सूची (Playlist)",
       playlistCloseTitle: "गीत सूची बंद करें",
       muteBtnTitle: "ध्वनि म्यूट / अनम्यूट",
-      speedBtnTitle: "प्लेबैक स्पीड बदलें",
-      qualityBtnTitle: "वीडियो क्वालिटी बदलें (ऑनलाइन मोड)",
+      speedBtnTitle: "प्लेबैक स्पीड बदलें (Playback Speed)",
+      speedMenuHeader: "स्पीड चुनें",
+      speedMenuSlow: "धीमा",
+      speedMenuSlowLight: "हल्का धीमा",
+      speedMenuNormal: "सामान्य",
+      speedMenuFastLight: "हल्का तेज़",
+      speedMenuFast: "तेज़",
+      speedMenuFastMore: "काफ़ी तेज़",
       volumeSliderTitle: "वॉल्यूम कम या ज्यादा करें",
       seekSliderTitle: "गीत को आगे या पीछे करें",
       ritualsBadge: "पवित्र परंपरा",
@@ -126,9 +130,7 @@
       pillText3: "Sandhya Arghya",
       pillNum4: "4",
       pillText4: "Usha Arghya",
-      singerPrefix: "Chhath Mahaparv • ",
       loadingSong: "Loading Chhath Songs...",
-      playlistTitle: "Chhath Songs Collection",
       playlistSubtitle: "Select & listen to devotional songs",
       playlistSearchPlaceholder: "Search song or singer name...",
       noSongsFound: "No songs found",
@@ -139,7 +141,13 @@
       playlistCloseTitle: "Close Playlist",
       muteBtnTitle: "Mute / Unmute Volume",
       speedBtnTitle: "Change Playback Speed",
-      qualityBtnTitle: "Change Video Quality (Online Mode)",
+      speedMenuHeader: "Select Speed",
+      speedMenuSlow: "Very Slow",
+      speedMenuSlowLight: "Slow",
+      speedMenuNormal: "Normal",
+      speedMenuFastLight: "Slightly Fast",
+      speedMenuFast: "Fast",
+      speedMenuFastMore: "Faster",
       volumeSliderTitle: "Adjust Volume",
       seekSliderTitle: "Seek Track",
       ritualsBadge: "Sacred Tradition",
@@ -592,6 +600,7 @@
   let ytPlayer = null;
   let isYtReady = false;
   let progressInterval = null;
+  let seekDebounceTimeout = null;
 
   const offlineAudio = document.getElementById("offlineAudio");
   const songName = document.getElementById("offlineSongName");
@@ -607,19 +616,22 @@
   const totalTime = document.getElementById("totalSongTime");
   const muteBtn = document.getElementById("muteBtn");
   const volumeSlider = document.getElementById("volumeSlider");
+  const speedDropdown = document.getElementById("speedDropdown");
   const speedBtn = document.getElementById("speedBtn");
   const speedLabel = document.getElementById("speedLabel");
+  const speedDropdownMenu = document.getElementById("speedDropdownMenu");
+  const speedMenuItems = document.querySelectorAll(".speed-menu-item");
   const playerElem = document.getElementById("offlinePlayer");
 
-  let currentSpeedIndex = 0;
+  let currentSpeedIndex = 2; // Default: 1.0x
   const PLAYBACK_SPEEDS = [
+    { value: 0.5, label: "0.5x" },
+    { value: 0.75, label: "0.75x" },
     { value: 1.0, label: "1.0x" },
     { value: 1.25, label: "1.25x" },
     { value: 1.5, label: "1.50x" },
     { value: 1.75, label: "1.75x" },
-    { value: 2.0, label: "2.0x" },
-    { value: 0.5, label: "0.5x" },
-    { value: 0.75, label: "0.75x" }
+    { value: 2.0, label: "2.0x" }
   ];
 
   const playlistToggleBtn = document.getElementById("playlistToggleBtn");
@@ -762,7 +774,6 @@
     if (playlistToggleBtn) playlistToggleBtn.title = t.playlistBtnTitle;
     if (muteBtn) muteBtn.title = t.muteBtnTitle;
     if (speedBtn) speedBtn.title = t.speedBtnTitle;
-    if (qualityBtn) qualityBtn.title = t.qualityBtnTitle;
     if (playlistCloseBtn) playlistCloseBtn.title = t.playlistCloseTitle;
     if (volumeSlider) volumeSlider.title = t.volumeSliderTitle;
     if (progress) progress.title = t.seekSliderTitle;
@@ -972,7 +983,8 @@
         disablekb: 1,
         fs: 0,
         cc_load_policy: 0,
-        cc_lang_pref: "none"
+        cc_lang_pref: "none",
+        vq: "hd1080"
       };
 
       ytPlayer = new YT.Player("ytBgPlayer", {
@@ -983,12 +995,18 @@
         events: {
           onReady: onYTPlayerReady,
           onStateChange: onYTPlayerStateChange,
+          onPlaybackQualityChange: onYTPlaybackQualityChange,
           onError: onYTPlayerError
         }
       });
     } catch (e) {
       console.warn("YouTube API init error:", e);
     }
+  }
+
+  function onYTPlaybackQualityChange(event) {
+    const actualQuality = event.data;
+    console.log("YouTube actual playback quality updated to:", actualQuality);
   }
 
   function disableCaptions(player) {
@@ -1011,6 +1029,15 @@
     disableCaptions(event.target);
     const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
     try {
+      if (typeof event.target.setPlaybackQuality === "function") {
+        event.target.setPlaybackQuality("hd1080");
+      }
+      if (typeof event.target.setPlaybackQualityRange === "function") {
+        event.target.setPlaybackQualityRange("hd1080", "highres");
+      }
+    } catch (e) { }
+
+    try {
       if (isOnlineMode) {
         event.target.unMute();
         event.target.setVolume(volNum);
@@ -1028,9 +1055,16 @@
       const s = songs[currentSong];
       if (s && s.videoId) {
         try {
-          event.target.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
+          event.target.loadVideoById({
+            videoId: s.videoId,
+            startSeconds: 0,
+            suggestedQuality: "hd1080"
+          });
           event.target.unMute();
           event.target.setVolume(volNum);
+          if (typeof event.target.setPlaybackQuality === "function") {
+            event.target.setPlaybackQuality("hd1080");
+          }
           disableCaptions(event.target);
           event.target.playVideo();
         } catch (e) {
@@ -1043,17 +1077,7 @@
   }
 
   function setBufferingState(isBuffering) {
-    if (isBuffering) {
-      if (playButton) playButton.classList.add("buffering");
-      if (albumCover) albumCover.classList.add("buffering");
-      if (playerElem) playerElem.classList.add("buffering");
-      if (playIcon) playIcon.textContent = "";
-    } else {
-      if (playButton) playButton.classList.remove("buffering");
-      if (albumCover) albumCover.classList.remove("buffering");
-      if (playerElem) playerElem.classList.remove("buffering");
-      if (playIcon) playIcon.textContent = isPlaying ? "❚❚" : "▶";
-    }
+    // Clean seamless playback without spinner animations
   }
 
   function onYTPlayerStateChange(event) {
@@ -1062,6 +1086,11 @@
     if (event.data === YT.PlayerState.PLAYING) {
       isSwitchingTrack = false;
       disableCaptions(event.target);
+      try {
+        if (typeof event.target.setPlaybackQuality === "function") {
+          event.target.setPlaybackQuality("hd1080");
+        }
+      } catch (e) { }
       setBufferingState(false);
       document.body.classList.remove("video-paused", "video-buffering");
       if (isOnlineMode) {
@@ -1259,21 +1288,36 @@
     }
   }
 
-  function updateLiveProgress() {
-    if (isSeeking) return;
-
-    let cur = 0;
+  function getActiveDuration() {
     let dur = 0;
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
+      try {
+        dur = ytPlayer.getDuration() || 0;
+      } catch (e) { }
+    }
+    if (!dur && offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      dur = offlineAudio.duration || 0;
+    }
+    return dur > 0 ? dur : 0;
+  }
 
+  function getActiveCurrentTime() {
+    let cur = 0;
     if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
       try {
         cur = ytPlayer.getCurrentTime() || 0;
-        dur = ytPlayer.getDuration() || 0;
       } catch (e) { }
-    } else if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+    } else if (offlineAudio && offlineAudio.currentTime && isFinite(offlineAudio.currentTime)) {
       cur = offlineAudio.currentTime || 0;
-      dur = offlineAudio.duration || 0;
     }
+    return cur > 0 ? cur : 0;
+  }
+
+  function updateLiveProgress() {
+    if (isSeeking) return;
+
+    const cur = getActiveCurrentTime();
+    const dur = getActiveDuration();
 
     if (dur > 0 && isFinite(dur)) {
       const pct = (cur / dur) * 100;
@@ -1399,7 +1443,7 @@
       singer = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
     }
 
-    const fullSinger = `${t.singerPrefix}${singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")}`;
+    const fullSinger = singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत");
 
     if (songName) songName.textContent = title;
     if (songSinger) songSinger.textContent = fullSinger;
@@ -1581,7 +1625,11 @@
     if (isYtReady && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
       try {
         if (s.videoId) {
-          ytPlayer.loadVideoById({ videoId: s.videoId, startSeconds: 0 });
+          ytPlayer.loadVideoById({
+            videoId: s.videoId,
+            startSeconds: 0,
+            suggestedQuality: "hd1080"
+          });
           ytPlayer.unMute();
           ytPlayer.setVolume(volNum);
           ytPlayer.playVideo();
@@ -1589,8 +1637,10 @@
             ytPlayer.setPlaybackRate(activeRate);
           }
           if (typeof ytPlayer.setPlaybackQuality === "function") {
-            const activeQuality = VIDEO_QUALITIES[currentQualityIndex] ? VIDEO_QUALITIES[currentQualityIndex].value : "auto";
-            ytPlayer.setPlaybackQuality(activeQuality);
+            ytPlayer.setPlaybackQuality("hd1080");
+          }
+          if (typeof ytPlayer.setPlaybackQualityRange === "function") {
+            ytPlayer.setPlaybackQualityRange("hd1080", "highres");
           }
         }
       } catch (e) {
@@ -1687,19 +1737,63 @@
     nextBtn.addEventListener("click", playNext);
   }
 
+  /* Robust Seek Controller (Online & Offline) */
+  function seekToTime(targetSec) {
+    const dur = getActiveDuration();
+    const safeSec = Math.max(0, dur > 0 ? Math.min(dur, targetSec) : targetSec);
+
+    // Apply seek to online YouTube player
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
+      try {
+        ytPlayer.seekTo(safeSec, true);
+        if (isPlaying && typeof ytPlayer.playVideo === "function") {
+          ytPlayer.playVideo();
+        }
+      } catch (e) {
+        console.warn("YouTube seekTo error:", e);
+      }
+    }
+
+    // Apply seek to offline audio
+    if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      try {
+        offlineAudio.currentTime = safeSec;
+      } catch (e) { }
+    }
+
+    // Immediately update visual UI so it doesn't flicker or snap
+    if (dur > 0) {
+      const pct = (safeSec / dur) * 100;
+      if (progress) progress.value = pct;
+      if (progressFill) progressFill.style.width = `${pct}%`;
+      if (currentTime) currentTime.textContent = formatTime(safeSec);
+    }
+
+    // Keep isSeeking true for 350ms to allow YouTube time to catch up and prevent snapback
+    isSeeking = true;
+    if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
+    seekDebounceTimeout = setTimeout(() => {
+      isSeeking = false;
+      updateLiveProgress();
+    }, 350);
+  }
+
+  function seekRelative(deltaSec) {
+    const cur = getActiveCurrentTime();
+    const dur = getActiveDuration();
+    if (dur > 0) {
+      const target = Math.max(0, Math.min(dur, cur + deltaSec));
+      seekToTime(target);
+      showToast(deltaSec > 0 ? `⏩ +${deltaSec}s` : `⏪ ${deltaSec}s`);
+    }
+  }
+
   /* Seek interactions (Forward / Backward Scrubbing) */
   if (progress) {
     const handleSeekInput = () => {
       isSeeking = true;
-      let dur = 0;
-      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
-        try {
-          dur = ytPlayer.getDuration() || 0;
-        } catch (e) { }
-      }
-      if (!dur && offlineAudio && offlineAudio.duration) {
-        dur = offlineAudio.duration;
-      }
+      if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
+      const dur = getActiveDuration();
       const pct = parseFloat(progress.value) || 0;
       if (progressFill) progressFill.style.width = `${pct}%`;
       if (currentTime && dur > 0) {
@@ -1707,36 +1801,23 @@
       }
     };
 
-    const handleSeekChange = () => {
-      let dur = 0;
-      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
-        try {
-          dur = ytPlayer.getDuration() || 0;
-        } catch (e) { }
-      }
-      if (!dur && offlineAudio && offlineAudio.duration) {
-        dur = offlineAudio.duration;
-      }
+    const handleSeekCommit = () => {
+      const dur = getActiveDuration();
       const pct = parseFloat(progress.value) || 0;
-      const targetSec = (pct / 100) * dur;
-
-      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
-        try {
-          ytPlayer.seekTo(targetSec, true);
-        } catch (e) { }
+      if (dur > 0) {
+        const targetSec = (pct / 100) * dur;
+        seekToTime(targetSec);
+      } else {
+        isSeeking = false;
       }
-      if (offlineAudio && offlineAudio.duration) {
-        offlineAudio.currentTime = targetSec;
-      }
-
-      isSeeking = false;
-      updateLiveProgress();
     };
 
     progress.addEventListener("mousedown", () => { isSeeking = true; });
     progress.addEventListener("touchstart", () => { isSeeking = true; }, { passive: true });
     progress.addEventListener("input", handleSeekInput);
-    progress.addEventListener("change", handleSeekChange);
+    progress.addEventListener("change", handleSeekCommit);
+    progress.addEventListener("mouseup", handleSeekCommit);
+    progress.addEventListener("touchend", handleSeekCommit);
   }
 
   /* Volume & Mute Controls */
@@ -1866,14 +1947,43 @@
     });
   }
 
+  /* =========================================================
+     PLAYBACK SPEED DROPDOWN CONTROLLER
+     ========================================================= */
+  function openSpeedDropdown() {
+    if (!speedDropdown) return;
+    speedDropdown.classList.add("open");
+    if (speedBtn) speedBtn.setAttribute("aria-expanded", "true");
+  }
+
+  function closeSpeedDropdown() {
+    if (!speedDropdown) return;
+    speedDropdown.classList.remove("open");
+    if (speedBtn) speedBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleSpeedDropdown() {
+    if (!speedDropdown) return;
+    if (speedDropdown.classList.contains("open")) {
+      closeSpeedDropdown();
+    } else {
+      openSpeedDropdown();
+    }
+  }
+
   /* Playback Speed Controller Function */
   function setPlaybackRate(speedObj) {
     const rateItem = (typeof speedObj === "object" && speedObj !== null)
       ? speedObj
-      : (PLAYBACK_SPEEDS.find((s) => s.value === parseFloat(speedObj)) || { value: parseFloat(speedObj) || 1.0, label: `${speedObj}x` });
+      : (PLAYBACK_SPEEDS.find((s) => Math.abs(s.value - parseFloat(speedObj)) < 0.01) || { value: parseFloat(speedObj) || 1.0, label: `${speedObj}x` });
 
     const r = parseFloat(rateItem.value) || 1.0;
     const label = rateItem.label || `${r}x`;
+
+    const foundIdx = PLAYBACK_SPEEDS.findIndex((s) => Math.abs(s.value - r) < 0.01);
+    if (foundIdx !== -1) {
+      currentSpeedIndex = foundIdx;
+    }
 
     if (offlineAudio) {
       offlineAudio.playbackRate = r;
@@ -1888,11 +1998,23 @@
       speedLabel.textContent = label;
     }
     if (speedBtn) {
-      if (r !== 1.0) {
+      if (Math.abs(r - 1.0) > 0.01) {
         speedBtn.classList.add("custom-speed");
       } else {
         speedBtn.classList.remove("custom-speed");
       }
+    }
+
+    // Sync active item in dropdown
+    if (speedMenuItems && speedMenuItems.length > 0) {
+      speedMenuItems.forEach((item) => {
+        const itemSpeed = parseFloat(item.getAttribute("data-speed"));
+        if (Math.abs(itemSpeed - r) < 0.01) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+      });
     }
 
     const t = i18n[currentLang] || i18n.hi;
@@ -1907,74 +2029,36 @@
   }
 
   if (speedBtn) {
-    speedBtn.addEventListener("click", cyclePlaybackSpeed);
+    speedBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSpeedDropdown();
+    });
   }
 
-  /* =========================================================
-     VIDEO QUALITY CONTROLLER (Online Mode Only)
-     ========================================================= */
-  const qualityBtn = document.getElementById("qualityBtn");
-  const qualityLabel = document.getElementById("qualityLabel");
-
-  const VIDEO_QUALITIES = [
-    { value: "auto", label: "Auto", desc: "Auto (अनुकूलित)" },
-    { value: "hd1080", label: "1080p", desc: "Full HD (1080p)" },
-    { value: "hd720", label: "720p", desc: "HD (720p)" },
-    { value: "large", label: "480p", desc: "Standard (480p)" },
-    { value: "medium", label: "360p", desc: "Medium (360p)" },
-    { value: "small", label: "240p", desc: "Data Saver (240p)" }
-  ];
-  let currentQualityIndex = 0;
-
-  function setVideoQuality(qualityObj, showNotification = true) {
-    const qItem = (typeof qualityObj === "object" && qualityObj !== null)
-      ? qualityObj
-      : (VIDEO_QUALITIES.find((q) => q.value === qualityObj) || VIDEO_QUALITIES[0]);
-
-    if (qualityLabel) {
-      qualityLabel.textContent = qItem.label;
-    }
-
-    if (qualityBtn) {
-      if (qItem.value !== "auto") {
-        qualityBtn.classList.add("custom-quality");
-      } else {
-        qualityBtn.classList.remove("custom-quality");
-      }
-      qualityBtn.title = `वीडियो क्वालिटी: ${qItem.desc} (क्लिक करके बदलें)`;
-    }
-
-    // Apply quality to YouTube player in Online Mode
-    if (isOnlineMode && isYtReady && ytPlayer) {
-      try {
-        if (typeof ytPlayer.setPlaybackQuality === "function") {
-          ytPlayer.setPlaybackQuality(qItem.value);
+  if (speedMenuItems && speedMenuItems.length > 0) {
+    speedMenuItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const sp = parseFloat(item.getAttribute("data-speed"));
+        if (!isNaN(sp)) {
+          setPlaybackRate(sp);
         }
-        if (typeof ytPlayer.setPlaybackQualityRange === "function") {
-          ytPlayer.setPlaybackQualityRange(qItem.value, qItem.value);
-        }
-      } catch (e) {
-        console.warn("Quality change error:", e);
-      }
+        closeSpeedDropdown();
+      });
+    });
+  }
+
+  if (speedDropdownMenu) {
+    speedDropdownMenu.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (speedDropdown && !speedDropdown.contains(e.target)) {
+      closeSpeedDropdown();
     }
-
-    if (showNotification && isOnlineMode) {
-      const isHi = currentLang !== "en";
-      const msg = isHi
-        ? `📹 वीडियो क्वालिटी: ${qItem.label} (${qItem.desc})`
-        : `📹 Video Quality: ${qItem.label}`;
-      showToast(msg);
-    }
-  }
-
-  function cycleVideoQuality() {
-    currentQualityIndex = (currentQualityIndex + 1) % VIDEO_QUALITIES.length;
-    setVideoQuality(VIDEO_QUALITIES[currentQualityIndex], true);
-  }
-
-  if (qualityBtn) {
-    qualityBtn.addEventListener("click", cycleVideoQuality);
-  }
+  });
 
   /* Playlist Search & Drawer */
   if (playlistSearch) {
@@ -2210,12 +2294,13 @@
       return;
     }
 
-    // Escape -> Close Playlist Modal
+    // Escape -> Close Playlist Modal or Speed Dropdown
     if (e.key === "Escape") {
       if (playlistModal && playlistModal.classList.contains("open")) {
         e.preventDefault();
         playlistModal.classList.remove("open");
       }
+      closeSpeedDropdown();
     }
   });
 

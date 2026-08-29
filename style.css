@@ -628,7 +628,9 @@ body.live-video-active .bg-overlay {
   background: linear-gradient(135deg, #ffffff 0%, #ffe082 25%, #ffb300 50%, #ff8f00 75%, #ffffff 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 25px rgba(255, 179, 0, 0.45));
   animation: goldShimmer 6s linear infinite, divineGlow 4s ease-in-out infinite alternate;
   transition: transform 0.3s ease;
@@ -989,56 +991,36 @@ body.live-video-active .bg-overlay {
   border: 1px solid rgba(255, 184, 77, 0.4);
 }
 
-/* Big Radiant Play Button */
+/* Simple Clean White Play/Pause Button */
 .offline-play-btn {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffffff 0%, #fff3d0 45%, #ffb300 100%);
-  color: #1a0507;
+  background: #ffffff;
+  color: #120306;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 16px rgba(255, 184, 77, 0.4);
-  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
   padding: 0;
   position: relative;
-}
-
-.offline-play-btn::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 184, 77, 0.5);
-  opacity: 0;
-  transform: scale(0.9);
-  pointer-events: none;
-  transition: all 0.25s ease;
-}
-
-.offline-play-btn.playing::after {
-  opacity: 1;
-  animation: playPulseRing 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
-}
-
-@keyframes playPulseRing {
-  0% { transform: scale(1); opacity: 0.8; border-color: rgba(255, 184, 77, 0.7); }
-  100% { transform: scale(1.45); opacity: 0; border-color: rgba(255, 143, 0, 0); }
+  outline: none;
 }
 
 .offline-play-btn #playIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 19px;
   line-height: 1;
   width: 100%;
   height: 100%;
-  transform: translateX(1.5px);
+  transform: translateX(1px);
   user-select: none;
+  color: #120306;
 }
 
 .offline-play-btn.playing #playIcon,
@@ -1046,44 +1028,16 @@ body.live-video-active .bg-overlay {
   transform: translateX(0);
 }
 
-/* Controller Buffering / Loading Animation */
-.offline-play-btn.buffering {
-  background: var(--marigold-bright);
-}
-
-.offline-play-btn.buffering #playIcon {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(26, 5, 7, 0.25);
-  border-top-color: #1a0507;
-  border-radius: 50%;
-  animation: playBtnSpinner 0.65s linear infinite;
-  transform: translateX(0);
-}
-
-@keyframes playBtnSpinner {
-  to { transform: rotate(360deg); }
-}
-
-.offline-cover.buffering {
-  animation: coverBufferingPulse 0.9s infinite alternate ease-in-out;
-}
-
-@keyframes coverBufferingPulse {
-  0% { transform: scale(0.95); opacity: 0.85; filter: drop-shadow(0 0 4px var(--marigold-bright)); }
-  100% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 14px var(--marigold-bright)); }
-}
-
 .offline-play-btn:hover {
-  transform: scale(1.1);
-  background: linear-gradient(135deg, #ffffff 0%, #fff8e1 45%, #ffa000 100%);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 184, 77, 0.65);
+  background: #f2f2f2;
+  transform: scale(1.05);
 }
 
 .offline-play-btn:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
+
+
 
 /* Playlist Button */
 .playlist-toggle-btn {
@@ -1107,52 +1061,21 @@ body.live-video-active .bg-overlay {
   border-color: var(--marigold-bright);
 }
 
-/* Playback Speed Pill Button */
+/* =========================================================
+   PLAYBACK SPEED DROPDOWN CONTROLLER
+   ========================================================= */
+.speed-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  z-index: 40;
+}
+
 .offline-speed-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  height: 28px;
-  padding: 2px 7px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 184, 77, 0.4);
-  background: rgba(255, 184, 77, 0.1);
-  color: var(--cream-soft);
-  font-family: var(--font-modern);
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  user-select: none;
-  letter-spacing: 0.2px;
-}
-
-.offline-speed-btn:hover {
-  background: rgba(255, 184, 77, 0.25);
-  color: var(--marigold-bright);
-  border-color: var(--marigold-bright);
-  box-shadow: 0 0 10px rgba(255, 184, 77, 0.35);
-  transform: translateY(-1px) scale(1.05);
-}
-
-.offline-speed-btn:active {
-  transform: scale(0.92);
-}
-
-.offline-speed-btn.custom-speed {
-  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3) 0%, rgba(216, 27, 96, 0.3) 100%);
-  color: #ffffff;
-  border-color: var(--marigold-bright);
-  box-shadow: 0 0 8px rgba(255, 184, 77, 0.3);
-}
-
-/* Video Quality Pill Button (Only visible in Online Mode) */
-.offline-quality-btn {
-  display: none;
-  align-items: center;
-  justify-content: center;
+  gap: 4px;
   min-width: 44px;
   height: 28px;
   padding: 2px 8px;
@@ -1165,32 +1088,150 @@ body.live-video-active .bg-overlay {
   font-weight: 700;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   user-select: none;
   letter-spacing: 0.2px;
 }
 
-body.live-video-active .offline-quality-btn {
-  display: inline-flex;
-}
-
-.offline-quality-btn:hover {
+.offline-speed-btn:hover {
   background: rgba(255, 184, 77, 0.25);
   color: var(--marigold-bright);
   border-color: var(--marigold-bright);
-  box-shadow: 0 0 10px rgba(255, 184, 77, 0.35);
-  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 0 12px rgba(255, 184, 77, 0.4);
+  transform: translateY(-1px);
 }
 
-.offline-quality-btn:active {
-  transform: scale(0.92);
+.offline-speed-btn:active {
+  transform: scale(0.94);
 }
 
-.offline-quality-btn.custom-quality {
+.offline-speed-btn.custom-speed {
   background: linear-gradient(135deg, rgba(255, 140, 0, 0.35) 0%, rgba(216, 27, 96, 0.35) 100%);
   color: #ffffff;
   border-color: var(--marigold-bright);
-  box-shadow: 0 0 8px rgba(255, 184, 77, 0.35);
+  box-shadow: 0 0 10px rgba(255, 184, 77, 0.35);
+}
+
+.speed-caret-icon {
+  width: 9px;
+  height: 9px;
+  stroke: currentColor;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.speed-dropdown.open .offline-speed-btn,
+.offline-speed-btn[aria-expanded="true"] {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.3) 0%, rgba(216, 27, 96, 0.3) 100%);
+  border-color: var(--marigold-bright);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 184, 77, 0.5);
+}
+
+.speed-dropdown.open .speed-caret-icon,
+.offline-speed-btn[aria-expanded="true"] .speed-caret-icon {
+  transform: rotate(180deg);
+}
+
+/* Floating Speed Dropdown Menu (Opens Upward) */
+.speed-dropdown-menu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px) scale(0.95);
+  transform-origin: bottom center;
+  min-width: 86px;
+  background: linear-gradient(145deg, rgba(42, 10, 18, 0.98) 0%, rgba(20, 4, 8, 0.99) 100%);
+  border: 1px solid rgba(255, 184, 77, 0.45);
+  border-radius: 14px;
+  padding: 5px;
+  box-shadow: 
+    0 -14px 40px rgba(0, 0, 0, 0.9),
+    0 0 25px rgba(255, 140, 0, 0.25),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              visibility 0.22s;
+  z-index: 999;
+}
+
+.speed-dropdown.open .speed-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.speed-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.speed-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--cream-soft);
+  font-family: var(--font-modern);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  outline: none;
+  user-select: none;
+}
+
+.speed-menu-item .speed-val {
+  font-family: var(--font-modern);
+  font-weight: 700;
+  font-size: 12px;
+  color: #ffffff;
+  text-align: left;
+}
+
+.speed-menu-item .speed-check {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--marigold-bright);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  margin-left: 6px;
+}
+
+.speed-menu-item:hover {
+  background: rgba(255, 184, 77, 0.18);
+  border-color: rgba(255, 184, 77, 0.3);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.speed-menu-item.active {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.32) 0%, rgba(216, 27, 96, 0.28) 100%);
+  border-color: rgba(255, 184, 77, 0.55);
+  box-shadow: 0 0 10px rgba(255, 184, 77, 0.25);
+}
+
+.speed-menu-item.active .speed-val {
+  color: var(--marigold-bright);
+  font-weight: 800;
+}
+
+.speed-menu-item.active .speed-check {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Volume Control */
@@ -2134,17 +2175,21 @@ body.live-video-active .offline-quality-btn {
   }
 
   .offline-speed-btn {
-    min-width: 34px;
-    height: 26px;
-    font-size: 10.5px;
-    padding: 1px 5px;
-  }
-
-  .offline-quality-btn {
     min-width: 38px;
     height: 26px;
     font-size: 10.5px;
-    padding: 1px 5px;
+    padding: 1px 6px;
+    gap: 3px;
+  }
+
+  .speed-dropdown-menu {
+    min-width: 160px;
+    padding: 5px;
+  }
+
+  .speed-menu-item {
+    padding: 5px 8px;
+    font-size: 11.5px;
   }
 
   .offline-volume-slider {
@@ -2370,19 +2415,31 @@ body.live-video-active .offline-quality-btn {
   }
 
   .offline-speed-btn {
-    min-width: 30px;
+    min-width: 32px;
     height: 24px;
-    font-size: 10px;
+    font-size: 9.5px;
     padding: 1px 4px;
     border-radius: 12px;
+    gap: 2px;
   }
 
-  .offline-quality-btn {
-    min-width: 34px;
-    height: 24px;
-    font-size: 10px;
-    padding: 1px 4px;
-    border-radius: 12px;
+  .speed-caret-icon {
+    width: 7.5px;
+    height: 7.5px;
+  }
+
+  .speed-dropdown-menu {
+    min-width: 82px;
+    bottom: calc(100% + 8px);
+    top: auto;
+    left: auto;
+    right: -10px;
+    transform: translateY(8px) scale(0.95);
+    transform-origin: bottom right;
+  }
+
+  .speed-dropdown.open .speed-dropdown-menu {
+    transform: translateY(0) scale(1);
   }
 
   .offline-volume {

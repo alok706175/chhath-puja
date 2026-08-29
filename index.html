@@ -210,7 +210,7 @@
           </div>
 
           <div class="offline-subtitle" id="offlineSinger">
-            छठ महापर्व • शारदा सिन्हा
+            शारदा सिन्हा
           </div>
 
           <!-- Progress Row -->
@@ -249,19 +249,51 @@
             <span class="icon-list">☰</span>
           </button>
 
-          <!-- Playback Speed Control Button -->
-          <button class="offline-speed-btn" id="speedBtn"
-            title="प्लेबैक स्पीड बदलें (0.5x, 0.75x, 1.0x, 1.25x, 1.50x, 1.75x, 2.0x)" type="button"
-            aria-label="Playback Speed">
-            <span id="speedLabel">1.0x</span>
-          </button>
+          <!-- Playback Speed Dropdown Control -->
+          <div class="speed-dropdown" id="speedDropdown">
+            <button class="offline-speed-btn" id="speedBtn"
+              title="प्लेबैक स्पीड बदलें (Playback Speed)" type="button"
+              aria-haspopup="true" aria-expanded="false" aria-label="Playback Speed">
+              <span id="speedLabel">1.0x</span>
+              <svg class="speed-caret-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="speed-dropdown-menu" id="speedDropdownMenu" role="menu" aria-label="Playback Speed Options">
+              <div class="speed-options-list" id="speedOptionsList" role="none">
+                <button class="speed-menu-item" type="button" data-speed="0.5" role="menuitem">
+                  <span class="speed-val">0.5x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+                <button class="speed-menu-item" type="button" data-speed="0.75" role="menuitem">
+                  <span class="speed-val">0.75x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+                <button class="speed-menu-item active" type="button" data-speed="1.0" role="menuitem">
+                  <span class="speed-val">1.0x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+                <button class="speed-menu-item" type="button" data-speed="1.25" role="menuitem">
+                  <span class="speed-val">1.25x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+                <button class="speed-menu-item" type="button" data-speed="1.5" role="menuitem">
+                  <span class="speed-val">1.50x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+                <button class="speed-menu-item" type="button" data-speed="1.75" role="menuitem">
+                  <span class="speed-val">1.75x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+                <button class="speed-menu-item" type="button" data-speed="2.0" role="menuitem">
+                  <span class="speed-val">2.0x</span>
+                  <span class="speed-check">✓</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <!-- Video Quality Control Button (Online Mode Only) -->
-          <button class="offline-quality-btn" id="qualityBtn"
-            title="वीडियो क्वालिटी बदलें (Auto, 1080p, 720p, 480p, 360p, 240p)" type="button"
-            aria-label="Video Quality">
-            <span id="qualityLabel">Auto</span>
-          </button>
 
           <!-- Volume Controls -->
           <div class="offline-volume">
