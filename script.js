@@ -39,8 +39,13 @@
       pillNum4: "४",
       pillText4: "उषा अर्घ्य",
       loadingSong: "Loading Chhath Geet...",
+      playlistTitleOffline: "छठ गीत संग्रह (ऑफलाइन)",
+      playlistTitleOnline: "छठ वीडियो संग्रह (ऑनलाइन)",
+      playlistTitle: "छठ गीत संग्रह",
       playlistSubtitle: "पसंदीदा गीत चुनें और सुनें",
       playlistSearchPlaceholder: "गीत या गायक का नाम खोजें...",
+      playlistSearchPlaceholderOffline: "गीत या गायक का नाम खोजें...",
+      playlistSearchPlaceholderOnline: "वीडियो या गायक का नाम खोजें...",
       noSongsFound: "कोई गीत नहीं मिला",
       prevSongTitle: "पिछला गीत",
       playBtnTitle: "चलाएं / रोकें",
@@ -131,8 +136,13 @@
       pillNum4: "4",
       pillText4: "Usha Arghya",
       loadingSong: "Loading Chhath Songs...",
+      playlistTitleOffline: "Offline Chhath Songs",
+      playlistTitleOnline: "Online Live Videos",
+      playlistTitle: "Chhath Songs Collection",
       playlistSubtitle: "Select & listen to devotional songs",
       playlistSearchPlaceholder: "Search song or singer name...",
+      playlistSearchPlaceholderOffline: "Search song or singer name...",
+      playlistSearchPlaceholderOnline: "Search video or singer name...",
       noSongsFound: "No songs found",
       prevSongTitle: "Previous Track",
       playBtnTitle: "Play / Pause",
@@ -607,6 +617,7 @@
   const songSinger = document.getElementById("offlineSinger");
   const playButton = document.getElementById("offlinePlay");
   const playIcon = document.getElementById("playIcon");
+  const albumCover = document.getElementById("albumCover");
   const prevBtn = document.getElementById("prevSong");
   const nextBtn = document.getElementById("nextSong");
   const progress = document.getElementById("offlineProgress");
@@ -781,13 +792,7 @@
     if (mainLogoText) mainLogoText.textContent = t.mainLogoText;
     if (taglineText) taglineText.textContent = t.taglineText;
 
-    const playlistTitleText = document.getElementById("playlistTitleText");
-    if (playlistTitleText) {
-      playlistTitleText.textContent = `${t.playlistTitle} (${songs.length || 8})`;
-    } else if (playlistTitle) {
-      playlistTitle.textContent = `${t.playlistTitle} (${songs.length || 8})`;
-    }
-    if (playlistSearch) playlistSearch.placeholder = t.playlistSearchPlaceholder;
+    updatePlaylistHeaderUI();
 
     if (ritualsHeading) ritualsHeading.textContent = t.ritualsHeading;
 
@@ -1197,7 +1202,28 @@
     }
 
     displaySongInfo(currentSong);
+    updatePlaylistHeaderUI();
     renderPlaylist(playlistSearch ? playlistSearch.value : "");
+  }
+
+  function updatePlaylistHeaderUI() {
+    const t = i18n[currentLang] || i18n.hi;
+    const titleText = isOnlineMode
+      ? (t.playlistTitleOnline || "छठ वीडियो संग्रह (ऑनलाइन)")
+      : (t.playlistTitleOffline || "छठ गीत संग्रह (ऑफलाइन)");
+    const placeholderText = isOnlineMode
+      ? (t.playlistSearchPlaceholderOnline || "वीडियो या गायक का नाम खोजें...")
+      : (t.playlistSearchPlaceholderOffline || "गीत या गायक का नाम खोजें...");
+
+    const playlistTitleText = document.getElementById("playlistTitleText");
+    if (playlistTitleText) {
+      playlistTitleText.textContent = `${titleText} (${songs.length || 8})`;
+    } else if (playlistTitle) {
+      playlistTitle.textContent = `${titleText} (${songs.length || 8})`;
+    }
+    if (playlistSearch) {
+      playlistSearch.placeholder = placeholderText;
+    }
   }
 
   const navHomeBtn = document.getElementById("navHomeBtn");
@@ -1259,11 +1285,13 @@
 
     if (playing) {
       if (playIcon) playIcon.textContent = "❚❚";
+      if (albumCover) albumCover.classList.add("spinning");
       if (playerElem) playerElem.classList.add("playing");
 
       startProgressSync();
     } else {
       if (playIcon) playIcon.textContent = "▶";
+      if (albumCover) albumCover.classList.remove("spinning");
       if (playerElem) playerElem.classList.remove("playing");
 
       stopProgressSync();
