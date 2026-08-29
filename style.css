@@ -1889,6 +1889,28 @@ body.live-video-active .bg-overlay {
   font-size: 14.5px;
 }
 
+.seo-faq-block {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.seo-faq-block h3 {
+  font-family: var(--font-modern);
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--marigold-bright);
+  margin: 8px 0 4px;
+}
+
+.seo-faq-block p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 248, 236, 0.9);
+  margin-bottom: 8px;
+}
+
 .seo-footer-credit {
   margin-top: 24px;
   padding-top: 18px;

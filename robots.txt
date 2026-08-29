@@ -1,4 +1,17 @@
 User-agent: *
 Allow: /
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-Video
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 Sitemap: https://chhath-puja.onrender.com/sitemap.xml
+Host: https://chhath-puja.onrender.com
