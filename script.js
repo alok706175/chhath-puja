@@ -2142,6 +2142,103 @@
     playlistModal.addEventListener("click", (e) => e.stopPropagation());
   }
 
+  /* =========================================================
+     SHARE DROPDOWN & SOCIAL SHARING (WhatsApp, Facebook, Instagram)
+     ========================================================= */
+  const shareDropdown = document.getElementById("shareDropdown");
+  const shareMainBtn = document.getElementById("shareMainBtn");
+  const whatsappShareBtn = document.getElementById("whatsappShareBtn");
+  const facebookShareBtn = document.getElementById("facebookShareBtn");
+  const instagramShareBtn = document.getElementById("instagramShareBtn");
+
+  if (shareMainBtn && shareDropdown) {
+    shareMainBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      shareDropdown.classList.toggle("open");
+    });
+  }
+
+  function getShareUrlAndText() {
+    const pageUrl = window.location.href;
+    const s = songs[currentSong];
+    const songName = s ? (currentLang === "en" ? (s.nameEn || s.name) : s.name) : "Chhath Puja Geet";
+    const greeting = currentLang === "en"
+      ? `🙏 Listen to divine Chhath Geet "${songName}" on Chhath Ghat: ${pageUrl}`
+      : `🙏 जय छठी मईया! छठ महापर्व के पावन अवसर पर सुनें मधुर छठ गीत "${songName}" - छठ घाट: ${pageUrl}`;
+    return { url: pageUrl, text: greeting };
+  }
+
+  if (whatsappShareBtn) {
+    whatsappShareBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (shareDropdown) shareDropdown.classList.remove("open");
+      const { text } = getShareUrlAndText();
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+    });
+  }
+
+  if (facebookShareBtn) {
+    facebookShareBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (shareDropdown) shareDropdown.classList.remove("open");
+      const { url } = getShareUrlAndText();
+      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+      window.open(fbUrl, "_blank", "noopener,noreferrer,width=600,height=500");
+    });
+  }
+
+  if (instagramShareBtn) {
+    instagramShareBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (shareDropdown) shareDropdown.classList.remove("open");
+      const { text } = getShareUrlAndText();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          showToast(currentLang === "en" ? "📋 Link copied! Share on Instagram" : "📋 लिंक कॉपी हो गया! Instagram पर शेयर करें");
+        } else {
+          showToast(currentLang === "en" ? "Opening Instagram..." : "Instagram खुल रहा है...");
+        }
+      } catch (err) {
+        showToast(currentLang === "en" ? "Opening Instagram..." : "Instagram खुल रहा है...");
+      }
+      setTimeout(() => {
+        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+      }, 400);
+    });
+  }
+
+  /* Mantra Copy & Share on WhatsApp */
+  const copyMantraBtn = document.getElementById("copyMantraBtn");
+  const shareMantraBtn = document.getElementById("shareMantraBtn");
+  const mantraTextEl = document.getElementById("mantraText");
+
+  if (copyMantraBtn && mantraTextEl) {
+    copyMantraBtn.addEventListener("click", async () => {
+      const textToCopy = mantraTextEl.innerText || mantraTextEl.textContent;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(textToCopy.trim());
+          showToast(currentLang === "en" ? "📋 Mantra copied to clipboard!" : "📋 सूर्य गायत्री मंत्र कॉपी हो गया!");
+        } else {
+          showToast(currentLang === "en" ? "📋 Mantra copied!" : "📋 मंत्र कॉपी हो गया!");
+        }
+      } catch (err) {
+        showToast(currentLang === "en" ? "📋 Mantra copied!" : "📋 मंत्र कॉपी हो गया!");
+      }
+    });
+  }
+
+  if (shareMantraBtn && mantraTextEl) {
+    shareMantraBtn.addEventListener("click", () => {
+      const textToShare = mantraTextEl.innerText || mantraTextEl.textContent;
+      const msg = `☀️ *श्री सूर्य गायत्री मंत्र:*\n\n${textToShare.trim()}\n\n🔗 सुनें छठ घाट पर: ${window.location.href}`;
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+    });
+  }
+
   document.addEventListener("click", (e) => {
     if (
       playlistModal &&
@@ -2151,7 +2248,16 @@
     ) {
       playlistModal.classList.remove("open");
     }
+    if (shareDropdown && !shareDropdown.contains(e.target)) {
+      shareDropdown.classList.remove("open");
+    }
   });
+
+  document.addEventListener("touchstart", (e) => {
+    if (shareDropdown && !shareDropdown.contains(e.target)) {
+      shareDropdown.classList.remove("open");
+    }
+  }, { passive: true });
 
   /* =========================================================
      8. MEDIA SESSION API INTEGRATION
