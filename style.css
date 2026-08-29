@@ -479,7 +479,7 @@ body.live-video-active .bg-overlay {
   box-shadow: none;
   opacity: 0;
   visibility: hidden;
-  transform: translateX(-50%) translateY(-6px) scale(0.92);
+  transform: translateX(-50%) translateY(-6px) scale(0.95);
   transform-origin: top center;
   transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
               transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -487,17 +487,6 @@ body.live-video-active .bg-overlay {
   pointer-events: none;
   z-index: 999;
   white-space: nowrap;
-}
-
-/* Hover Bridge: zero gap between button and menu */
-.share-dropdown-menu::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 12px;
-  background: transparent;
 }
 
 /* Hover & Focus / Open states */
