@@ -607,7 +607,6 @@
   const songSinger = document.getElementById("offlineSinger");
   const playButton = document.getElementById("offlinePlay");
   const playIcon = document.getElementById("playIcon");
-  const albumCover = document.getElementById("albumCover");
   const prevBtn = document.getElementById("prevSong");
   const nextBtn = document.getElementById("nextSong");
   const progress = document.getElementById("offlineProgress");
@@ -1260,13 +1259,11 @@
 
     if (playing) {
       if (playIcon) playIcon.textContent = "❚❚";
-      if (albumCover) albumCover.classList.add("spinning");
       if (playerElem) playerElem.classList.add("playing");
 
       startProgressSync();
     } else {
       if (playIcon) playIcon.textContent = "▶";
-      if (albumCover) albumCover.classList.remove("spinning");
       if (playerElem) playerElem.classList.remove("playing");
 
       stopProgressSync();
