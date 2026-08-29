@@ -2060,6 +2060,12 @@
     }
   });
 
+  document.addEventListener("touchstart", (e) => {
+    if (speedDropdown && !speedDropdown.contains(e.target)) {
+      closeSpeedDropdown();
+    }
+  }, { passive: true });
+
   /* Playlist Search & Drawer */
   if (playlistSearch) {
     playlistSearch.addEventListener("input", (e) => {

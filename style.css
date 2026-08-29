@@ -2586,13 +2586,6 @@ body.live-video-active .bg-overlay {
     padding: 0 2px;
   }
 
-  .offline-quality-btn {
-    min-width: 30px;
-    height: 22px;
-    font-size: 9.5px;
-    padding: 0 2px;
-  }
-
   .offline-volume-slider {
     width: clamp(45px, 13vw, 58px);
     height: 7px;
