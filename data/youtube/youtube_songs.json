@@ -1,7 +1,79 @@
 [
   {
     "id": 1,
-    "name": "उठौ सुरुज भइले बिहान",
+    "name": "दर्शन दिखाई दीही",
+    "nameEn": "Darshan Dekhai Dihi",
+    "singer": "कल्पना पटवारी",
+    "singerEn": "Kalpana Patowary",
+    "videoId": "T_YXL_blE3A",
+    "embedUrl": "https://www.youtube.com/embed/T_YXL_blE3A"
+  },
+  {
+    "id": 2,
+    "name": "केलवा के पात पर",
+    "nameEn": "Kelwa Ke Paat Par",
+    "singer": "शारदा सिन्हा",
+    "singerEn": "Sharda Sinha",
+    "videoId": "knZ8b5YnQiY",
+    "embedUrl": "https://www.youtube.com/embed/knZ8b5YnQiY"
+  },
+  {
+    "id": 3,
+    "name": "जल बीच खड़ा होई जोड़े जोड़े फलवा",
+    "nameEn": "Jal Beech Khada Hoyi Jode Jode Phalwa",
+    "singer": "पवन सिंह",
+    "singerEn": "Pawan Singh",
+    "videoId": "BKoD7bTLc2k",
+    "embedUrl": "https://www.youtube.com/embed/BKoD7bTLc2k"
+  },
+  {
+    "id": 4,
+    "name": "उगा हो सुरुजदेव भेल भिनसरवा",
+    "nameEn": "Uga Ho Surujdev Bhel Bhinsarwa",
+    "singer": "अनुराधा पौडवाल",
+    "singerEn": "Anuradha Paudwal",
+    "videoId": "6e6Hp6R5SVU",
+    "embedUrl": "https://www.youtube.com/embed/6e6Hp6R5SVU"
+  },
+  {
+    "id": 5,
+    "name": "केरवा के पातवा पे नेवता",
+    "nameEn": "Kerwa Ke Patwa Pe Newta",
+    "singer": "पवन सिंह",
+    "singerEn": "Pawan Singh",
+    "videoId": "uWtMR3iQT-I",
+    "embedUrl": "https://www.youtube.com/embed/uWtMR3iQT-I"
+  },
+  {
+    "id": 6,
+    "name": "दिही दर्शन सुरुज गोसइया",
+    "nameEn": "Dihi Darshan Suruj Gosaiya",
+    "singer": "देवी",
+    "singerEn": "Devi",
+    "videoId": "87Y-OH_mJxM",
+    "embedUrl": "https://www.youtube.com/embed/87Y-OH_mJxM"
+  },
+  {
+    "id": 7,
+    "name": "काँच ही बाँस के बहंगिया",
+    "nameEn": "Kaanch Hi Baans Ke Bahangiya",
+    "singer": "शारदा सिन्हा",
+    "singerEn": "Sharda Sinha",
+    "videoId": "Eyq7vfxu4iA",
+    "embedUrl": "https://www.youtube.com/embed/Eyq7vfxu4iA"
+  },
+  {
+    "id": 8,
+    "name": "कोशिया भराये लागल",
+    "nameEn": "Koshiya Bharaye Lagal",
+    "singer": "नीलकमल सिंह & प्रियंका सिंह",
+    "singerEn": "Neelkamal Singh & Priyanka Singh",
+    "videoId": "72Whc_v4J6o",
+    "embedUrl": "https://www.youtube.com/embed/72Whc_v4J6o"
+  },
+  {
+    "id": 9,
+    "name": "उठउ सुरुज भइले बिहान",
     "nameEn": "Uthau Suruj Bhaile Bihaan",
     "singer": "शारदा सिन्हा",
     "singerEn": "Sharda Sinha",
@@ -9,7 +81,7 @@
     "embedUrl": "https://www.youtube.com/embed/j9G3caThH98"
   },
   {
-    "id": 2,
+    "id": 10,
     "name": "उगी सुरुज देव",
     "nameEn": "Ugi Suruj Dev",
     "singer": "पवन सिंह",
@@ -18,7 +90,7 @@
     "embedUrl": "https://www.youtube.com/embed/z3TKq9LVbzM"
   },
   {
-    "id": 3,
+    "id": 11,
     "name": "ओरिए ओरिए मधु चुवे",
     "nameEn": "Oriye Oriye Madhu Chuye",
     "singer": "पवन सिंह",
@@ -27,16 +99,16 @@
     "embedUrl": "https://www.youtube.com/embed/SWCcS09lV7w"
   },
   {
-    "id": 4,
+    "id": 12,
     "name": "कवना कलमवाँ से लिखलऽ करमवाँ",
-    "nameEn": "Kawna Kalamwa Se Likhala Karamwa",
+    "nameEn": "Kawana Kalamwa Se Likhla Karamwa",
     "singer": "पवन सिंह & प्रियंका सिंह",
     "singerEn": "Pawan Singh & Priyanka Singh",
     "videoId": "FPDKM5NidYM",
     "embedUrl": "https://www.youtube.com/embed/FPDKM5NidYM"
   },
   {
-    "id": 5,
+    "id": 13,
     "name": "पेन्हले महादेव पियरिया",
     "nameEn": "Penhale Mahadev Piyariya",
     "singer": "पवन सिंह",
@@ -45,7 +117,7 @@
     "embedUrl": "https://www.youtube.com/embed/oiuQgAJhcxk"
   },
   {
-    "id": 6,
+    "id": 14,
     "name": "पियरी पहिर लऽ",
     "nameEn": "Piyari Pahir La",
     "singer": "पवन सिंह & शिवानी सिंह",
@@ -54,7 +126,7 @@
     "embedUrl": "https://www.youtube.com/embed/4JdNlcumkoM"
   },
   {
-    "id": 7,
+    "id": 15,
     "name": "आदित्य गोसइया",
     "nameEn": "Aditya Gosaiya",
     "singer": "पवन सिंह",
@@ -63,7 +135,7 @@
     "embedUrl": "https://www.youtube.com/embed/FRcE_NBEx9k"
   },
   {
-    "id": 8,
+    "id": 16,
     "name": "रहिया निहारे बझिनिया",
     "nameEn": "Rahiya Nihare Bajhiniya",
     "singer": "पवन सिंह",
@@ -72,8 +144,8 @@
     "embedUrl": "https://www.youtube.com/embed/JK46aop5YCE"
   },
   {
-    "id": 9,
-    "name": "जल्दी उगी आज आदित गोसाई",
+    "id": 17,
+    "name": "जल्दी उगी आज आदित गोसाईं",
     "nameEn": "Jaldi Ugi Aaj Aadit Gosai",
     "singer": "पवन सिंह",
     "singerEn": "Pawan Singh",
@@ -81,7 +153,7 @@
     "embedUrl": "https://www.youtube.com/embed/9KlOQLO5nsY"
   },
   {
-    "id": 10,
+    "id": 18,
     "name": "उगी हे सूर्यमल नइयो ना डोले",
     "nameEn": "Ugi Hey Suryamal Naiyo Na Dole",
     "singer": "पवन सिंह",
@@ -90,7 +162,7 @@
     "embedUrl": "https://www.youtube.com/embed/B90gprL5XBE"
   },
   {
-    "id": 11,
+    "id": 19,
     "name": "मारबो रे सुगवा धनुष से",
     "nameEn": "Maarbo Re Sugwa Dhanush Se",
     "singer": "अनुराधा पौडवाल",
@@ -99,16 +171,16 @@
     "embedUrl": "https://www.youtube.com/embed/jRsXRee52xw"
   },
   {
-    "id": 12,
-    "name": "काँच ही बाँस के बहंगिया",
-    "nameEn": "Kaanch Hi Baans Ke Bahangiya",
+    "id": 20,
+    "name": "काँच ही बाँस के बहंगिया (अनुराधा)",
+    "nameEn": "Kaanch Hi Baans Ke Bahangiya (Anuradha)",
     "singer": "अनुराधा पौडवाल",
     "singerEn": "Anuradha Paudwal",
     "videoId": "OnoINkPrhK0",
     "embedUrl": "https://www.youtube.com/embed/OnoINkPrhK0"
   },
   {
-    "id": 13,
+    "id": 21,
     "name": "काठ के रे नईया",
     "nameEn": "Kath Ke Re Naiyya",
     "singer": "कल्पना पटवारी",
@@ -117,7 +189,7 @@
     "embedUrl": "https://www.youtube.com/embed/nvT9w2fcfGE"
   },
   {
-    "id": 14,
+    "id": 22,
     "name": "आहे आदितमल",
     "nameEn": "Aahe Aaditmal",
     "singer": "करीना पांडेय & सोविता पांडेय",
@@ -126,7 +198,7 @@
     "embedUrl": "https://www.youtube.com/embed/8BfbY0vb7Ro"
   },
   {
-    "id": 15,
+    "id": 23,
     "name": "उगा हो दीनानाथ",
     "nameEn": "Uga Ho Dinanath",
     "singer": "प्रियंका सिंह",
@@ -135,16 +207,16 @@
     "embedUrl": "https://www.youtube.com/embed/1qDmFSoSNFU"
   },
   {
-    "id": 16,
-    "name": "दिही दर्शन सुरुज गोसइया",
-    "nameEn": "Dihi Darshan Suruj Gosaiya",
+    "id": 24,
+    "name": "दिही दर्शन सुरुज गोसइया (पवन सिंह)",
+    "nameEn": "Dihi Darshan Suruj Gosaiya (Pawan Singh)",
     "singer": "पवन सिंह",
     "singerEn": "Pawan Singh",
     "videoId": "H_1m-ZhGZSQ",
     "embedUrl": "https://www.youtube.com/embed/H_1m-ZhGZSQ"
   },
   {
-    "id": 17,
+    "id": 25,
     "name": "छठ माई के बरतिया",
     "nameEn": "Chhath Mai Ke Baratiya",
     "singer": "खेसारी लाल यादव",

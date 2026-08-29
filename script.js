@@ -601,8 +601,6 @@
   /* =========================================================
      7. UNIFIED DEVOTIONAL MUSIC & BACKGROUND VIDEO CONTROLLER
      ========================================================= */
-  let offlineSongs = [];
-  let onlineSongs = [];
   let songs = [];
   let currentSong = 0;
   let isSeeking = false;
@@ -1143,8 +1141,6 @@
      ========================================================= */
   function setMode(online, showNotification = true) {
     isOnlineMode = Boolean(online);
-    songs = isOnlineMode ? onlineSongs : offlineSongs;
-    currentSong = Math.min(currentSong, Math.max(0, (songs.length || 1) - 1));
 
     updateModeButtonUI();
 
@@ -1161,7 +1157,18 @@
 
       // Pick a random song when switching to Online Mode
       if (songs && songs.length > 0) {
-        currentSong = Math.floor(Math.random() * songs.length);
+        const validIndices = [];
+        songs.forEach((s, idx) => {
+          if (s && (s.videoId || s.embedUrl)) validIndices.push(idx);
+        });
+        const pool = validIndices.length > 0 ? validIndices : songs.map((_, i) => i);
+        if (pool.length > 1) {
+          const otherChoices = pool.filter(idx => idx !== currentSong);
+          const choices = otherChoices.length > 0 ? otherChoices : pool;
+          currentSong = choices[Math.floor(Math.random() * choices.length)];
+        } else {
+          currentSong = pool[0];
+        }
       }
 
       // Automatically start playback of the selected song
@@ -1201,6 +1208,10 @@
 
   function updatePlaylistHeaderUI() {
     const t = i18n[currentLang] || i18n.hi;
+    const validCount = isOnlineMode
+      ? songs.filter(s => Boolean(s.videoId)).length
+      : songs.filter(s => Boolean(s.file)).length;
+
     const titleText = isOnlineMode
       ? (t.playlistTitleOnline || "छठ वीडियो संग्रह (ऑनलाइन)")
       : (t.playlistTitleOffline || "छठ गीत संग्रह (ऑफलाइन)");
@@ -1210,9 +1221,9 @@
 
     const playlistTitleText = document.getElementById("playlistTitleText");
     if (playlistTitleText) {
-      playlistTitleText.textContent = `${titleText} (${songs.length || 8})`;
+      playlistTitleText.textContent = `${titleText} (${validCount || songs.length})`;
     } else if (playlistTitle) {
-      playlistTitle.textContent = `${titleText} (${songs.length || 8})`;
+      playlistTitle.textContent = `${titleText} (${validCount || songs.length})`;
     }
     if (playlistSearch) {
       playlistSearch.placeholder = placeholderText;
@@ -1371,46 +1382,51 @@
         console.warn("YouTube songs fetch warning:", e);
       }
 
-      offlineSongs = cloudList.map((c, i) => ({
-        id: c.id || (i + 1),
-        name: c.name || `Song ${i + 1}`,
-        nameEn: c.nameEn || `Song ${i + 1}`,
-        singer: c.singer || "Chhath Bhakti",
-        singerEn: c.singerEn || "Chhath Bhakti",
-        file: c.file || ""
-      }));
-
-      onlineSongs = ytList.map((y, i) => ({
-        id: y.id || (i + 1),
-        name: y.name || `Video ${i + 1}`,
-        nameEn: y.nameEn || `Video ${i + 1}`,
-        singer: y.singer || "Chhath Bhakti",
-        singerEn: y.singerEn || "Chhath Bhakti",
-        videoId: y.videoId || "",
-        embedUrl: y.embedUrl || ""
-      }));
-
-      songs = isOnlineMode ? onlineSongs : offlineSongs;
+      const maxLen = Math.max(cloudList.length, ytList.length);
+      songs = [];
+      for (let i = 0; i < maxLen; i++) {
+        const c = cloudList[i] || {};
+        const y = ytList[i] || {};
+        songs.push({
+          name: c.name || y.name || `Song ${i + 1}`,
+          nameEn: c.nameEn || y.nameEn || `Song ${i + 1}`,
+          singer: c.singer || y.singer || "Chhath Bhakti",
+          singerEn: c.singerEn || y.singerEn || "Chhath Bhakti",
+          file: c.file || "",
+          ytName: y.name || c.name || "",
+          ytNameEn: y.nameEn || c.nameEn || "",
+          ytSinger: y.singer || c.singer || "",
+          ytSingerEn: y.singerEn || c.singerEn || "",
+          videoId: y.videoId || c.videoId || "",
+          embedUrl: y.embedUrl || ""
+        });
+      }
 
       if (!Array.isArray(songs) || songs.length === 0) {
         if (songName) songName.textContent = "No Song Found";
         return;
       }
 
-      updatePlaylistHeaderUI();
+      const t = i18n[currentLang] || i18n.en;
+      if (playlistTitleText) {
+        playlistTitleText.textContent = `${t.playlistTitle} (${songs.length})`;
+      } else if (playlistTitle) {
+        playlistTitle.textContent = `${t.playlistTitle} (${songs.length})`;
+      }
+
       renderPlaylist();
       displaySongInfo(0);
 
       // Preload current song file in offline audio with .load() for 0ms latency start
-      if (offlineAudio && offlineSongs[0] && offlineSongs[0].file) {
-        offlineAudio.src = offlineSongs[0].file;
+      if (offlineAudio && songs[0] && songs[0].file) {
+        offlineAudio.src = songs[0].file;
         offlineAudio.load();
       }
 
       // Preload all audio tracks in background cache for instant zero-delay playback
       if ("requestIdleCallback" in window) {
         requestIdleCallback(() => {
-          offlineSongs.forEach((s) => {
+          songs.forEach((s) => {
             if (s.file) {
               const a = new Audio();
               a.preload = "auto";
@@ -1420,7 +1436,7 @@
         });
       } else {
         setTimeout(() => {
-          offlineSongs.forEach((s) => {
+          songs.forEach((s) => {
             if (s.file) {
               const a = new Audio();
               a.preload = "auto";
@@ -1475,8 +1491,12 @@
     const query = filterQuery.toLowerCase().trim();
     const t = i18n[currentLang] || i18n.en;
 
-    const filtered = songs
-      .map((s, idx) => ({ ...s, originalIndex: idx }))
+    const sourceSongs = isOnlineMode
+      ? songs.filter(s => Boolean(s.videoId))
+      : songs.filter(s => Boolean(s.file));
+
+    const filtered = sourceSongs
+      .map((s, idx) => ({ ...s, originalIndex: songs.indexOf(s), displayIndex: idx }))
       .filter((s) => {
         if (!query) return true;
         const name = isOnlineMode
@@ -1488,7 +1508,7 @@
         return (
           name.toLowerCase().includes(query) ||
           singer.toLowerCase().includes(query) ||
-          s.name.toLowerCase().includes(query) ||
+          (s.name && s.name.toLowerCase().includes(query)) ||
           (s.nameEn && s.nameEn.toLowerCase().includes(query)) ||
           (s.singer && s.singer.toLowerCase().includes(query)) ||
           (s.singerEn && s.singerEn.toLowerCase().includes(query)) ||
@@ -1514,6 +1534,7 @@
     playlistList.innerHTML = filtered
       .map((s) => {
         const idx = s.originalIndex;
+        const displayNum = (s.displayIndex !== undefined ? s.displayIndex : idx) + 1;
         const isActive = idx === currentSong;
         const songTitle = isOnlineMode
           ? (currentLang === "en" ? (s.ytNameEn || s.nameEn || s.ytName || s.name) : (s.ytName || s.name))
@@ -1523,7 +1544,7 @@
           : (currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")));
         return `
           <li class="playlist-item ${isActive ? "active" : ""}" data-index="${idx}">
-            <span class="playlist-item-num">${idx + 1}</span>
+            <span class="playlist-item-num">${displayNum}</span>
             <div class="playlist-item-details">
               <div class="playlist-item-name">${escapeHTML(songTitle)}</div>
               <div class="playlist-item-singer">${escapeHTML(songSingerName)}</div>
@@ -1717,15 +1738,23 @@
   }
 
   function playPrevious() {
-    if (!songs.length) return;
-    currentSong = (currentSong - 1 + songs.length) % songs.length;
-    playSong(currentSong);
+    const valid = isOnlineMode
+      ? songs.map((s, i) => s.videoId ? i : -1).filter(i => i !== -1)
+      : songs.map((s, i) => s.file ? i : -1).filter(i => i !== -1);
+    if (!valid.length) return;
+    const pos = valid.indexOf(currentSong);
+    const prevPos = (pos - 1 + valid.length) % valid.length;
+    playSong(valid[prevPos]);
   }
 
   function playNext() {
-    if (!songs.length) return;
-    currentSong = (currentSong + 1) % songs.length;
-    playSong(currentSong);
+    const valid = isOnlineMode
+      ? songs.map((s, i) => s.videoId ? i : -1).filter(i => i !== -1)
+      : songs.map((s, i) => s.file ? i : -1).filter(i => i !== -1);
+    if (!valid.length) return;
+    const pos = valid.indexOf(currentSong);
+    const nextPos = (pos + 1) % valid.length;
+    playSong(valid[nextPos]);
   }
 
   /* Advance when audio track ends (in both modes) */
