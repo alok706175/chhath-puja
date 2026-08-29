@@ -601,6 +601,8 @@
   /* =========================================================
      7. UNIFIED DEVOTIONAL MUSIC & BACKGROUND VIDEO CONTROLLER
      ========================================================= */
+  let offlineSongs = [];
+  let onlineSongs = [];
   let songs = [];
   let currentSong = 0;
   let isSeeking = false;
@@ -1141,6 +1143,8 @@
      ========================================================= */
   function setMode(online, showNotification = true) {
     isOnlineMode = Boolean(online);
+    songs = isOnlineMode ? onlineSongs : offlineSongs;
+    currentSong = Math.min(currentSong, Math.max(0, (songs.length || 1) - 1));
 
     updateModeButtonUI();
 
@@ -1157,18 +1161,7 @@
 
       // Pick a random song when switching to Online Mode
       if (songs && songs.length > 0) {
-        const validIndices = [];
-        songs.forEach((s, idx) => {
-          if (s && (s.videoId || s.embedUrl)) validIndices.push(idx);
-        });
-        const pool = validIndices.length > 0 ? validIndices : songs.map((_, i) => i);
-        if (pool.length > 1) {
-          const otherChoices = pool.filter(idx => idx !== currentSong);
-          const choices = otherChoices.length > 0 ? otherChoices : pool;
-          currentSong = choices[Math.floor(Math.random() * choices.length)];
-        } else {
-          currentSong = pool[0];
-        }
+        currentSong = Math.floor(Math.random() * songs.length);
       }
 
       // Automatically start playback of the selected song
@@ -1378,51 +1371,46 @@
         console.warn("YouTube songs fetch warning:", e);
       }
 
-      const maxLen = Math.max(cloudList.length, ytList.length);
-      songs = [];
-      for (let i = 0; i < maxLen; i++) {
-        const c = cloudList[i] || {};
-        const y = ytList[i] || {};
-        songs.push({
-          name: c.name || y.name || `Song ${i + 1}`,
-          nameEn: c.nameEn || y.nameEn || `Song ${i + 1}`,
-          singer: c.singer || y.singer || "Chhath Bhakti",
-          singerEn: c.singerEn || y.singerEn || "Chhath Bhakti",
-          file: c.file || "",
-          ytName: y.name || c.name || "",
-          ytNameEn: y.nameEn || c.nameEn || "",
-          ytSinger: y.singer || c.singer || "",
-          ytSingerEn: y.singerEn || c.singerEn || "",
-          videoId: y.videoId || c.videoId || "",
-          embedUrl: y.embedUrl || ""
-        });
-      }
+      offlineSongs = cloudList.map((c, i) => ({
+        id: c.id || (i + 1),
+        name: c.name || `Song ${i + 1}`,
+        nameEn: c.nameEn || `Song ${i + 1}`,
+        singer: c.singer || "Chhath Bhakti",
+        singerEn: c.singerEn || "Chhath Bhakti",
+        file: c.file || ""
+      }));
+
+      onlineSongs = ytList.map((y, i) => ({
+        id: y.id || (i + 1),
+        name: y.name || `Video ${i + 1}`,
+        nameEn: y.nameEn || `Video ${i + 1}`,
+        singer: y.singer || "Chhath Bhakti",
+        singerEn: y.singerEn || "Chhath Bhakti",
+        videoId: y.videoId || "",
+        embedUrl: y.embedUrl || ""
+      }));
+
+      songs = isOnlineMode ? onlineSongs : offlineSongs;
 
       if (!Array.isArray(songs) || songs.length === 0) {
         if (songName) songName.textContent = "No Song Found";
         return;
       }
 
-      const t = i18n[currentLang] || i18n.en;
-      if (playlistTitleText) {
-        playlistTitleText.textContent = `${t.playlistTitle} (${songs.length})`;
-      } else if (playlistTitle) {
-        playlistTitle.textContent = `${t.playlistTitle} (${songs.length})`;
-      }
-
+      updatePlaylistHeaderUI();
       renderPlaylist();
       displaySongInfo(0);
 
       // Preload current song file in offline audio with .load() for 0ms latency start
-      if (offlineAudio && songs[0] && songs[0].file) {
-        offlineAudio.src = songs[0].file;
+      if (offlineAudio && offlineSongs[0] && offlineSongs[0].file) {
+        offlineAudio.src = offlineSongs[0].file;
         offlineAudio.load();
       }
 
       // Preload all audio tracks in background cache for instant zero-delay playback
       if ("requestIdleCallback" in window) {
         requestIdleCallback(() => {
-          songs.forEach((s) => {
+          offlineSongs.forEach((s) => {
             if (s.file) {
               const a = new Audio();
               a.preload = "auto";
@@ -1432,7 +1420,7 @@
         });
       } else {
         setTimeout(() => {
-          songs.forEach((s) => {
+          offlineSongs.forEach((s) => {
             if (s.file) {
               const a = new Audio();
               a.preload = "auto";
@@ -2142,103 +2130,6 @@
     playlistModal.addEventListener("click", (e) => e.stopPropagation());
   }
 
-  /* =========================================================
-     SHARE DROPDOWN & SOCIAL SHARING (WhatsApp, Facebook, Instagram)
-     ========================================================= */
-  const shareDropdown = document.getElementById("shareDropdown");
-  const shareMainBtn = document.getElementById("shareMainBtn");
-  const whatsappShareBtn = document.getElementById("whatsappShareBtn");
-  const facebookShareBtn = document.getElementById("facebookShareBtn");
-  const instagramShareBtn = document.getElementById("instagramShareBtn");
-
-  if (shareMainBtn && shareDropdown) {
-    shareMainBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      shareDropdown.classList.toggle("open");
-    });
-  }
-
-  function getShareUrlAndText() {
-    const pageUrl = window.location.href;
-    const s = songs[currentSong];
-    const songName = s ? (currentLang === "en" ? (s.nameEn || s.name) : s.name) : "Chhath Puja Geet";
-    const greeting = currentLang === "en"
-      ? `🙏 Listen to divine Chhath Geet "${songName}" on Chhath Ghat: ${pageUrl}`
-      : `🙏 जय छठी मईया! छठ महापर्व के पावन अवसर पर सुनें मधुर छठ गीत "${songName}" - छठ घाट: ${pageUrl}`;
-    return { url: pageUrl, text: greeting };
-  }
-
-  if (whatsappShareBtn) {
-    whatsappShareBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (shareDropdown) shareDropdown.classList.remove("open");
-      const { text } = getShareUrlAndText();
-      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(waUrl, "_blank", "noopener,noreferrer");
-    });
-  }
-
-  if (facebookShareBtn) {
-    facebookShareBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (shareDropdown) shareDropdown.classList.remove("open");
-      const { url } = getShareUrlAndText();
-      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-      window.open(fbUrl, "_blank", "noopener,noreferrer,width=600,height=500");
-    });
-  }
-
-  if (instagramShareBtn) {
-    instagramShareBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      if (shareDropdown) shareDropdown.classList.remove("open");
-      const { text } = getShareUrlAndText();
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-          showToast(currentLang === "en" ? "📋 Link copied! Share on Instagram" : "📋 लिंक कॉपी हो गया! Instagram पर शेयर करें");
-        } else {
-          showToast(currentLang === "en" ? "Opening Instagram..." : "Instagram खुल रहा है...");
-        }
-      } catch (err) {
-        showToast(currentLang === "en" ? "Opening Instagram..." : "Instagram खुल रहा है...");
-      }
-      setTimeout(() => {
-        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
-      }, 400);
-    });
-  }
-
-  /* Mantra Copy & Share on WhatsApp */
-  const copyMantraBtn = document.getElementById("copyMantraBtn");
-  const shareMantraBtn = document.getElementById("shareMantraBtn");
-  const mantraTextEl = document.getElementById("mantraText");
-
-  if (copyMantraBtn && mantraTextEl) {
-    copyMantraBtn.addEventListener("click", async () => {
-      const textToCopy = mantraTextEl.innerText || mantraTextEl.textContent;
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(textToCopy.trim());
-          showToast(currentLang === "en" ? "📋 Mantra copied to clipboard!" : "📋 सूर्य गायत्री मंत्र कॉपी हो गया!");
-        } else {
-          showToast(currentLang === "en" ? "📋 Mantra copied!" : "📋 मंत्र कॉपी हो गया!");
-        }
-      } catch (err) {
-        showToast(currentLang === "en" ? "📋 Mantra copied!" : "📋 मंत्र कॉपी हो गया!");
-      }
-    });
-  }
-
-  if (shareMantraBtn && mantraTextEl) {
-    shareMantraBtn.addEventListener("click", () => {
-      const textToShare = mantraTextEl.innerText || mantraTextEl.textContent;
-      const msg = `☀️ *श्री सूर्य गायत्री मंत्र:*\n\n${textToShare.trim()}\n\n🔗 सुनें छठ घाट पर: ${window.location.href}`;
-      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, "_blank", "noopener,noreferrer");
-    });
-  }
-
   document.addEventListener("click", (e) => {
     if (
       playlistModal &&
@@ -2248,16 +2139,7 @@
     ) {
       playlistModal.classList.remove("open");
     }
-    if (shareDropdown && !shareDropdown.contains(e.target)) {
-      shareDropdown.classList.remove("open");
-    }
   });
-
-  document.addEventListener("touchstart", (e) => {
-    if (shareDropdown && !shareDropdown.contains(e.target)) {
-      shareDropdown.classList.remove("open");
-    }
-  }, { passive: true });
 
   /* =========================================================
      8. MEDIA SESSION API INTEGRATION
