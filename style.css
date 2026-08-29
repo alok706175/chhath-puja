@@ -460,30 +460,30 @@ body.live-video-active .bg-overlay {
   transform: scale(0.95);
 }
 
-/* Floating Dropdown Menu (Centered under Share button: WhatsApp Left, Facebook Middle, Instagram Right) */
+/* Floating Dropdown Menu (Transparent Container Centered under Share Button) */
 .share-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
   right: auto;
-  background: rgba(30, 8, 12, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 184, 77, 0.4);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
   border-radius: 40px;
-  padding: 5px 8px;
+  padding: 4px 0;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  box-shadow: none;
   opacity: 0;
   visibility: hidden;
   transform: translateX(-50%) translateY(-8px) scale(0.92);
   transform-origin: top center;
-  transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-              transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-              visibility 0.22s;
+  transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              visibility 0.25s;
   pointer-events: none;
   z-index: 999;
   white-space: nowrap;
