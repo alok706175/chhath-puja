@@ -2114,6 +2114,10 @@ body.live-video-active .bg-overlay {
     padding-bottom: calc(130px + var(--safe-bottom));
   }
 
+  .player-wrapper {
+    margin-top: 18px;
+  }
+
   #offlinePlayer {
     grid-template-columns: 46px 1fr;
     grid-template-rows: auto auto;
@@ -2348,6 +2352,8 @@ body.live-video-active .bg-overlay {
 
   .player-wrapper {
     width: 100%;
+    margin-top: 24px;
+    margin-bottom: 6px;
   }
 
   #offlinePlayer {
@@ -2619,5 +2625,9 @@ body.live-video-active .bg-overlay {
     bottom: calc(115px + var(--safe-bottom));
     max-height: min(390px, calc(100dvh - 175px));
     border-radius: 18px;
+  }
+
+  .player-wrapper {
+    margin-top: 18px;
   }
 }
