@@ -2437,30 +2437,34 @@ body.live-video-active .bg-overlay {
   .offline-volume {
     gap: 4px;
     align-items: center;
+    flex-grow: 1;
+    max-width: 140px;
   }
 
   .offline-volume-btn {
-    width: 30px;
-    height: 30px;
-    font-size: 15px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
   }
 
   .offline-volume-slider {
-    width: clamp(75px, 22vw, 115px);
-    height: 10px;
+    width: 100%;
+    min-width: 85px;
+    max-width: 135px;
+    height: 6px;
     touch-action: manipulation;
   }
 
   .offline-volume-slider::-webkit-slider-thumb {
-    width: 20px;
-    height: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   }
 
   .offline-volume-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   }
 
   .rituals-grid {
@@ -2582,21 +2586,26 @@ body.live-video-active .bg-overlay {
     padding: 0 2px;
   }
 
+  .offline-volume {
+    flex-grow: 1;
+    max-width: 110px;
+  }
+
   .offline-volume-slider {
-    width: clamp(65px, 18vw, 90px);
-    height: 9px;
+    width: 100%;
+    min-width: 70px;
+    max-width: 105px;
+    height: 5px;
     touch-action: manipulation;
   }
 
   .offline-volume-slider::-webkit-slider-thumb {
-    width: 18px;
-    height: 18px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    width: 13px;
+    height: 13px;
   }
 
   .offline-volume-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    width: 13px;
+    height: 13px;
   }
 }
