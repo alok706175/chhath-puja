@@ -1666,8 +1666,7 @@
         if (s.videoId) {
           ytPlayer.loadVideoById({
             videoId: s.videoId,
-            startSeconds: 0,
-            suggestedQuality: "hd1080"
+            startSeconds: 0
           });
           ytPlayer.unMute();
           ytPlayer.setVolume(volNum);
@@ -1678,15 +1677,15 @@
           if (typeof ytPlayer.setPlaybackQuality === "function") {
             ytPlayer.setPlaybackQuality("hd1080");
           }
-          if (typeof ytPlayer.setPlaybackQualityRange === "function") {
-            ytPlayer.setPlaybackQualityRange("hd1080", "highres");
-          }
         }
       } catch (e) {
         console.warn("YouTube video load error:", e);
+        try {
+          ytPlayer.playVideo();
+        } catch (err) { }
       }
     } else {
-      initYouTubePlayer();
+      ensureYouTubeAPI();
     }
   }
 
