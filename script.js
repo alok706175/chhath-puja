@@ -22,6 +22,9 @@
       navAboutText: "परिचय",
       navAboutTitle: "छठ महापर्व के बारे में",
       navAboutAria: "छठ महापर्व के बारे में",
+      navHindiSongText: "हिंदी गीत",
+      navHindiSongTitle: "हिंदी गीत संग्रह पर जाएं",
+      navHindiSongAria: "हिंदी गीत संग्रह पर जाएं",
       modeOfflineText: "ऑफलाइन",
       modeOfflineTitle: "ऑफलाइन मोड (ऑनलाइन वीडियो मोड चालू करने के लिए क्लिक करें)",
       modeOfflineAria: "ऑनलाइन वीडियो मोड पर जाएं",
@@ -119,6 +122,9 @@
       navAboutText: "About",
       navAboutTitle: "About Chhath Mahaparv",
       navAboutAria: "About Chhath Mahaparv",
+      navHindiSongText: "Hindi Song",
+      navHindiSongTitle: "Go to Hindi Songs",
+      navHindiSongAria: "Go to Hindi Songs",
       modeOfflineText: "Offline",
       modeOfflineTitle: "Offline Mode (Click to switch to Online Video Mode)",
       modeOfflineAria: "Switch to Online Video Mode",
@@ -736,6 +742,14 @@
       navAboutBtn.setAttribute("aria-label", t.navAboutAria);
     }
     if (navAboutText) navAboutText.textContent = t.navAboutText;
+
+    const navHindiSongBtn = document.getElementById("navHindiSongBtn");
+    const navHindiSongText = document.getElementById("navHindiSongText");
+    if (navHindiSongBtn) {
+      navHindiSongBtn.title = t.navHindiSongTitle;
+      navHindiSongBtn.setAttribute("aria-label", t.navHindiSongAria);
+    }
+    if (navHindiSongText) navHindiSongText.textContent = t.navHindiSongText;
 
     // 4. Main Share Button
     const shareMainBtn = document.getElementById("shareMainBtn");
