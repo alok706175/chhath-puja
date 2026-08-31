@@ -279,16 +279,22 @@
      2. TOAST NOTIFICATION UTILITY
      ========================================================= */
   let toastTimeout = null;
-  function showToast(message) {
+  function showToast(message, position = "center") {
     const toast = document.getElementById("toastNotification");
     if (!toast) return;
 
     toast.textContent = message;
+    if (position === "left" || (typeof message === "string" && message.includes("-5s"))) {
+      toast.classList.add("pos-left");
+    } else {
+      toast.classList.remove("pos-left");
+    }
     toast.classList.add("show");
 
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
       toast.classList.remove("show");
+      toast.classList.remove("pos-left");
     }, 3200);
   }
 
@@ -440,7 +446,7 @@
      5. FESTIVE FLOATING PARTICLES & GLOWING EMBERS CANVAS
      ========================================================= */
   const canvas = document.getElementById("festiveCanvas");
-  let ctx = canvas ? canvas.getContext("2d") : null;
+  let ctx = canvas && typeof canvas.getContext === "function" ? canvas.getContext("2d") : null;
   let particles = [];
   let sparks = [];
   let embers = [];

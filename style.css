@@ -2069,6 +2069,15 @@ body.live-video-active .bg-overlay {
   pointer-events: auto;
 }
 
+.toast-notification.pos-left {
+  left: 24px;
+  transform: translateY(100px);
+}
+
+.toast-notification.pos-left.show {
+  transform: translateY(0);
+}
+
 /* =========================================================
    RESPONSIVE DESIGN BREAKPOINTS FOR ALL DEVICES
    (Vivo V60 / V60e, Nothing Phone 3a / 2a, iPhone 12/13/14/15/16/SE,

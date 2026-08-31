@@ -1,15 +1,30 @@
 /* =========================================================
-   छठ घाट (Chhath Ghat) - Superhit Hindi Songs Interactive Script
+   छठ घाट (Chhath Ghat) - Superhit Hindi Songs Interactive Engine
+   Eye-Comfort, Dark Aesthetics, Glassmorphism Audio Player
    ========================================================= */
 
 (function () {
   "use strict";
 
   /* =========================================================
-     0. BILINGUAL INTERNATIONALIZATION (HINDI / ENGLISH)
+     0. BILINGUAL LOCALIZATION STRINGS (HINDI / ENGLISH)
      ========================================================= */
   let currentLang = "en"; // Default English
   let selectedCategory = "all";
+  let currentSort = "default";
+  let isShuffle = false;
+  let repeatMode = 0; // 0: Off, 1: Repeat All, 2: Repeat One
+
+  // Load Liked Songs from localStorage
+  let likedSongs = new Set();
+  try {
+    const savedFavs = localStorage.getItem("hindi_songs_favs");
+    if (savedFavs) {
+      likedSongs = new Set(JSON.parse(savedFavs));
+    }
+  } catch (e) {
+    console.warn("Error reading favorites:", e);
+  }
 
   const i18n = {
     hi: {
@@ -19,41 +34,46 @@
       timeWidgetTitle: "भारतीय मानक समय (IST)",
       navBackText: "वापस जाएं",
       navBackTitle: "मुख्य पृष्ठ पर वापस जाएं",
-      navBackAria: "वापस जाएं",
-      navAboutText: "परिचय",
-      navAboutTitle: "गीत संग्रह के बारे में",
-      navAboutAria: "गीत संग्रह के बारे में",
-      navHindiSongText: "हिंदी गीत",
-      navHindiSongTitle: "हिंदी गीत संग्रह (सक्रिय)",
-      navHindiSongAria: "हिंदी गीत संग्रह",
-      hindiBadgeText: "✨ 78 सुपरहिट बॉलीवुड गीत",
-      mainLogoText: "हिंदी गीत संग्रह",
-      taglineText: "॥ बॉलीवुड क्लासिक्स • रोमांटिक हिट्स • डांस बीट्स ॥",
+      heroBadge: "✨ 72 सुपरहिट बॉलीवुड क्लासिक्स",
+      mainLogoTitle1: "हिंदी सुपरहिट",
+      mainLogoTitle2: "गीत संग्रह",
+      taglineText: "॥ बॉलीवुड क्लासिक्स • रोमांटिक हिट्स • दिलकश नगमे • डांस बीट्स ॥",
       loadingSong: "गीत लोड हो रहा है...",
       playlistTitle: "हिंदी गीत सूची",
       playlistSearchPlaceholder: "गीत या गायक का नाम खोजें...",
+      searchPlaceholder: "गीत, फिल्म या गायक का नाम खोजें (Search Hindi songs)...",
       noSongsFound: "कोई गीत नहीं मिला",
-      prevSongTitle: "पिछला गीत",
-      playBtnTitle: "चलाएं / रोकें",
-      nextSongTitle: "अगला गीत",
+      noFavsFound: "कोई पसंदीदा गीत नहीं मिला। किसी भी गीत पर ❤️ क्लिक करके पसंदीदा बनाएं!",
+      prevSongTitle: "पिछला गीत (J)",
+      playBtnTitle: "चलाएं / रोकें (Space)",
+      nextSongTitle: "अगला गीत (K)",
       playlistBtnTitle: "गीत सूची (Playlist)",
       playlistCloseTitle: "गीत सूची बंद करें",
-      muteBtnTitle: "ध्वनि म्यूट / अनम्यूट",
-      speedBtnTitle: "प्लेबैक स्पीड बदलें (Playback Speed)",
+      muteBtnTitle: "ध्वनि म्यूट / अनम्यूट (M)",
+      speedBtnTitle: "प्लेबैक स्पीड बदलें",
       volumeSliderTitle: "वॉल्यूम कम या ज्यादा करें",
       seekSliderTitle: "गीत को आगे या पीछे करें",
-      gridTitleText: "हिंदी सुपरहिट बॉलीवुड संग्रह (78 Songs)",
-      gridSubtitleText: "किसी भी गीत पर क्लिक करके 320 Kbps HD में सुनें",
+      gridTitleText: "हिंदी सुपरहिट बॉलीवुड संग्रह",
+      showingSongsPrefix: "दिखाए जा रहे हैं: ",
+      songsSuffix: " गीत",
       shareBtnLabel: "शेयर",
       shareBtnTitle: "हिंदी गीत संग्रह शेयर करें",
-      shareBtnAria: "शेयर विकल्प",
-      whatsappLabel: "व्हाट्सएप",
-      facebookLabel: "फेसबुक",
-      instagramLabel: "इंस्टाग्राम",
+      whatsappLabel: "WhatsApp",
+      facebookLabel: "Facebook",
+      copyLinkText: "लिंक कॉपी करें",
       toastLangSwitched: "भाषा बदलकर हिंदी कर दी गई है",
       toastMuted: "🔇 ध्वनि म्यूट की गई",
       toastUnmuted: "🔊 ध्वनि अनम्यूट की गई",
       toastSpeed: "⚡ प्लेबैक स्पीड: ",
+      toastFavAdded: "❤️ पसंदीदा सूची में जोड़ा गया",
+      toastFavRemoved: "🤍 पसंदीदा सूची से हटाया गया",
+      toastShuffleOn: "🔀 शफ़ल मोड चालू",
+      toastShuffleOff: "➡️ सामान्य क्रम मोड",
+      toastRepeatOff: "➡️ रिपीट बंद",
+      toastRepeatAll: "🔁 सभी गीत रिपीट",
+      toastRepeatOne: "🔂 केवल यह गीत रिपीट (Repeat 1)",
+      toastTheme: "🎨 थीम बदली गई: ",
+      toastCopied: "🔗 लिंक कॉपी हो गया!",
       nowPlayingPrefix: "🎶 बज रहा है: "
     },
     en: {
@@ -63,47 +83,135 @@
       timeWidgetTitle: "Indian Standard Time (IST)",
       navBackText: "Go Back",
       navBackTitle: "Go Back to Home",
-      navBackAria: "Go Back",
-      navAboutText: "About",
-      navAboutTitle: "About Songs Collection",
-      navAboutAria: "About Songs Collection",
-      navHindiSongText: "Hindi Song",
-      navHindiSongTitle: "Hindi Songs Collection (Active)",
-      navHindiSongAria: "Hindi Songs Collection",
-      hindiBadgeText: "✨ 78 Superhit Bollywood Songs",
-      mainLogoText: "Hindi Songs Collection",
-      taglineText: "॥ Bollywood Classics • Romantic Hits • Dance Beats ॥",
+      heroBadge: "✨ 72 SUPERHIT BOLLYWOOD CLASSICS",
+      mainLogoTitle1: "Superhit Hindi",
+      mainLogoTitle2: "Songs Collection",
+      taglineText: "॥ Bollywood Classics • Romantic Hits • Soulful Melodies • Dance Beats ॥",
       loadingSong: "Loading Hindi Songs...",
       playlistTitle: "Hindi Songs Playlist",
       playlistSearchPlaceholder: "Search song, movie, or singer name...",
-      noSongsFound: "No songs found",
-      prevSongTitle: "Previous Track",
-      playBtnTitle: "Play / Pause",
-      nextSongTitle: "Next Track",
-      playlistBtnTitle: "Playlist",
+      searchPlaceholder: "Search song, movie, or singer name...",
+      noSongsFound: "No songs found matching your search",
+      noFavsFound: "No favorite songs yet. Click ❤️ on any song to add to your favorites!",
+      prevSongTitle: "Previous Track (J)",
+      playBtnTitle: "Play / Pause (Space)",
+      nextSongTitle: "Next Track (K)",
+      playlistBtnTitle: "Playlist (P)",
       playlistCloseTitle: "Close Playlist",
-      muteBtnTitle: "Mute / Unmute Volume",
+      muteBtnTitle: "Mute / Unmute Volume (M)",
       speedBtnTitle: "Playback Speed",
       volumeSliderTitle: "Adjust Volume",
       seekSliderTitle: "Seek Track",
-      gridTitleText: "Superhit Bollywood Collection (78 Songs)",
-      gridSubtitleText: "Click any song card to play in 320 Kbps HD",
+      gridTitleText: "Superhit Bollywood Collection",
+      showingSongsPrefix: "Showing ",
+      songsSuffix: " Songs",
       shareBtnLabel: "Share",
       shareBtnTitle: "Share Hindi Songs Collection",
-      shareBtnAria: "Share Options",
       whatsappLabel: "WhatsApp",
       facebookLabel: "Facebook",
-      instagramLabel: "Instagram",
+      copyLinkText: "Copy Link",
       toastLangSwitched: "Language switched to English",
       toastMuted: "🔇 Volume Muted",
       toastUnmuted: "🔊 Volume Unmuted",
       toastSpeed: "⚡ Playback Speed: ",
+      toastFavAdded: "❤️ Added to Favorites",
+      toastFavRemoved: "🤍 Removed from Favorites",
+      toastShuffleOn: "🔀 Shuffle Mode ON",
+      toastShuffleOff: "➡️ Normal Order Mode",
+      toastRepeatOff: "➡️ Repeat Mode OFF",
+      toastRepeatAll: "🔁 Repeat All Songs",
+      toastRepeatOne: "🔂 Repeat Current Song (1)",
+      toastTheme: "🎨 Theme Switched: ",
+      toastCopied: "🔗 Link copied to clipboard!",
       nowPlayingPrefix: "🎶 Now Playing: "
     }
   };
 
   /* =========================================================
-     1. LIVE CLOCK (IST)
+     1. THEME & EYE-COMFORT SYSTEM
+     ========================================================= */
+  const THEMES = {
+    "midnight": { name: "Midnight Slate", icon: "🌙" },
+    "warm-amber": { name: "Warm Amber (Night)", icon: "☕" },
+    "twilight": { name: "Twilight Aurora", icon: "🌌" },
+    "emerald": { name: "Emerald Oasis", icon: "🌿" }
+  };
+
+  const themeDropdown = document.getElementById("themeDropdown");
+  const themeToggleBtn = document.getElementById("themeToggleBtn");
+  const themeCurrentIcon = document.getElementById("themeCurrentIcon");
+  const themeMenuItems = document.querySelectorAll(".theme-menu-item");
+
+  function setTheme(themeKey, notify = false) {
+    if (!THEMES[themeKey]) themeKey = "midnight";
+    document.documentElement.setAttribute("data-theme", themeKey);
+    localStorage.setItem("hindi_songs_theme", themeKey);
+
+    if (themeCurrentIcon) {
+      themeCurrentIcon.textContent = THEMES[themeKey].icon;
+    }
+
+    if (themeMenuItems) {
+      themeMenuItems.forEach(item => {
+        const itemTheme = item.getAttribute("data-set-theme");
+        if (itemTheme === themeKey) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+      });
+    }
+
+    // Update Meta Theme Color
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      const colors = {
+        "midnight": "#0c0f17",
+        "warm-amber": "#140f0c",
+        "twilight": "#0d0a1a",
+        "emerald": "#071412"
+      };
+      metaThemeColor.setAttribute("content", colors[themeKey] || "#0c0f17");
+    }
+
+    if (notify) {
+      const t = i18n[currentLang] || i18n.en;
+      showToast(t.toastTheme + THEMES[themeKey].name);
+    }
+  }
+
+  // Load Saved Theme
+  const savedTheme = localStorage.getItem("hindi_songs_theme") || "midnight";
+  setTheme(savedTheme, false);
+
+  if (themeToggleBtn && themeDropdown) {
+    themeToggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      themeDropdown.classList.toggle("open");
+    });
+  }
+
+  if (themeMenuItems) {
+    themeMenuItems.forEach(item => {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const themeKey = item.getAttribute("data-set-theme");
+        setTheme(themeKey, true);
+        if (themeDropdown) themeDropdown.classList.remove("open");
+      });
+    });
+  }
+
+  function cycleTheme() {
+    const keys = Object.keys(THEMES);
+    const current = document.documentElement.getAttribute("data-theme") || "midnight";
+    const idx = keys.indexOf(current);
+    const nextTheme = keys[(idx + 1) % keys.length];
+    setTheme(nextTheme, true);
+  }
+
+  /* =========================================================
+     2. LIVE CLOCK (IST)
      ========================================================= */
   const langDays = {
     hi: ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"],
@@ -147,36 +255,42 @@
     if (dateEl) {
       dateEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
     }
-    if (timeWidget && i18n[currentLang]) {
-      timeWidget.title = i18n[currentLang].timeWidgetTitle;
-    }
   }
   setInterval(updateClock, 1000);
 
   /* =========================================================
-     2. TOAST NOTIFICATION UTILITY
+     3. TOAST NOTIFICATION UTILITY
      ========================================================= */
   let toastTimeout = null;
-  function showToast(message) {
+  function showToast(message, position = "right") {
     const toast = document.getElementById("toastNotification");
     if (!toast) return;
 
     toast.textContent = message;
+    
+    // Position toast on the left for minus / backward seek
+    if (position === "left" || (typeof message === "string" && message.includes("-5s"))) {
+      toast.classList.add("pos-left");
+    } else {
+      toast.classList.remove("pos-left");
+    }
+    
     toast.classList.add("show");
 
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
       toast.classList.remove("show");
-    }, 3200);
+      toast.classList.remove("pos-left");
+    }, 2400);
   }
 
   /* =========================================================
-     3. WHATSAPP & SOCIAL SHARING
+     4. SOCIAL SHARING & URL COPY
      ========================================================= */
   const SHARE_URL = window.location.href;
 
   function shareOnWhatsApp(customHeading) {
-    const title = customHeading || "🎶 78 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧";
+    const title = customHeading || "🎶 72 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧";
     const body =
       `${title}\n\n` +
       `सुनिए सदाबहार 90s क्लासिक्स, रोमांटिक हिट्स और डांस बीट्स 320 Kbps HD ऑडियो में:\n\n` +
@@ -185,7 +299,7 @@
 
     const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(body)}`;
     window.open(waLink, "_blank", "noopener,noreferrer");
-    showToast("✨ व्हाट्सएप पर साझा किया जा रहा है...");
+    showToast("✨ WhatsApp खोला जा रहा है...");
   }
 
   const shareDropdown = document.getElementById("shareDropdown");
@@ -198,50 +312,49 @@
     });
   }
 
-  document.addEventListener("click", (e) => {
-    if (shareDropdown && !shareDropdown.contains(e.target)) {
-      shareDropdown.classList.remove("open");
-      if (shareMainBtn) shareMainBtn.setAttribute("aria-expanded", "false");
-    }
-  });
-
   const waShareBtn = document.getElementById("whatsappShareBtn");
   if (waShareBtn) {
     waShareBtn.addEventListener("click", () => {
-      shareOnWhatsApp("🎶 78 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧");
+      shareOnWhatsApp("🎶 72 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧");
     });
   }
 
   const fbShareBtn = document.getElementById("facebookShareBtn");
   if (fbShareBtn) {
     fbShareBtn.addEventListener("click", () => {
-      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent("🎶 78 सुपरहिट हिंदी बॉलीवुड गीत संग्रह ऑनलाइन सुनें 🎧")}`;
+      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent("🎶 72 सुपरहिट हिंदी बॉलीवुड गीत संग्रह ऑनलाइन सुनें 🎧")}`;
       window.open(fbUrl, "_blank", "noopener,noreferrer,width=600,height=500");
-      showToast("✨ फेसबुक पर साझा किया जा रहा है...");
     });
   }
 
-  const instaShareBtn = document.getElementById("instagramShareBtn");
-  if (instaShareBtn) {
-    instaShareBtn.addEventListener("click", async () => {
+  const copyLinkBtn = document.getElementById("copyLinkBtn");
+  if (copyLinkBtn) {
+    copyLinkBtn.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(SHARE_URL);
-        showToast("✨ लिंक कॉपी हुआ! Instagram पर शेयर करें 📸");
-      } catch (e) {
-        showToast("✨ Instagram खोला जा रहा है...");
+        const t = i18n[currentLang] || i18n.en;
+        showToast(t.toastCopied);
+      } catch (err) {
+        showToast("Link: " + SHARE_URL);
       }
-      setTimeout(() => {
-        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
-      }, 500);
+      if (shareDropdown) shareDropdown.classList.remove("open");
     });
   }
 
-  /* =========================================================
-     4. PARTICLES ANIMATION (DISABLED)
-     ========================================================= */
+  document.addEventListener("click", (e) => {
+    if (shareDropdown && !shareDropdown.contains(e.target)) {
+      shareDropdown.classList.remove("open");
+    }
+    if (themeDropdown && !themeDropdown.contains(e.target)) {
+      themeDropdown.classList.remove("open");
+    }
+    if (speedDropdown && !speedDropdown.contains(e.target)) {
+      speedDropdown.classList.remove("open");
+    }
+  });
 
-/* =========================================================
-     5. HINDI SONGS AUDIO PLAYER CONTROLLER
+  /* =========================================================
+     5. HINDI SONGS AUDIO PLAYER ENGINE
      ========================================================= */
   let songs = [];
   let currentSong = 0;
@@ -268,9 +381,50 @@
   const speedDropdown = document.getElementById("speedDropdown");
   const speedBtn = document.getElementById("speedBtn");
   const speedLabel = document.getElementById("speedLabel");
-  const speedDropdownMenu = document.getElementById("speedDropdownMenu");
   const speedMenuItems = document.querySelectorAll(".speed-menu-item");
   const playerElem = document.getElementById("offlinePlayer");
+  const shuffleBtn = document.getElementById("shuffleBtn");
+  const repeatBtn = document.getElementById("repeatBtn");
+  const playerFavBtn = document.getElementById("playerFavBtn");
+
+  // Mini-Player elements
+  const miniPlayerDock = document.getElementById("miniPlayerDock");
+  const miniCover = document.getElementById("miniCover");
+  const miniTitle = document.getElementById("miniTitle");
+  const miniSinger = document.getElementById("miniSinger");
+  const miniPlayBtn = document.getElementById("miniPlayBtn");
+  const miniPrevBtn = document.getElementById("miniPrevBtn");
+  const miniNextBtn = document.getElementById("miniNextBtn");
+  const miniFavBtn = document.getElementById("miniFavBtn");
+  const miniSongCluster = document.getElementById("miniSongCluster");
+
+  // Search & Filter elements
+  const mainSearchInput = document.getElementById("mainSearchInput");
+  const mainSearchClearBtn = document.getElementById("mainSearchClearBtn");
+  const sortSelect = document.getElementById("sortSelect");
+  const categoryChips = document.querySelectorAll(".category-chip");
+  const gridCounterBadge = document.getElementById("gridCounterBadge");
+
+  // Playlist drawer elements
+  const playlistToggleBtn = document.getElementById("playlistToggleBtn");
+  const playlistCloseBtn = document.getElementById("playlistCloseBtn");
+  const playlistModal = document.getElementById("playlistModal");
+  const playlistBackdrop = document.getElementById("playlistBackdrop");
+  const playlistList = document.getElementById("playlistList");
+  const playlistTitleText = document.getElementById("playlistTitleText");
+  const playlistSearch = document.getElementById("playlistSearch");
+
+  // Shortcuts modal elements
+  const shortcutsBtn = document.getElementById("shortcutsBtn");
+  const shortcutsModal = document.getElementById("shortcutsModal");
+  const shortcutsCloseBtn = document.getElementById("shortcutsCloseBtn");
+
+  // Language Elements
+  const langToggleBtn = document.getElementById("langToggleBtn");
+  const langText = document.getElementById("langText");
+  const mainLogoText = document.getElementById("mainLogoText");
+  const taglineText = document.getElementById("taglineText");
+  const gridTitleText = document.getElementById("gridTitleText");
 
   let currentSpeedIndex = 2; // Default 1.0x
   const PLAYBACK_SPEEDS = [
@@ -279,24 +433,10 @@
     { value: 1.0, label: "1.0x" },
     { value: 1.25, label: "1.25x" },
     { value: 1.5, label: "1.50x" },
-    { value: 1.75, label: "1.75x" },
     { value: 2.0, label: "2.0x" }
   ];
 
-  const playlistToggleBtn = document.getElementById("playlistToggleBtn");
-  const playlistCloseBtn = document.getElementById("playlistCloseBtn");
-  const playlistModal = document.getElementById("playlistModal");
-  const playlistList = document.getElementById("playlistList");
-  const playlistTitleText = document.getElementById("playlistTitleText");
-  const playlistSearch = document.getElementById("playlistSearch");
-  const searchClearBtn = document.getElementById("searchClearBtn");
-
-  const langToggleBtn = document.getElementById("langToggleBtn");
-  const langText = document.getElementById("langText");
-  const mainLogoText = document.getElementById("mainLogoText");
-  const taglineText = document.getElementById("taglineText");
-const gridTitleText = document.getElementById("gridTitleText");
-/* Format seconds to M:SS */
+  /* Format seconds to M:SS */
   function formatTime(seconds) {
     if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return "0:00";
     const m = Math.floor(seconds / 60);
@@ -304,7 +444,70 @@ const gridTitleText = document.getElementById("gridTitleText");
     return `${m}:${s}`;
   }
 
-  /* Load Hindi songs dataset from data/hindi_songs/hindi_songs.json */
+  /* Save favorites to localStorage */
+  function saveFavorites() {
+    try {
+      localStorage.setItem("hindi_songs_favs", JSON.stringify(Array.from(likedSongs)));
+    } catch (e) {
+      console.warn("Could not save favorites:", e);
+    }
+  }
+
+  /* Toggle Favorite for a song */
+  function toggleSongFavorite(songId, event) {
+    if (event) event.stopPropagation();
+    const t = i18n[currentLang] || i18n.en;
+
+    if (likedSongs.has(songId)) {
+      likedSongs.delete(songId);
+      showToast(t.toastFavRemoved);
+    } else {
+      likedSongs.add(songId);
+      showToast(t.toastFavAdded);
+    }
+
+    saveFavorites();
+    updateFavoriteUI();
+
+    if (selectedCategory === "favorites") {
+      renderSongCardsGrid();
+      renderPlaylist(playlistSearch ? playlistSearch.value : "");
+    }
+  }
+
+  function updateFavoriteUI() {
+    // Update category chip count for favorites
+    const countFavs = document.getElementById("countFavs");
+    if (countFavs) countFavs.textContent = likedSongs.size;
+
+    // Update player favorite button
+    const currentSongObj = songs[currentSong];
+    const isCurLiked = currentSongObj && likedSongs.has(currentSongObj.id);
+
+    if (playerFavBtn) {
+      playerFavBtn.innerHTML = isCurLiked ? "❤️" : "🤍";
+      playerFavBtn.classList.toggle("active", isCurLiked);
+    }
+
+    if (miniFavBtn) {
+      miniFavBtn.innerHTML = isCurLiked ? "❤️" : "🤍";
+    }
+
+    // Update all cards
+    const cardLikeBtns = document.querySelectorAll(".card-like-btn");
+    cardLikeBtns.forEach(btn => {
+      const sId = parseInt(btn.getAttribute("data-fav-id"), 10);
+      if (likedSongs.has(sId)) {
+        btn.classList.add("liked");
+        btn.innerHTML = "❤️";
+      } else {
+        btn.classList.remove("liked");
+        btn.innerHTML = "🤍";
+      }
+    });
+  }
+
+  /* Load Hindi Songs dataset */
   async function loadHindiSongs() {
     try {
       const res = await fetch("data/hindi_songs/hindi_songs.json", { cache: "no-store" });
@@ -316,9 +519,24 @@ const gridTitleText = document.getElementById("gridTitleText");
     }
 
     if (!Array.isArray(songs) || songs.length === 0) {
-      if (songName) songName.textContent = "No Hindi Song Found";
+      if (songName) songName.textContent = "No Hindi Songs Found";
       return;
     }
+
+    // Calculate category counts
+    const countAll = document.getElementById("countAll");
+    const countRomantic = document.getElementById("countRomantic");
+    const count90s = document.getElementById("count90s");
+    const countSoulful = document.getElementById("countSoulful");
+    const countDance = document.getElementById("countDance");
+    const countFavs = document.getElementById("countFavs");
+
+    if (countAll) countAll.textContent = songs.length;
+    if (countRomantic) countRomantic.textContent = songs.filter(s => s.category === "Romantic").length;
+    if (count90s) count90s.textContent = songs.filter(s => s.category === "90s Classics").length;
+    if (countSoulful) countSoulful.textContent = songs.filter(s => s.category === "Soulful Melodies").length;
+    if (countDance) countDance.textContent = songs.filter(s => s.category === "Dance & Beats").length;
+    if (countFavs) countFavs.textContent = likedSongs.size;
 
     const t = i18n[currentLang] || i18n.en;
     if (playlistTitleText) {
@@ -328,8 +546,9 @@ const gridTitleText = document.getElementById("gridTitleText");
     renderPlaylist();
     renderSongCardsGrid();
     displaySongInfo(0);
+    updateFavoriteUI();
 
-    // Preload first song
+    // Preload first track audio source
     if (offlineAudio && songs[0] && songs[0].file) {
       offlineAudio.src = songs[0].file;
       offlineAudio.load();
@@ -346,9 +565,12 @@ const gridTitleText = document.getElementById("gridTitleText");
     const singer = isEn ? (s.singerEn || s.singer) : s.singer;
 
     if (songName) songName.textContent = title;
-    if (songSinger) songSinger.textContent = singer;
+    if (songSinger) songSinger.textContent = `🎤 ${singer}`;
 
-    // Highlight current playing card in the grid
+    if (miniTitle) miniTitle.textContent = title;
+    if (miniSinger) miniSinger.textContent = singer;
+
+    // Highlight current active card in the grid
     const cards = document.querySelectorAll(".song-card");
     cards.forEach((card) => {
       const cardSongId = parseInt(card.getAttribute("data-song-idx"), 10);
@@ -358,6 +580,8 @@ const gridTitleText = document.getElementById("gridTitleText");
         card.classList.remove("now-playing");
       }
     });
+
+    updateFavoriteUI();
   }
 
   function playSong(index) {
@@ -393,11 +617,10 @@ const gridTitleText = document.getElementById("gridTitleText");
         offlineAudio.pause();
       }
       setPlaybackState(false);
-      showToast("⏸️ गीत पॉज़ किया गया");
     } else {
       if (offlineAudio) {
         const s = songs[currentSong];
-        if (s && offlineAudio.src !== s.file) {
+        if (s && (!offlineAudio.src || offlineAudio.src !== s.file)) {
           offlineAudio.src = s.file;
         }
         const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
@@ -407,25 +630,48 @@ const gridTitleText = document.getElementById("gridTitleText");
         offlineAudio.play().catch(console.warn);
       }
       setPlaybackState(true);
-      showToast("▶️ हिंदी गीत शुरू हुआ!");
     }
   }
 
   function playPrevious() {
     if (!songs.length) return;
+    if (isShuffle) {
+      const randomPos = Math.floor(Math.random() * songs.length);
+      playSong(randomPos);
+      return;
+    }
     const prevPos = (currentSong - 1 + songs.length) % songs.length;
     playSong(prevPos);
   }
 
   function playNext() {
     if (!songs.length) return;
+    if (isShuffle) {
+      const randomPos = Math.floor(Math.random() * songs.length);
+      playSong(randomPos);
+      return;
+    }
     const nextPos = (currentSong + 1) % songs.length;
     playSong(nextPos);
   }
 
   if (offlineAudio) {
     offlineAudio.addEventListener("ended", () => {
-      playNext();
+      if (repeatMode === 2) {
+        // Repeat One
+        offlineAudio.currentTime = 0;
+        offlineAudio.play().catch(console.warn);
+      } else if (repeatMode === 1) {
+        // Repeat All
+        playNext();
+      } else {
+        // Normal next
+        if (currentSong < songs.length - 1) {
+          playNext();
+        } else {
+          setPlaybackState(false);
+        }
+      }
     });
   }
 
@@ -433,12 +679,16 @@ const gridTitleText = document.getElementById("gridTitleText");
     isPlaying = playing;
     if (playing) {
       if (playIcon) playIcon.textContent = "❚❚";
+      if (miniPlayBtn) miniPlayBtn.textContent = "❚❚";
       if (albumCover) albumCover.classList.add("spinning");
+      if (miniCover) miniCover.classList.add("spinning");
       if (playerElem) playerElem.classList.add("playing");
       startProgressSync();
     } else {
       if (playIcon) playIcon.textContent = "▶";
+      if (miniPlayBtn) miniPlayBtn.textContent = "▶";
       if (albumCover) albumCover.classList.remove("spinning");
+      if (miniCover) miniCover.classList.remove("spinning");
       if (playerElem) playerElem.classList.remove("playing");
       stopProgressSync();
     }
@@ -501,21 +751,57 @@ const gridTitleText = document.getElementById("gridTitleText");
     progress.addEventListener("touchend", handleSeekCommit);
   }
 
-  /* Volume & Mute Controls */
-  const VOL_HIGH_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.5 5.5C21.5 7.5 22.6 9.7 22.6 12s-1.1 4.5-3.1 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-  const VOL_MUTE_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><line x1="22" y1="9" x2="16" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="16" y1="9" x2="22" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
-
-  function updateVolumeTrack(volNum) {
-    if (volumeSlider) {
-      volumeSlider.style.setProperty('--vol-percent', `${volNum}%`);
-    }
+  /* Shuffle & Repeat Modes */
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener("click", () => {
+      isShuffle = !isShuffle;
+      shuffleBtn.classList.toggle("active", isShuffle);
+      const t = i18n[currentLang] || i18n.en;
+      showToast(isShuffle ? t.toastShuffleOn : t.toastShuffleOff);
+    });
   }
 
+  if (repeatBtn) {
+    repeatBtn.addEventListener("click", () => {
+      repeatMode = (repeatMode + 1) % 3;
+      const t = i18n[currentLang] || i18n.en;
+      if (repeatMode === 0) {
+        repeatBtn.innerHTML = "🔁";
+        repeatBtn.classList.remove("active");
+        showToast(t.toastRepeatOff);
+      } else if (repeatMode === 1) {
+        repeatBtn.innerHTML = "🔁";
+        repeatBtn.classList.add("active");
+        showToast(t.toastRepeatAll);
+      } else {
+        repeatBtn.innerHTML = "🔂";
+        repeatBtn.classList.add("active");
+        showToast(t.toastRepeatOne);
+      }
+    });
+  }
+
+  if (playerFavBtn) {
+    playerFavBtn.addEventListener("click", () => {
+      const curSongObj = songs[currentSong];
+      if (curSongObj) toggleSongFavorite(curSongObj.id);
+    });
+  }
+
+  if (miniFavBtn) {
+    miniFavBtn.addEventListener("click", () => {
+      const curSongObj = songs[currentSong];
+      if (curSongObj) toggleSongFavorite(curSongObj.id);
+    });
+  }
+
+  /* Volume & Mute Controls */
+  const VOL_HIGH_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"><path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const VOL_MUTE_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"><path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><line x1="22" y1="9" x2="16" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><line x1="16" y1="9" x2="22" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+
   if (volumeSlider) {
-    updateVolumeTrack(100);
     volumeSlider.addEventListener("input", () => {
       const volNum = parseInt(volumeSlider.value, 10);
-      updateVolumeTrack(volNum);
       if (offlineAudio) offlineAudio.volume = volNum / 100;
       if (muteBtn) muteBtn.innerHTML = volNum === 0 ? VOL_MUTE_ICON : VOL_HIGH_ICON;
     });
@@ -524,26 +810,25 @@ const gridTitleText = document.getElementById("gridTitleText");
   if (muteBtn) {
     muteBtn.addEventListener("click", () => {
       const isMuted = offlineAudio ? offlineAudio.volume === 0 : false;
+      const t = i18n[currentLang] || i18n.en;
       if (isMuted) {
         const targetVol = lastVolume > 0 ? Math.round(lastVolume * 100) : 100;
         if (offlineAudio) offlineAudio.volume = targetVol / 100;
         if (volumeSlider) volumeSlider.value = targetVol;
-        updateVolumeTrack(targetVol);
         muteBtn.innerHTML = VOL_HIGH_ICON;
-        showToast((i18n[currentLang] && i18n[currentLang].toastUnmuted) || "🔊 Volume Unmuted");
+        showToast(t.toastUnmuted);
       } else {
         const currentVol = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
         if (currentVol > 0) lastVolume = currentVol / 100;
         if (offlineAudio) offlineAudio.volume = 0;
         if (volumeSlider) volumeSlider.value = 0;
-        updateVolumeTrack(0);
         muteBtn.innerHTML = VOL_MUTE_ICON;
-        showToast((i18n[currentLang] && i18n[currentLang].toastMuted) || "🔇 Volume Muted");
+        showToast(t.toastMuted);
       }
     });
   }
 
-  /* Playback Speed */
+  /* Playback Speed Controller */
   function setPlaybackRate(r) {
     if (offlineAudio) offlineAudio.playbackRate = r;
     if (speedLabel) speedLabel.textContent = `${r}x`;
@@ -579,32 +864,55 @@ const gridTitleText = document.getElementById("gridTitleText");
     });
   }
 
-  document.addEventListener("click", () => {
-    if (speedDropdown) speedDropdown.classList.remove("open");
-  });
-
   /* =========================================================
-     6. PLAYLIST DRAWER & CATEGORY FILTERING
+     6. FILTERING, SEARCH & SORTING
      ========================================================= */
+  function getFilteredAndSortedSongs(query = "") {
+    const q = query.trim().toLowerCase();
+    const isEn = currentLang === "en";
+
+    let list = songs.map((s, originalIdx) => ({ ...s, originalIdx })).filter(s => {
+      // Filter by category
+      if (selectedCategory === "favorites") {
+        if (!likedSongs.has(s.id)) return false;
+      } else if (selectedCategory !== "all" && s.category !== selectedCategory) {
+        return false;
+      }
+
+      // Filter by search query
+      if (!q) return true;
+      const title = (s.name || "").toLowerCase();
+      const titleEn = (s.nameEn || "").toLowerCase();
+      const singer = (s.singer || "").toLowerCase();
+      const singerEn = (s.singerEn || "").toLowerCase();
+      const cat = (s.category || "").toLowerCase();
+
+      return title.includes(q) || titleEn.includes(q) || singer.includes(q) || singerEn.includes(q) || cat.includes(q);
+    });
+
+    // Apply sorting
+    if (currentSort === "title-asc") {
+      list.sort((a, b) => (isEn ? (a.nameEn || a.name) : a.name).localeCompare(isEn ? (b.nameEn || b.name) : b.name));
+    } else if (currentSort === "singer-asc") {
+      list.sort((a, b) => (isEn ? (a.singerEn || a.singer) : a.singer).localeCompare(isEn ? (b.singerEn || b.singer) : b.singer));
+    } else if (currentSort === "duration-desc") {
+      list.sort((a, b) => (b.duration || "0:00").localeCompare(a.duration || "0:00"));
+    }
+
+    return list;
+  }
+
+  /* Render Playlist Drawer */
   function renderPlaylist(query = "") {
     if (!playlistList) return;
     playlistList.innerHTML = "";
 
-    const q = query.trim().toLowerCase();
+    const filtered = getFilteredAndSortedSongs(query);
     const isEn = currentLang === "en";
-
-    const filtered = songs.map((s, originalIdx) => ({ ...s, originalIdx })).filter(s => {
-      const matchCat = selectedCategory === "all" || s.category === selectedCategory;
-      if (!matchCat) return false;
-      if (!q) return true;
-      const title = (isEn ? (s.nameEn || s.name) : s.name).toLowerCase();
-      const singer = (isEn ? (s.singerEn || s.singer) : s.singer).toLowerCase();
-      return title.includes(q) || singer.includes(q);
-    });
+    const t = i18n[currentLang] || i18n.en;
 
     if (filtered.length === 0) {
-      const t = i18n[currentLang] || i18n.en;
-      playlistList.innerHTML = `<div class="playlist-empty">${t.noSongsFound}</div>`;
+      playlistList.innerHTML = `<div style="text-align:center;padding:30px 10px;color:var(--text-muted);font-size:14px;">${selectedCategory === "favorites" ? t.noFavsFound : t.noSongsFound}</div>`;
       return;
     }
 
@@ -612,7 +920,6 @@ const gridTitleText = document.getElementById("gridTitleText");
       const item = document.createElement("div");
       item.className = "playlist-item" + (s.originalIdx === currentSong ? " active" : "");
       item.setAttribute("role", "option");
-      item.setAttribute("aria-selected", s.originalIdx === currentSong ? "true" : "false");
 
       const title = isEn ? (s.nameEn || s.name) : s.name;
       const singer = isEn ? (s.singerEn || s.singer) : s.singer;
@@ -621,14 +928,14 @@ const gridTitleText = document.getElementById("gridTitleText");
         <div class="item-num">${s.originalIdx === currentSong ? (isPlaying ? "❚❚" : "▶") : (s.id || s.originalIdx + 1)}</div>
         <div class="item-info">
           <div class="item-title">${title}</div>
-          <div class="item-singer">${singer} • <span style="color:#71717a;font-size:11px;">${s.category || "Bollywood"}</span></div>
+          <div class="item-singer">🎤 ${singer} • <span style="opacity:0.7;">${s.category || "Bollywood"}</span></div>
         </div>
         <div class="item-duration">${s.duration || "320K"}</div>
       `;
 
       item.addEventListener("click", () => {
         playSong(s.originalIdx);
-        if (playlistModal) playlistModal.classList.remove("open");
+        closePlaylist();
       });
 
       playlistList.appendChild(item);
@@ -641,102 +948,195 @@ const gridTitleText = document.getElementById("gridTitleText");
     if (!grid) return;
     grid.innerHTML = "";
 
+    const query = mainSearchInput ? mainSearchInput.value : "";
+    const filtered = getFilteredAndSortedSongs(query);
     const isEn = currentLang === "en";
+    const t = i18n[currentLang] || i18n.en;
 
-    songs.forEach((s, idx) => {
-      if (selectedCategory !== "all" && s.category !== selectedCategory) return;
+    if (gridCounterBadge) {
+      gridCounterBadge.textContent = `${t.showingSongsPrefix}${filtered.length}${t.songsSuffix}`;
+    }
 
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 16px; background: var(--bg-surface); border: 1px dashed var(--border-medium); border-radius: 20px;">
+          <div style="font-size: 38px; margin-bottom: 8px;">🎵</div>
+          <h3 style="color: var(--text-primary); margin-bottom: 6px;">${selectedCategory === "favorites" ? t.noFavsFound : t.noSongsFound}</h3>
+          <p style="color: var(--text-muted); font-size: 13.5px;">Try selecting 'All Songs' or searching with another keyword.</p>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach((s) => {
       const card = document.createElement("div");
-      card.className = "song-card" + (idx === currentSong ? " now-playing" : "");
-      card.setAttribute("data-song-idx", idx);
+      const isCardPlaying = s.originalIdx === currentSong;
+      card.className = "song-card" + (isCardPlaying ? " now-playing" : "");
+      card.setAttribute("data-song-idx", s.originalIdx);
 
       const title = isEn ? (s.nameEn || s.name) : s.name;
       const singer = isEn ? (s.singerEn || s.singer) : s.singer;
+      const isLiked = likedSongs.has(s.id);
 
       card.innerHTML = `
         <div class="song-card-header">
-          <div class="song-card-number">${s.id || idx + 1}</div>
+          <div class="card-number-badge">${s.originalIdx === currentSong && isPlaying ? "❚❚" : (s.id || s.originalIdx + 1)}</div>
           <div class="song-card-cat">${s.category || "Bollywood"}</div>
+          <button class="card-like-btn ${isLiked ? 'liked' : ''}" type="button" data-fav-id="${s.id}" title="Favorite / Like">
+            ${isLiked ? '❤️' : '🤍'}
+          </button>
         </div>
+
         <div class="song-card-body">
           <div class="song-card-title">${title}</div>
           <div class="song-card-singer">🎤 ${singer}</div>
         </div>
+
         <div class="song-card-footer">
           <div class="song-card-duration">⏱️ ${s.duration || "320 Kbps"}</div>
           <button class="song-card-play-btn" type="button" aria-label="Play ${title}">
-            <span>▶</span> <span>${isEn ? "Play" : "सुनें"}</span>
+            <span>${isCardPlaying && isPlaying ? "❚❚" : "▶"}</span>
+            <span>${isCardPlaying && isPlaying ? (isEn ? "Pause" : "रोकें") : (isEn ? "Play" : "सुनें")}</span>
           </button>
         </div>
       `;
 
+      // Heart like button listener
+      const likeBtn = card.querySelector(".card-like-btn");
+      if (likeBtn) {
+        likeBtn.addEventListener("click", (e) => {
+          toggleSongFavorite(s.id, e);
+        });
+      }
+
+      // Card click listener
       card.addEventListener("click", () => {
-        playSong(idx);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (s.originalIdx === currentSong) {
+          togglePlayback();
+        } else {
+          playSong(s.originalIdx);
+        }
       });
 
       grid.appendChild(card);
     });
   }
 
-  /* Category chips filter listener */
-  const categoryChips = document.querySelectorAll(".category-chip");
+  /* Category chips listener */
   if (categoryChips) {
     categoryChips.forEach(chip => {
       chip.addEventListener("click", () => {
         categoryChips.forEach(c => c.classList.remove("active"));
         chip.classList.add("active");
         selectedCategory = chip.getAttribute("data-cat") || "all";
-        renderPlaylist(playlistSearch ? playlistSearch.value : "");
         renderSongCardsGrid();
+        renderPlaylist(playlistSearch ? playlistSearch.value : "");
       });
     });
   }
 
-  /* Playlist Search & Drawer */
-  if (playlistSearch) {
-    playlistSearch.addEventListener("input", (e) => {
+  /* Search input listener */
+  if (mainSearchInput) {
+    mainSearchInput.addEventListener("input", (e) => {
       const q = e.target.value;
-      if (searchClearBtn) searchClearBtn.style.display = q ? "block" : "none";
-      renderPlaylist(q);
+      if (mainSearchClearBtn) mainSearchClearBtn.style.display = q ? "flex" : "none";
+      renderSongCardsGrid();
     });
   }
 
-  if (searchClearBtn) {
-    searchClearBtn.addEventListener("click", () => {
-      if (playlistSearch) {
-        playlistSearch.value = "";
-        searchClearBtn.style.display = "none";
-        renderPlaylist("");
+  if (mainSearchClearBtn) {
+    mainSearchClearBtn.addEventListener("click", () => {
+      if (mainSearchInput) {
+        mainSearchInput.value = "";
+        mainSearchClearBtn.style.display = "none";
+        renderSongCardsGrid();
       }
     });
   }
 
-  if (playlistToggleBtn && playlistModal) {
-    playlistToggleBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const isOpen = playlistModal.classList.toggle("open");
-      if (isOpen && playlistSearch) {
-        setTimeout(() => playlistSearch.focus(), 150);
-      }
+  /* Sorting change listener */
+  if (sortSelect) {
+    sortSelect.addEventListener("change", (e) => {
+      currentSort = e.target.value;
+      renderSongCardsGrid();
+      renderPlaylist(playlistSearch ? playlistSearch.value : "");
     });
   }
-
-  if (playlistCloseBtn && playlistModal) {
-    playlistCloseBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      playlistModal.classList.remove("open");
-    });
-  }
-
-  document.addEventListener("click", (e) => {
-    if (playlistModal && !playlistModal.contains(e.target) && e.target !== playlistToggleBtn && !playlistToggleBtn.contains(e.target)) {
-      playlistModal.classList.remove("open");
-    }
-  });
 
   /* =========================================================
-     7. BILINGUAL LANGUAGE TOGGLE
+     7. STICKY FLOATING BOTTOM MINI-PLAYER
+     ========================================================= */
+  window.addEventListener("scroll", () => {
+    if (!miniPlayerDock) return;
+    if (window.scrollY > 340) {
+      miniPlayerDock.classList.add("visible");
+    } else {
+      miniPlayerDock.classList.remove("visible");
+    }
+  }, { passive: true });
+
+  if (miniSongCluster) {
+    miniSongCluster.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  if (miniPlayBtn) miniPlayBtn.addEventListener("click", togglePlayback);
+  if (miniPrevBtn) miniPrevBtn.addEventListener("click", playPrevious);
+  if (miniNextBtn) miniNextBtn.addEventListener("click", playNext);
+
+  /* =========================================================
+     8. PLAYLIST DRAWER MODAL
+     ========================================================= */
+  function openPlaylist() {
+    if (playlistModal) playlistModal.classList.add("open");
+    if (playlistBackdrop) playlistBackdrop.classList.add("open");
+    if (playlistSearch) {
+      setTimeout(() => playlistSearch.focus(), 150);
+    }
+  }
+
+  function closePlaylist() {
+    if (playlistModal) playlistModal.classList.remove("open");
+    if (playlistBackdrop) playlistBackdrop.classList.remove("open");
+  }
+
+  if (playlistToggleBtn) {
+    playlistToggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openPlaylist();
+    });
+  }
+
+  if (playlistCloseBtn) playlistCloseBtn.addEventListener("click", closePlaylist);
+  if (playlistBackdrop) playlistBackdrop.addEventListener("click", closePlaylist);
+
+  if (playlistSearch) {
+    playlistSearch.addEventListener("input", (e) => {
+      renderPlaylist(e.target.value);
+    });
+  }
+
+  /* =========================================================
+     9. KEYBOARD SHORTCUTS MODAL
+     ========================================================= */
+  function openShortcuts() {
+    if (shortcutsModal) shortcutsModal.classList.add("open");
+    if (playlistBackdrop) playlistBackdrop.classList.add("open");
+  }
+
+  function closeShortcuts() {
+    if (shortcutsModal) shortcutsModal.classList.remove("open");
+    if (playlistBackdrop && !playlistModal.classList.contains("open")) {
+      playlistBackdrop.classList.remove("open");
+    }
+  }
+
+  if (shortcutsBtn) shortcutsBtn.addEventListener("click", openShortcuts);
+  if (shortcutsCloseBtn) shortcutsCloseBtn.addEventListener("click", closeShortcuts);
+
+  /* =========================================================
+     10. BILINGUAL LANGUAGE TOGGLE
      ========================================================= */
   function setLanguage(lang, showToastMsg = false) {
     if (!i18n[lang]) return;
@@ -757,17 +1157,43 @@ const gridTitleText = document.getElementById("gridTitleText");
     if (navBackText) navBackText.textContent = t.navBackText;
     if (navBackBtn && t.navBackTitle) navBackBtn.title = t.navBackTitle;
 
-    const navAboutText = document.getElementById("navAboutText");
-    if (navAboutText) navAboutText.textContent = t.navAboutText;
+    const heroBadge = document.getElementById("heroBadge");
+    if (heroBadge) heroBadge.textContent = t.heroBadge;
 
-    
+    const mainLogo = document.getElementById("mainLogoText");
+    if (mainLogo) {
+      mainLogo.innerHTML = `<span class="main-title-gradient">${t.mainLogoTitle1}</span> ${t.mainLogoTitle2}`;
+    }
 
     const shareBtnLabel = document.getElementById("shareBtnLabel");
-    if (shareBtnLabel) shareBtnLabel.textContent = t.shareBtnLabel;
-    if (mainLogoText) mainLogoText.textContent = t.mainLogoText;
+    if (shareBtnLabel && t.shareBtnLabel) shareBtnLabel.textContent = t.shareBtnLabel;
+
+    const shareMainBtn = document.getElementById("shareMainBtn");
+    if (shareMainBtn && t.shareBtnTitle) shareMainBtn.title = t.shareBtnTitle;
+
+    const whatsappShareText = document.getElementById("whatsappShareText");
+    if (whatsappShareText && t.whatsappLabel) whatsappShareText.textContent = t.whatsappLabel;
+
+    const facebookShareText = document.getElementById("facebookShareText");
+    if (facebookShareText && t.facebookLabel) facebookShareText.textContent = t.facebookLabel;
+
+    const copyLinkText = document.getElementById("copyLinkText");
+    if (copyLinkText && t.copyLinkText) copyLinkText.textContent = t.copyLinkText;
+
+    if (prevBtn && t.prevSongTitle) prevBtn.title = t.prevSongTitle;
+    if (playButton && t.playBtnTitle) playButton.title = t.playBtnTitle;
+    if (nextBtn && t.nextSongTitle) nextBtn.title = t.nextSongTitle;
+    if (muteBtn && t.muteBtnTitle) muteBtn.title = t.muteBtnTitle;
+    if (speedBtn && t.speedBtnTitle) speedBtn.title = t.speedBtnTitle;
+    if (volumeSlider && t.volumeSliderTitle) volumeSlider.title = t.volumeSliderTitle;
+    if (progress && t.seekSliderTitle) progress.title = t.seekSliderTitle;
+    if (playlistToggleBtn && t.playlistBtnTitle) playlistToggleBtn.title = t.playlistBtnTitle;
+    if (playlistCloseBtn && t.playlistCloseTitle) playlistCloseBtn.title = t.playlistCloseTitle;
+
     if (taglineText) taglineText.textContent = t.taglineText;
     if (gridTitleText) gridTitleText.textContent = t.gridTitleText;
-if (playlistSearch) playlistSearch.placeholder = t.playlistSearchPlaceholder;
+    if (mainSearchInput) mainSearchInput.placeholder = t.searchPlaceholder;
+    if (playlistSearch) playlistSearch.placeholder = t.playlistSearchPlaceholder;
 
     displaySongInfo(currentSong);
     renderPlaylist(playlistSearch ? playlistSearch.value : "");
@@ -786,23 +1212,15 @@ if (playlistSearch) playlistSearch.placeholder = t.playlistSearchPlaceholder;
     });
   }
 
-  const navAboutBtn = document.getElementById("navAboutBtn");
-  if (navAboutBtn) {
-    navAboutBtn.addEventListener("click", () => {
-      const footer = document.getElementById("appFooter");
-      if (footer) footer.scrollIntoView({ behavior: "smooth" });
-    });
-  }
-
   /* Player button event listeners */
   if (playButton) playButton.addEventListener("click", togglePlayback);
   if (prevBtn) prevBtn.addEventListener("click", playPrevious);
   if (nextBtn) nextBtn.addEventListener("click", playNext);
 
   /* =========================================================
-     8. MEDIA SESSION API & KEYBOARD SHORTCUTS
+     11. MEDIA SESSION API & KEYBOARD SHORTCUTS
      ========================================================= */
-  const MEDIA_SESSION_SUPPORTED = "mediaSession" in navigator;
+  const MEDIA_SESSION_SUPPORTED = typeof navigator !== "undefined" && "mediaSession" in navigator;
 
   function updateMediaSessionPosition(pos = 0, dur = 0) {
     if (!MEDIA_SESSION_SUPPORTED || !("setPositionState" in navigator.mediaSession)) return;
@@ -846,36 +1264,64 @@ if (playlistSearch) playlistSearch.placeholder = t.playlistSearchPlaceholder;
   window.addEventListener("keydown", (e) => {
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
     if (activeTag === "input" || activeTag === "textarea") {
-      if (e.key === "Escape" && playlistModal) playlistModal.classList.remove("open");
+      if (e.key === "Escape") {
+        closePlaylist();
+        closeShortcuts();
+      }
       return;
     }
 
-    if (e.code === "Space" || e.key === " " || e.key === "k" || e.key === "K") {
+    if (e.code === "Space" || e.key === " ") {
       e.preventDefault();
       togglePlayback();
+    } else if (e.key === "j" || e.key === "J") {
+      e.preventDefault();
+      playPrevious();
+    } else if (e.key === "k" || e.key === "K") {
+      e.preventDefault();
+      playNext();
     } else if (e.key === "m" || e.key === "M") {
       e.preventDefault();
       if (muteBtn) muteBtn.click();
+    } else if (e.key === "l" || e.key === "L") {
+      e.preventDefault();
+      const curSongObj = songs[currentSong];
+      if (curSongObj) toggleSongFavorite(curSongObj.id);
+    } else if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      if (playlistModal && playlistModal.classList.contains("open")) {
+        closePlaylist();
+      } else {
+        openPlaylist();
+      }
+    } else if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      cycleTheme();
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
       if (offlineAudio) {
         offlineAudio.currentTime = Math.min(offlineAudio.duration || 9999, (offlineAudio.currentTime || 0) + 5);
-        showToast("⏩ +5s");
+        updateLiveProgress();
+        showToast("⏩ +5s", "right");
       }
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       if (offlineAudio) {
         offlineAudio.currentTime = Math.max(0, (offlineAudio.currentTime || 0) - 5);
-        showToast("⏪ -5s");
+        updateLiveProgress();
+        showToast("⏪ -5s", "left");
       }
     } else if (e.key === "Escape") {
-      if (playlistModal) playlistModal.classList.remove("open");
+      closePlaylist();
+      closeShortcuts();
       if (speedDropdown) speedDropdown.classList.remove("open");
+      if (themeDropdown) themeDropdown.classList.remove("open");
+      if (shareDropdown) shareDropdown.classList.remove("open");
     }
   });
 
   /* =========================================================
-     9. STARTUP INITIALIZATION
+     12. STARTUP INITIALIZATION
      ========================================================= */
   setLanguage("en", false);
   loadHindiSongs();
