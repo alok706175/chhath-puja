@@ -655,8 +655,152 @@
     playSong(nextPos);
   }
 
+  /* =========================================================
+     5.1 SCREEN WAKE LOCK & BACKGROUND KEEPALIVE ENGINE
+     ========================================================= */
+  let wakeLockSentinel = null;
+
+  async function requestWakeLock() {
+    if ("wakeLock" in navigator && !wakeLockSentinel && document.visibilityState === "visible") {
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request("screen");
+        wakeLockSentinel.addEventListener("release", () => {
+          wakeLockSentinel = null;
+        });
+      } catch (err) {
+        // Handled silently for low battery/background tabs
+      }
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockSentinel) {
+      wakeLockSentinel.release().catch(() => {});
+      wakeLockSentinel = null;
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      if (offlineAudio) {
+        updateLiveProgress();
+        if (!offlineAudio.paused && !isPlaying) {
+          setPlaybackState(true);
+        } else if (offlineAudio.paused && isPlaying) {
+          setPlaybackState(false);
+        }
+      }
+      if (isPlaying) {
+        requestWakeLock();
+      }
+    } else {
+      if (MEDIA_SESSION_SUPPORTED) {
+        try {
+          navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+          if (offlineAudio) {
+            updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+          }
+        } catch (e) {}
+      }
+    }
+  });
+
+  window.addEventListener("pagehide", releaseWakeLock);
+
+  /* Background speculative preloader for smooth gapless track transitions */
+  const bgPreloadAudio = document.getElementById("bgPreloadAudio") || (function() {
+    const a = document.createElement("audio");
+    a.id = "bgPreloadAudio";
+    a.preload = "none";
+    a.style.display = "none";
+    a.setAttribute("aria-hidden", "true");
+    document.body.appendChild(a);
+    return a;
+  })();
+
+  let lastPreloadedIdx = -1;
+  function preloadNextTrack() {
+    if (!songs || songs.length <= 1) return;
+    const nextIdx = isShuffle ? -1 : ((currentSong + 1) % songs.length);
+    if (nextIdx >= 0 && nextIdx !== lastPreloadedIdx && songs[nextIdx] && songs[nextIdx].file) {
+      lastPreloadedIdx = nextIdx;
+      try {
+        bgPreloadAudio.src = songs[nextIdx].file;
+        bgPreloadAudio.preload = "auto";
+        bgPreloadAudio.load();
+      } catch (e) {}
+    }
+  }
+
+  /* Audio network recovery */
+  let playbackRetryCount = 0;
+  const MAX_PLAYBACK_RETRIES = 2;
+  function handlePlaybackError(err) {
+    console.warn("Background audio streaming error:", err);
+    if (isPlaying && playbackRetryCount < MAX_PLAYBACK_RETRIES) {
+      playbackRetryCount++;
+      setTimeout(() => {
+        if (offlineAudio && songs[currentSong]) {
+          const savedPos = offlineAudio.currentTime;
+          offlineAudio.src = songs[currentSong].file;
+          offlineAudio.load();
+          if (savedPos > 0) offlineAudio.currentTime = savedPos;
+          offlineAudio.play().then(() => {
+            playbackRetryCount = 0;
+            setPlaybackState(true);
+          }).catch(() => {});
+        }
+      }, 1000);
+    }
+  }
+
   if (offlineAudio) {
+    offlineAudio.addEventListener("play", () => {
+      if (!isPlaying) setPlaybackState(true);
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
+      }
+      requestWakeLock();
+      playbackRetryCount = 0;
+    });
+
+    offlineAudio.addEventListener("pause", () => {
+      if (isPlaying) setPlaybackState(false);
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "paused"; } catch (e) {}
+      }
+      releaseWakeLock();
+    });
+
+    offlineAudio.addEventListener("playing", () => {
+      if (!isPlaying) setPlaybackState(true);
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
+      }
+      playbackRetryCount = 0;
+      updateLiveProgress();
+    });
+
+    offlineAudio.addEventListener("timeupdate", () => {
+      updateLiveProgress();
+      if (offlineAudio.duration && (offlineAudio.currentTime / offlineAudio.duration > 0.75 || (offlineAudio.duration - offlineAudio.currentTime) < 25)) {
+        preloadNextTrack();
+      }
+    });
+
+    offlineAudio.addEventListener("durationchange", () => {
+      updateLiveProgress();
+      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("ratechange", () => {
+      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("error", handlePlaybackError);
+
     offlineAudio.addEventListener("ended", () => {
+      lastPreloadedIdx = -1;
       if (repeatMode === 2) {
         // Repeat One
         offlineAudio.currentTime = 0;
@@ -670,6 +814,9 @@
           playNext();
         } else {
           setPlaybackState(false);
+          if (MEDIA_SESSION_SUPPORTED) {
+            try { navigator.mediaSession.playbackState = "none"; } catch (e) {}
+          }
         }
       }
     });
@@ -684,6 +831,10 @@
       if (miniCover) miniCover.classList.add("spinning");
       if (playerElem) playerElem.classList.add("playing");
       startProgressSync();
+      requestWakeLock();
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
+      }
     } else {
       if (playIcon) playIcon.textContent = "▶";
       if (miniPlayBtn) miniPlayBtn.textContent = "▶";
@@ -691,6 +842,10 @@
       if (miniCover) miniCover.classList.remove("spinning");
       if (playerElem) playerElem.classList.remove("playing");
       stopProgressSync();
+      releaseWakeLock();
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "paused"; } catch (e) {}
+      }
     }
     renderPlaylist(playlistSearch ? playlistSearch.value : "");
     updateMediaSessionMetadata();
@@ -1218,17 +1373,32 @@
   if (nextBtn) nextBtn.addEventListener("click", playNext);
 
   /* =========================================================
-     11. MEDIA SESSION API & KEYBOARD SHORTCUTS
+     11. ADVANCED MEDIA SESSION API & SYSTEM CONTROLS
      ========================================================= */
   const MEDIA_SESSION_SUPPORTED = typeof navigator !== "undefined" && "mediaSession" in navigator;
+
+  function getArtworkList() {
+    const origin = window.location.origin || (window.location.protocol + "//" + window.location.host);
+    const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
+    const makeUrl = (rel) => new URL(rel, origin + basePath).href;
+
+    return [
+      { src: makeUrl("favicon.io/favicon-32x32.png"), sizes: "32x32", type: "image/png" },
+      { src: makeUrl("favicon.io/apple-touch-icon.png"), sizes: "180x180", type: "image/png" },
+      { src: makeUrl("favicon.io/android-chrome-192x192.png"), sizes: "192x192", type: "image/png" },
+      { src: makeUrl("favicon.io/android-chrome-512x512.png"), sizes: "512x512", type: "image/png" },
+      { src: makeUrl("images/image_background.png"), sizes: "1200x630", type: "image/png" }
+    ];
+  }
 
   function updateMediaSessionPosition(pos = 0, dur = 0) {
     if (!MEDIA_SESSION_SUPPORTED || !("setPositionState" in navigator.mediaSession)) return;
     if (!isFinite(dur) || dur <= 0 || !isFinite(pos) || pos < 0) return;
+    const rate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
     try {
       navigator.mediaSession.setPositionState({
         duration: dur,
-        playbackRate: 1,
+        playbackRate: rate,
         position: Math.min(pos, dur)
       });
     } catch (e) { }
@@ -1238,28 +1408,88 @@
     if (!MEDIA_SESSION_SUPPORTED || !songs[currentSong]) return;
     try {
       const s = songs[currentSong];
-      const title = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-      const singer = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
+      const isEn = currentLang === "en";
+      const title = isEn ? (s.nameEn || s.name) : s.name;
+      const singer = isEn ? (s.singerEn || s.singer) : s.singer;
+      const albumName = isEn ? "Superhit Bollywood Classics" : "हिंदी सुपरहिट बॉलीवुड संग्रह";
+
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
-        artist: singer || "Bollywood Hits",
-        album: "Superhit Hindi Songs",
-        artwork: [
-          { src: "favicon.io/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
-          { src: "favicon.io/android-chrome-512x512.png", sizes: "512x512", type: "image/png" }
-        ]
+        artist: singer || (isEn ? "Bollywood Singer" : "बॉलीवुड गायक"),
+        album: albumName,
+        artwork: getArtworkList()
       });
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     } catch (e) { }
   }
 
-  if (MEDIA_SESSION_SUPPORTED) {
-    try {
-      navigator.mediaSession.setActionHandler("play", togglePlayback);
-      navigator.mediaSession.setActionHandler("pause", togglePlayback);
-      navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
-      navigator.mediaSession.setActionHandler("nexttrack", playNext);
-    } catch (e) { }
+  function initMediaSessionHandlers() {
+    if (!MEDIA_SESSION_SUPPORTED) return;
+
+    const actionHandlers = [
+      ["play", () => {
+        if (!isPlaying) togglePlayback();
+      }],
+      ["pause", () => {
+        if (isPlaying) togglePlayback();
+      }],
+      ["previoustrack", () => {
+        playPrevious();
+      }],
+      ["nexttrack", () => {
+        playNext();
+      }],
+      ["seekto", (details) => {
+        if (details.seekTime !== undefined && isFinite(details.seekTime) && offlineAudio) {
+          if (details.fastSeek && ("fastSeek" in offlineAudio)) {
+            offlineAudio.fastSeek(details.seekTime);
+          } else {
+            offlineAudio.currentTime = details.seekTime;
+          }
+          updateLiveProgress();
+          updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+        }
+      }],
+      ["seekbackward", (details) => {
+        const skip = details.seekOffset || 10;
+        if (offlineAudio) {
+          offlineAudio.currentTime = Math.max(0, (offlineAudio.currentTime || 0) - skip);
+          updateLiveProgress();
+          updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+        }
+      }],
+      ["seekforward", (details) => {
+        const skip = details.seekOffset || 10;
+        if (offlineAudio) {
+          offlineAudio.currentTime = Math.min(offlineAudio.duration || 9999, (offlineAudio.currentTime || 0) + skip);
+          updateLiveProgress();
+          updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+        }
+      }],
+      ["stop", () => {
+        if (offlineAudio) {
+          offlineAudio.pause();
+          offlineAudio.currentTime = 0;
+        }
+        setPlaybackState(false);
+        if (MEDIA_SESSION_SUPPORTED) {
+          try {
+            navigator.mediaSession.playbackState = "none";
+          } catch (e) {}
+        }
+      }]
+    ];
+
+    for (const [action, handler] of actionHandlers) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (err) {
+        console.debug(`Media Session action '${action}' not supported:`, err);
+      }
+    }
   }
+
+  initMediaSessionHandlers();
 
   window.addEventListener("keydown", (e) => {
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";

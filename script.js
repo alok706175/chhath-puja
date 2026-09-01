@@ -2218,36 +2218,67 @@
       const s = songs[currentSong];
       const songTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
       const songSingerName = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
-      const art192 = new URL("favicon.io/android-chrome-192x192.png", window.location.href).href;
-      const art512 = new URL("favicon.io/android-chrome-512x512.png", window.location.href).href;
+      const origin = window.location.origin || (window.location.protocol + "//" + window.location.host);
+      const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
+      const makeUrl = (rel) => new URL(rel, origin + basePath).href;
+
       navigator.mediaSession.metadata = new MediaMetadata({
         title: songTitle,
         artist: songSingerName || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"),
-        album: currentLang === "en" ? "Chhath Ghat" : "छठ घाट",
+        album: currentLang === "en" ? "Chhath Ghat (छठ घाट)" : "छठ घाट",
         artwork: [
-          { src: art192, sizes: "192x192", type: "image/png" },
-          { src: art512, sizes: "512x512", type: "image/png" }
+          { src: makeUrl("favicon.io/favicon-32x32.png"), sizes: "32x32", type: "image/png" },
+          { src: makeUrl("favicon.io/apple-touch-icon.png"), sizes: "180x180", type: "image/png" },
+          { src: makeUrl("favicon.io/android-chrome-192x192.png"), sizes: "192x192", type: "image/png" },
+          { src: makeUrl("favicon.io/android-chrome-512x512.png"), sizes: "512x512", type: "image/png" },
+          { src: makeUrl("images/image_background.png"), sizes: "1200x630", type: "image/png" }
         ]
       });
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     } catch (e) { }
   }
 
   if (MEDIA_SESSION_SUPPORTED) {
-    try {
-      navigator.mediaSession.setActionHandler("play", togglePlayback);
-      navigator.mediaSession.setActionHandler("pause", togglePlayback);
-      navigator.mediaSession.setActionHandler("previoustrack", playPrevious);
-      navigator.mediaSession.setActionHandler("nexttrack", playNext);
-      navigator.mediaSession.setActionHandler("seekto", (details) => {
-        if (details.seekTime && isFinite(details.seekTime)) {
+    const actionHandlers = [
+      ["play", togglePlayback],
+      ["pause", togglePlayback],
+      ["previoustrack", playPrevious],
+      ["nexttrack", playNext],
+      ["seekto", (details) => {
+        if (details.seekTime !== undefined && isFinite(details.seekTime)) {
           if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
             ytPlayer.seekTo(details.seekTime, true);
           } else if (offlineAudio) {
             offlineAudio.currentTime = details.seekTime;
+            updateLiveProgress();
           }
         }
-      });
-    } catch (e) { }
+      }],
+      ["seekbackward", (details) => {
+        const skip = details.seekOffset || 10;
+        seekRelative(-skip);
+      }],
+      ["seekforward", (details) => {
+        const skip = details.seekOffset || 10;
+        seekRelative(skip);
+      }],
+      ["stop", () => {
+        if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+          ytPlayer.pauseVideo();
+        } else if (offlineAudio) {
+          offlineAudio.pause();
+          offlineAudio.currentTime = 0;
+        }
+        setPlaybackState(false);
+        try { navigator.mediaSession.playbackState = "none"; } catch (e) {}
+      }]
+    ];
+
+    for (const [action, handler] of actionHandlers) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (e) { }
+    }
   }
 
   /* =========================================================
