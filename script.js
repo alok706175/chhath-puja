@@ -1617,6 +1617,185 @@
     showToast(`${t.nowPlayingPrefix || "🎶 Now Playing: "}${nowTitle}`);
   }
 
+  /* =========================================================
+     7.4.1 SCREEN WAKE LOCK & BACKGROUND KEEPALIVE ENGINE
+     ========================================================= */
+  let wakeLockSentinel = null;
+
+  async function requestWakeLock() {
+    if ("wakeLock" in navigator && !wakeLockSentinel && document.visibilityState === "visible") {
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request("screen");
+        wakeLockSentinel.addEventListener("release", () => {
+          wakeLockSentinel = null;
+        });
+      } catch (err) {
+        // Handled silently for low battery/background tabs
+      }
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockSentinel) {
+      wakeLockSentinel.release().catch(() => {});
+      wakeLockSentinel = null;
+    }
+  }
+
+  /* Background speculative preloader for smooth gapless track transitions */
+  const bgPreloadAudio = document.getElementById("bgPreloadAudio") || (function() {
+    const a = document.createElement("audio");
+    a.id = "bgPreloadAudio";
+    a.preload = "none";
+    a.style.display = "none";
+    a.setAttribute("aria-hidden", "true");
+    document.body.appendChild(a);
+    return a;
+  })();
+
+  let lastPreloadedIdx = -1;
+  function preloadNextTrack() {
+    if (!songs || songs.length <= 1) return;
+    const valid = isOnlineMode
+      ? songs.map((s, i) => s.videoId ? i : -1).filter(i => i !== -1)
+      : songs.map((s, i) => s.file ? i : -1).filter(i => i !== -1);
+    if (!valid.length) return;
+    const curPos = valid.indexOf(currentSong);
+    const nextIdx = valid[(curPos + 1) % valid.length];
+    
+    if (nextIdx >= 0 && nextIdx !== lastPreloadedIdx && songs[nextIdx] && songs[nextIdx].file) {
+      lastPreloadedIdx = nextIdx;
+      try {
+        bgPreloadAudio.src = songs[nextIdx].file;
+        bgPreloadAudio.preload = "auto";
+        bgPreloadAudio.load();
+      } catch (e) {}
+
+      // Cache API background pre-warm
+      if ("caches" in window) {
+        caches.open("chhath-media-cache-v2").then((cache) => {
+          cache.match(songs[nextIdx].file).then((matched) => {
+            if (!matched) {
+              fetch(songs[nextIdx].file, { mode: "cors" }).then((res) => {
+                if (res.ok) cache.put(songs[nextIdx].file, res);
+              }).catch(() => {});
+            }
+          });
+        }).catch(() => {});
+      }
+    }
+  }
+
+  /* Audio network recovery engine */
+  let playbackRetryCount = 0;
+  const MAX_PLAYBACK_RETRIES = 3;
+  function handlePlaybackError(err) {
+    console.warn("Background audio streaming error:", err);
+    if (isPlaying && !isOnlineMode && playbackRetryCount < MAX_PLAYBACK_RETRIES) {
+      playbackRetryCount++;
+      setTimeout(() => {
+        if (offlineAudio && songs[currentSong] && songs[currentSong].file) {
+          const savedPos = offlineAudio.currentTime;
+          offlineAudio.src = songs[currentSong].file;
+          offlineAudio.load();
+          if (savedPos > 0) {
+            offlineAudio.currentTime = savedPos;
+          }
+          const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+          offlineAudio.volume = volNum / 100;
+          offlineAudio.play().then(() => {
+            playbackRetryCount = 0;
+            setPlaybackState(true);
+          }).catch(() => {});
+        }
+      }, 800 * playbackRetryCount);
+    }
+  }
+
+  if (offlineAudio) {
+    offlineAudio.addEventListener("play", () => {
+      if (!isPlaying && !isOnlineMode) setPlaybackState(true);
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
+      }
+      requestWakeLock();
+      playbackRetryCount = 0;
+    });
+
+    offlineAudio.addEventListener("pause", () => {
+      if (isPlaying && !isOnlineMode) setPlaybackState(false);
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "paused"; } catch (e) {}
+      }
+      releaseWakeLock();
+    });
+
+    offlineAudio.addEventListener("playing", () => {
+      if (!isPlaying && !isOnlineMode) setPlaybackState(true);
+      if (MEDIA_SESSION_SUPPORTED) {
+        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
+      }
+      playbackRetryCount = 0;
+      updateLiveProgress();
+    });
+
+    offlineAudio.addEventListener("timeupdate", () => {
+      updateLiveProgress();
+      if (offlineAudio.duration && (offlineAudio.currentTime / offlineAudio.duration > 0.65 || (offlineAudio.duration - offlineAudio.currentTime) < 25)) {
+        preloadNextTrack();
+      }
+    });
+
+    offlineAudio.addEventListener("durationchange", () => {
+      updateLiveProgress();
+      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("ratechange", () => {
+      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("error", handlePlaybackError);
+
+    offlineAudio.addEventListener("ended", () => {
+      lastPreloadedIdx = -1;
+      playNext();
+    });
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      updateLiveProgress();
+      if (!isOnlineMode && offlineAudio) {
+        if (!offlineAudio.paused && !isPlaying) {
+          setPlaybackState(true);
+        } else if (offlineAudio.paused && isPlaying) {
+          setPlaybackState(false);
+        }
+      }
+      if (isPlaying) {
+        requestWakeLock();
+      }
+    } else {
+      if (MEDIA_SESSION_SUPPORTED) {
+        try {
+          navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+          const cur = getActiveCurrentTime();
+          const dur = getActiveDuration();
+          updateMediaSessionPosition(cur, dur);
+        } catch (e) {}
+      }
+    }
+  });
+
+  window.addEventListener("pagehide", releaseWakeLock);
+  window.addEventListener("pageshow", () => {
+    if (isPlaying) {
+      requestWakeLock();
+      updateLiveProgress();
+    }
+  });
+
   function playOfflineSong(index) {
     const s = songs[index];
     if (!s) return;
@@ -1651,6 +1830,7 @@
         playPromise
           .then(() => {
             setPlaybackState(true);
+            preloadNextTrack();
           })
           .catch((err) => {
             console.warn("Audio play blocked/error:", err);
@@ -1750,7 +1930,9 @@
           const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
           offlineAudio.volume = volNum / 100;
           offlineAudio.playbackRate = activeRate;
-          offlineAudio.play().catch((err) => {
+          offlineAudio.play().then(() => {
+            preloadNextTrack();
+          }).catch((err) => {
             console.warn("Audio play error:", err);
             playSong(currentSong);
           });
@@ -1781,28 +1963,6 @@
     playSong(valid[nextPos]);
   }
 
-  /* Advance when audio track ends (in both modes) */
-  if (offlineAudio) {
-    offlineAudio.addEventListener("ended", () => {
-      playNext();
-    });
-  }
-
-  /* =========================================================
-     7.5 EVENT LISTENERS & USER CONTROLS
-     ========================================================= */
-  if (playButton) {
-    playButton.addEventListener("click", togglePlayback);
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener("click", playPrevious);
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener("click", playNext);
-  }
-
   /* Robust Seek Controller (Online & Offline) */
   function seekToTime(targetSec) {
     const dur = getActiveDuration();
@@ -1820,11 +1980,17 @@
       }
     }
 
-    // Apply seek to offline audio
+    // Apply seek to offline audio with fastSeek support
     if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
       try {
+        if ("fastSeek" in offlineAudio) {
+          offlineAudio.fastSeek(safeSec);
+        } else {
+          offlineAudio.currentTime = safeSec;
+        }
+      } catch (e) {
         offlineAudio.currentTime = safeSec;
-      } catch (e) { }
+      }
     }
 
     // Immediately update visual UI so it doesn't flicker or snap
@@ -1835,13 +2001,13 @@
       if (currentTime) currentTime.textContent = formatTime(safeSec);
     }
 
-    // Keep isSeeking true for 350ms to allow YouTube time to catch up and prevent snapback
+    // Keep isSeeking true for 250ms to allow smooth audio stream sync
     isSeeking = true;
     if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
     seekDebounceTimeout = setTimeout(() => {
       isSeeking = false;
       updateLiveProgress();
-    }, 350);
+    }, 250);
   }
 
   function seekRelative(deltaSec) {
@@ -1852,6 +2018,19 @@
       seekToTime(target);
       showToast(deltaSec > 0 ? `⏩ +${deltaSec}s` : `⏪ ${deltaSec}s`);
     }
+  }
+
+  /* Player Button Event Listeners */
+  if (playButton) {
+    playButton.addEventListener("click", togglePlayback);
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", playPrevious);
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", playNext);
   }
 
   /* Seek interactions (Forward / Backward Scrubbing) */
@@ -2408,7 +2587,7 @@
   });
 
   /* =========================================================
-     9. STARTUP INITIALIZATION
+     9. STARTUP INITIALIZATION & AUDIO UNLOCK ENGINE
      ========================================================= */
   if (volumeSlider) volumeSlider.value = 100;
   updateVolumeIcon(1);
@@ -2416,10 +2595,26 @@
   loadOfflineSongs();
   ensureYouTubeAPI();
 
-  // Mobile audio & media unlock on first user gesture
-  document.addEventListener("touchstart", function unlockMediaOnce() {
+  // Register High-Performance Service Worker for instant offline audio caching
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch((err) => {
+        console.debug("ServiceWorker registration notice:", err);
+      });
+    });
+  }
+
+  // Mobile audio & media unlock on first user gesture across touch/click/pointer
+  function unlockAudioPipeline() {
     ensureAudioContext();
     ensureYouTubeAPI();
-    document.removeEventListener("touchstart", unlockMediaOnce);
-  }, { passive: true, once: true });
+    if (offlineAudio && !offlineAudio.src && songs && songs[0] && songs[0].file) {
+      offlineAudio.src = songs[0].file;
+      offlineAudio.load();
+    }
+  }
+
+  ["touchstart", "touchend", "pointerdown", "click", "keydown"].forEach((evt) => {
+    document.addEventListener(evt, unlockAudioPipeline, { passive: true, once: true });
+  });
 })();

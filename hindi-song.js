@@ -603,6 +603,7 @@
 
       offlineAudio.play().then(() => {
         setPlaybackState(true);
+        preloadNextTrack();
         const prefix = (i18n[currentLang] && i18n[currentLang].nowPlayingPrefix) || "🎶 Now Playing: ";
         showToast(prefix + (currentLang === "en" ? (s.nameEn || s.name) : s.name));
       }).catch(err => {
@@ -627,7 +628,9 @@
         const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
         offlineAudio.volume = volNum / 100;
         offlineAudio.playbackRate = activeRate;
-        offlineAudio.play().catch(console.warn);
+        offlineAudio.play().then(() => {
+          preloadNextTrack();
+        }).catch(console.warn);
       }
       setPlaybackState(true);
     }
@@ -729,6 +732,19 @@
         bgPreloadAudio.preload = "auto";
         bgPreloadAudio.load();
       } catch (e) {}
+
+      // Cache Storage background pre-warm
+      if ("caches" in window) {
+        caches.open("chhath-media-cache-v2").then((cache) => {
+          cache.match(songs[nextIdx].file).then((matched) => {
+            if (!matched) {
+              fetch(songs[nextIdx].file, { mode: "cors" }).then((res) => {
+                if (res.ok) cache.put(songs[nextIdx].file, res);
+              }).catch(() => {});
+            }
+          });
+        }).catch(() => {});
+      }
     }
   }
 
@@ -895,7 +911,16 @@
       const dur = offlineAudio ? offlineAudio.duration || 0 : 0;
       const pct = parseFloat(progress.value) || 0;
       if (dur > 0 && offlineAudio) {
-        offlineAudio.currentTime = (pct / 100) * dur;
+        const targetSec = (pct / 100) * dur;
+        try {
+          if ("fastSeek" in offlineAudio) {
+            offlineAudio.fastSeek(targetSec);
+          } else {
+            offlineAudio.currentTime = targetSec;
+          }
+        } catch (e) {
+          offlineAudio.currentTime = targetSec;
+        }
       }
       isSeeking = false;
     };
@@ -1556,8 +1581,29 @@
   });
 
   /* =========================================================
-     12. STARTUP INITIALIZATION
+     12. STARTUP INITIALIZATION & AUDIO UNLOCK ENGINE
      ========================================================= */
   setLanguage("en", false);
   loadHindiSongs();
+
+  // Register High-Performance Service Worker for instant offline audio caching
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch((err) => {
+        console.debug("ServiceWorker registration notice:", err);
+      });
+    });
+  }
+
+  // Mobile audio & media unlock on first user gesture across touch/click/pointer
+  function unlockAudioPipeline() {
+    if (offlineAudio && !offlineAudio.src && songs && songs[0] && songs[0].file) {
+      offlineAudio.src = songs[0].file;
+      offlineAudio.load();
+    }
+  }
+
+  ["touchstart", "touchend", "pointerdown", "click", "keydown"].forEach((evt) => {
+    document.addEventListener(evt, unlockAudioPipeline, { passive: true, once: true });
+  });
 })();
