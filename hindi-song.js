@@ -34,7 +34,7 @@
       timeWidgetTitle: "भारतीय मानक समय (IST)",
       navBackText: "वापस जाएं",
       navBackTitle: "मुख्य पृष्ठ पर वापस जाएं",
-      heroBadge: "✨ 56 सुपरहिट बॉलीवुड क्लासिक्स",
+      heroBadge: "✨ 70 सुपरहिट बॉलीवुड क्लासिक्स",
       mainLogoTitle1: "हिंदी सुपरहिट",
       mainLogoTitle2: "गीत संग्रह",
       taglineText: "॥ बॉलीवुड क्लासिक्स • रोमांटिक हिट्स • दिलकश नगमे • डांस बीट्स ॥",
@@ -83,7 +83,7 @@
       timeWidgetTitle: "Indian Standard Time (IST)",
       navBackText: "Go Back",
       navBackTitle: "Go Back to Home",
-      heroBadge: "✨ 56 SUPERHIT BOLLYWOOD CLASSICS",
+      heroBadge: "✨ 70 SUPERHIT BOLLYWOOD CLASSICS",
       mainLogoTitle1: "Superhit Hindi",
       mainLogoTitle2: "Songs Collection",
       taglineText: "॥ Bollywood Classics • Romantic Hits • Soulful Melodies • Dance Beats ॥",
@@ -290,7 +290,7 @@
   const SHARE_URL = window.location.href;
 
   function shareOnWhatsApp(customHeading) {
-    const title = customHeading || "🎶 56 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧";
+    const title = customHeading || "🎶 70 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧";
     const body =
       `${title}\n\n` +
       `सुनिए सदाबहार 90s क्लासिक्स, रोमांटिक हिट्स और डांस बीट्स 320 Kbps HD ऑडियो में:\n\n` +
@@ -315,14 +315,14 @@
   const waShareBtn = document.getElementById("whatsappShareBtn");
   if (waShareBtn) {
     waShareBtn.addEventListener("click", () => {
-      shareOnWhatsApp("🎶 56 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧");
+      shareOnWhatsApp("🎶 70 सुपरहिट हिंदी बॉलीवुड गीत संग्रह 🎧");
     });
   }
 
   const fbShareBtn = document.getElementById("facebookShareBtn");
   if (fbShareBtn) {
     fbShareBtn.addEventListener("click", () => {
-      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent("🎶 56 सुपरहिट हिंदी बॉलीवुड गीत संग्रह ऑनलाइन सुनें 🎧")}`;
+      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent("🎶 70 सुपरहिट हिंदी बॉलीवुड गीत संग्रह ऑनलाइन सुनें 🎧")}`;
       window.open(fbUrl, "_blank", "noopener,noreferrer,width=600,height=500");
     });
   }
@@ -1051,7 +1051,12 @@
     } else if (currentSort === "singer-asc") {
       list.sort((a, b) => (isEn ? (a.singerEn || a.singer) : a.singer).localeCompare(isEn ? (b.singerEn || b.singer) : b.singer));
     } else if (currentSort === "duration-desc") {
-      list.sort((a, b) => (b.duration || "0:00").localeCompare(a.duration || "0:00"));
+      const parseDur = (durStr) => {
+        if (!durStr) return 0;
+        const parts = durStr.split(":").map(Number);
+        return (parts[0] || 0) * 60 + (parts[1] || 0);
+      };
+      list.sort((a, b) => parseDur(b.duration) - parseDur(a.duration));
     }
 
     return list;
