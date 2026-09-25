@@ -834,9 +834,27 @@ body.live-video-active .bg-overlay {
   animation: rotateVinyl 8s linear infinite;
 }
 
+.offline-cover.loading {
+  animation: pulseCoverLoading 1.4s ease-in-out infinite alternate;
+}
+
 @keyframes rotateVinyl {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes pulseCoverLoading {
+  0% { transform: scale(0.95); filter: brightness(0.85); box-shadow: 0 0 10px rgba(255, 184, 77, 0.3); }
+  100% { transform: scale(1.05); filter: brightness(1.2); box-shadow: 0 0 25px rgba(255, 184, 77, 0.8); }
+}
+
+.offline-play-btn.loading {
+  animation: pulsePlayBtn 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulsePlayBtn {
+  0% { opacity: 0.8; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1.04); }
 }
 
 /* Song Meta Information */

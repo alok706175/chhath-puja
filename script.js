@@ -611,19 +611,12 @@
   requestAnimationFrame(animateParticles);
 
   /* =========================================================
-     7. UNIFIED DEVOTIONAL MUSIC & BACKGROUND VIDEO CONTROLLER
+     7. MODERN & PROFESSIONAL AUDIO MEDIA PLAYBACK SYSTEM
      ========================================================= */
-  let songs = [];
-  let currentSong = 0;
-  let isSeeking = false;
-  let lastVolume = 1;
-  let isPlaying = false;
-  let isOnlineMode = false; // Default: Offline Mode
-  let ytPlayer = null;
-  let isYtReady = false;
-  let progressInterval = null;
-  let seekDebounceTimeout = null;
 
+  // ---------------------------------------------------------
+  // DOM ELEMENTS
+  // ---------------------------------------------------------
   const offlineAudio = document.getElementById("offlineAudio");
   const songName = document.getElementById("offlineSongName");
   const songSinger = document.getElementById("offlineSinger");
@@ -638,23 +631,13 @@
   const totalTime = document.getElementById("totalSongTime");
   const muteBtn = document.getElementById("muteBtn");
   const volumeSlider = document.getElementById("volumeSlider");
+  const playerElem = document.getElementById("offlinePlayer");
+
   const speedDropdown = document.getElementById("speedDropdown");
   const speedBtn = document.getElementById("speedBtn");
   const speedLabel = document.getElementById("speedLabel");
   const speedDropdownMenu = document.getElementById("speedDropdownMenu");
   const speedMenuItems = document.querySelectorAll(".speed-menu-item");
-  const playerElem = document.getElementById("offlinePlayer");
-
-  let currentSpeedIndex = 2; // Default: 1.0x
-  const PLAYBACK_SPEEDS = [
-    { value: 0.5, label: "0.5x" },
-    { value: 0.75, label: "0.75x" },
-    { value: 1.0, label: "1.0x" },
-    { value: 1.25, label: "1.25x" },
-    { value: 1.5, label: "1.50x" },
-    { value: 1.75, label: "1.75x" },
-    { value: 2.0, label: "2.0x" }
-  ];
 
   const playlistToggleBtn = document.getElementById("playlistToggleBtn");
   const playlistCloseBtn = document.getElementById("playlistCloseBtn");
@@ -675,22 +658,18 @@
   const taglineText = document.getElementById("taglineText");
 
   const ritualsHeading = document.getElementById("ritualsHeading");
-
   const ritual1DayBadge = document.getElementById("ritual1DayBadge");
   const ritual1Title = document.getElementById("ritual1Title");
   const ritual1Desc = document.getElementById("ritual1Desc");
   const ritual1Highlight = document.getElementById("ritual1Highlight");
-
   const ritual2DayBadge = document.getElementById("ritual2DayBadge");
   const ritual2Title = document.getElementById("ritual2Title");
   const ritual2Desc = document.getElementById("ritual2Desc");
   const ritual2Highlight = document.getElementById("ritual2Highlight");
-
   const ritual3DayBadge = document.getElementById("ritual3DayBadge");
   const ritual3Title = document.getElementById("ritual3Title");
   const ritual3Desc = document.getElementById("ritual3Desc");
   const ritual3Highlight = document.getElementById("ritual3Highlight");
-
   const ritual4DayBadge = document.getElementById("ritual4DayBadge");
   const ritual4Title = document.getElementById("ritual4Title");
   const ritual4Desc = document.getElementById("ritual4Desc");
@@ -700,6 +679,1514 @@
   const mantraText = document.getElementById("mantraText");
   const copyMantraBtnText = document.getElementById("copyMantraBtnText");
   const shareMantraBtnText = document.getElementById("shareMantraBtnText");
+
+  // Speculative audio preloader for zero-latency gapless transitions
+  const bgPreloadAudio = document.getElementById("bgPreloadAudio") || (function () {
+    const a = document.createElement("audio");
+    a.id = "bgPreloadAudio";
+    a.preload = "none";
+    a.style.display = "none";
+    a.setAttribute("aria-hidden", "true");
+    document.body.appendChild(a);
+    return a;
+  })();
+
+  // ---------------------------------------------------------
+  // STATE
+  // ---------------------------------------------------------
+  let songs = [];
+  let currentSong = 0;
+  let playbackState = "paused"; // "playing" | "paused" | "loading" | "ended" | "error"
+  let isPlaying = false;
+  let isSeeking = false;
+  let isMuted = false;
+  let lastVolume = 1.0; // 0.0 - 1.0
+  let isOnlineMode = false; // Dual mode: Offline MP3 audio vs Online live video
+  let ytPlayer = null;
+  let isYtReady = false;
+  let isSwitchingTrack = false;
+  let isActionLocked = false; // Debounce rapid click duplicates
+  let progressInterval = null;
+  let seekDebounceTimeout = null;
+  let lastSavedPosition = 0;
+  let wakeLockSentinel = null;
+  let lastPreloadedIdx = -1;
+
+  // Cached DOM state to prevent unnecessary updates
+  let lastRenderedCurrentTimeSec = -1;
+  let lastRenderedDurationSec = -1;
+  let lastRenderedProgressPct = -1;
+
+  const PLAYBACK_SPEEDS = [
+    { value: 0.5, label: "0.5x" },
+    { value: 0.75, label: "0.75x" },
+    { value: 1.0, label: "1.0x" },
+    { value: 1.25, label: "1.25x" },
+    { value: 1.5, label: "1.50x" },
+    { value: 1.75, label: "1.75x" },
+    { value: 2.0, label: "2.0x" }
+  ];
+  let currentSpeedIndex = 2; // Default 1.0x
+
+  // ---------------------------------------------------------
+  // LOCAL STORAGE HELPERS
+  // ---------------------------------------------------------
+  const STORAGE_KEYS = {
+    LAST_SONG: "chhath_player_last_song",
+    LAST_POS: "chhath_player_last_pos",
+    VOLUME: "chhath_player_volume",
+    MUTED: "chhath_player_muted"
+  };
+
+  function safeStorageGet(key, fallback = null) {
+    try {
+      const val = localStorage.getItem(key);
+      return val !== null ? val : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function safeStorageSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) { }
+  }
+
+  function savePlayerStatePeriodic(force = false) {
+    const cur = getActiveCurrentTime();
+    if (force || Math.abs(cur - lastSavedPosition) >= 3) {
+      lastSavedPosition = cur;
+      safeStorageSet(STORAGE_KEYS.LAST_SONG, currentSong.toString());
+      if (cur > 0) {
+        safeStorageSet(STORAGE_KEYS.LAST_POS, cur.toFixed(2));
+      }
+    }
+  }
+
+  // ---------------------------------------------------------
+  // PLAYLIST (Dynamic JSON Fetching, Normalization & Caching)
+  // ---------------------------------------------------------
+  function normalizeSong(item, idx) {
+    const title = item.title || item.name || `Chhath Geet ${idx + 1}`;
+    const titleEn = item.titleEn || item.nameEn || title;
+    const artist = item.artist || item.singer || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व");
+    const artistEn = item.artistEn || item.singerEn || artist;
+    const album = item.album || (currentLang === "en" ? "Chhath Ghat" : "छठ घाट");
+    const src = item.src || item.file || "";
+    const cover = item.cover || item.artwork || "favicon.io/android-chrome-512x512.png";
+    const videoId = item.videoId || "";
+    const embedUrl = item.embedUrl || "";
+
+    return {
+      id: item.id || (idx + 1),
+      title: title,
+      name: title,
+      titleEn: titleEn,
+      nameEn: titleEn,
+      artist: artist,
+      singer: artist,
+      artistEn: artistEn,
+      singerEn: artistEn,
+      album: album,
+      src: src,
+      file: src,
+      cover: cover,
+      videoId: videoId,
+      embedUrl: embedUrl,
+      ytName: item.ytName || title,
+      ytNameEn: item.ytNameEn || titleEn,
+      ytSinger: item.ytSinger || artist,
+      ytSingerEn: item.ytSingerEn || artistEn
+    };
+  }
+
+  async function loadOfflineSongs() {
+    try {
+      let rawList = [];
+
+      // 1. Try fetching songs.json directly
+      try {
+        const res = await fetch("songs.json", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            rawList = data;
+          }
+        }
+      } catch (e) {
+        console.warn("Primary songs.json fetch notice, trying fallback:", e);
+      }
+
+      // 2. Fallback to data/cloudinary/cloudinary_songs.json if needed
+      if (!rawList || rawList.length === 0) {
+        try {
+          const res = await fetch("data/cloudinary/cloudinary_songs.json", { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              rawList = data;
+            }
+          }
+        } catch (e) {
+          console.warn("Cloudinary fallback fetch error:", e);
+        }
+      }
+
+      // 3. Fetch YouTube metadata for dual online video mode
+      let ytList = [];
+      try {
+        const ytRes = await fetch("data/youtube/youtube_songs.json", { cache: "no-store" });
+        if (ytRes.ok) ytList = await ytRes.json();
+      } catch (e) { }
+
+      // 4. Merge & Normalize
+      const maxLen = Math.max(rawList.length, ytList.length);
+      if (maxLen === 0) {
+        throw new Error("Empty playlist received");
+      }
+
+      songs = [];
+      for (let i = 0; i < maxLen; i++) {
+        const r = rawList[i] || {};
+        const y = ytList[i] || {};
+        const merged = {
+          ...r,
+          videoId: y.videoId || r.videoId || "",
+          embedUrl: y.embedUrl || r.embedUrl || "",
+          ytName: y.name || r.title || r.name || "",
+          ytNameEn: y.nameEn || r.titleEn || r.nameEn || "",
+          ytSinger: y.singer || r.artist || r.singer || "",
+          ytSingerEn: y.singerEn || r.artistEn || r.singerEn || ""
+        };
+        songs.push(normalizeSong(merged, i));
+      }
+
+      // Restore saved volume and mute preferences from localStorage
+      restoreVolumeAndMuteState();
+
+      // Restore last selected song and position (respecting browser autoplay rules)
+      const savedSongIdx = parseInt(safeStorageGet(STORAGE_KEYS.LAST_SONG, "0"), 10);
+      const targetIdx = (!isNaN(savedSongIdx) && savedSongIdx >= 0 && savedSongIdx < songs.length) ? savedSongIdx : 0;
+      currentSong = targetIdx;
+
+      updatePlaylistHeaderUI();
+      renderPlaylist();
+      displaySongInfo(currentSong);
+
+      // Load initial track without autoplaying
+      loadSong(currentSong, false);
+
+      const savedPos = parseFloat(safeStorageGet(STORAGE_KEYS.LAST_POS, "0"));
+      if (!isNaN(savedPos) && savedPos > 0 && offlineAudio) {
+        const onFirstMeta = () => {
+          if (offlineAudio.duration && isFinite(offlineAudio.duration) && savedPos < offlineAudio.duration) {
+            offlineAudio.currentTime = savedPos;
+            updateLiveProgress();
+          }
+          offlineAudio.removeEventListener("loadedmetadata", onFirstMeta);
+        };
+        offlineAudio.addEventListener("loadedmetadata", onFirstMeta);
+      }
+
+      // Background speculative preloading
+      preloadNextTrack();
+    } catch (error) {
+      console.error("Songs playlist initialization error:", error);
+      handlePlaybackError({
+        message: currentLang === "en" ? "Failed to load playlist. Please check your connection." : "गीत सूची लोड नहीं हो सकी। कृपया इंटरनेट जांचें।"
+      });
+    }
+  }
+
+  // ---------------------------------------------------------
+  // AUDIO INITIALIZATION
+  // ---------------------------------------------------------
+  if (offlineAudio) {
+    offlineAudio.preload = "auto";
+
+    offlineAudio.addEventListener("loadstart", () => {
+      if (isPlaying) setPlayerState("loading");
+    });
+
+    offlineAudio.addEventListener("waiting", () => {
+      if (isPlaying) setPlayerState("loading");
+    });
+
+    offlineAudio.addEventListener("canplay", () => {
+      if (isPlaying) setPlayerState("playing");
+      updateLiveProgress();
+    });
+
+    offlineAudio.addEventListener("play", () => {
+      if (!isOnlineMode) {
+        setPlayerState("playing");
+      }
+      requestWakeLock();
+    });
+
+    offlineAudio.addEventListener("playing", () => {
+      if (!isOnlineMode) {
+        setPlayerState("playing");
+      }
+      updateLiveProgress();
+    });
+
+    offlineAudio.addEventListener("pause", () => {
+      if (!isOnlineMode && !isSwitchingTrack) {
+        setPlayerState("paused");
+      }
+      savePlayerStatePeriodic(true);
+      releaseWakeLock();
+    });
+
+    offlineAudio.addEventListener("timeupdate", () => {
+      updateLiveProgress();
+      savePlayerStatePeriodic(false);
+
+      if (offlineAudio.duration && isFinite(offlineAudio.duration)) {
+        if (offlineAudio.currentTime / offlineAudio.duration > 0.65 || (offlineAudio.duration - offlineAudio.currentTime) < 25) {
+          preloadNextTrack();
+        }
+      }
+    });
+
+    offlineAudio.addEventListener("durationchange", () => {
+      updateLiveProgress();
+      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("ratechange", () => {
+      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
+    });
+
+    offlineAudio.addEventListener("seeked", () => {
+      updateLiveProgress();
+      savePlayerStatePeriodic(true);
+    });
+
+    offlineAudio.addEventListener("ended", () => {
+      setPlayerState("ended");
+      playNext(true);
+    });
+
+    offlineAudio.addEventListener("error", (e) => {
+      handlePlaybackError(e);
+    });
+  }
+
+  // ---------------------------------------------------------
+  // SONG LOADING (loadSong)
+  // ---------------------------------------------------------
+  function loadSong(index, autoplay = false) {
+    if (!songs || songs.length === 0) return;
+
+    // 1. Validate index with wrap-around
+    const validIndex = ((index % songs.length) + songs.length) % songs.length;
+    currentSong = validIndex;
+    const song = songs[validIndex];
+    if (!song) return;
+
+    // 2. Update song title, artist, and UI text
+    displaySongInfo(validIndex);
+
+    // 3. Reset progress
+    if (progress) progress.value = 0;
+    if (progressFill) progressFill.style.width = "0%";
+    if (currentTime) currentTime.textContent = "0:00";
+    lastRenderedProgressPct = 0;
+    lastRenderedCurrentTimeSec = 0;
+
+    // 4. Update Media Session metadata
+    updateMediaSessionMetadata();
+
+    // 5. Update playlist highlight
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+
+    // 6. Handle Online vs Offline mode source setting
+    if (isOnlineMode) {
+      if (offlineAudio) {
+        offlineAudio.pause();
+        offlineAudio.currentTime = 0;
+      }
+      if (autoplay) {
+        playOnlineSong(validIndex);
+      }
+    } else {
+      if (offlineAudio) {
+        const fileSrc = song.src || song.file;
+        if (!fileSrc) {
+          handlePlaybackError({ message: "Audio URL is missing for this track." });
+          return;
+        }
+
+        if (offlineAudio.src !== fileSrc) {
+          offlineAudio.src = fileSrc;
+          offlineAudio.load();
+        }
+
+        const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+        const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
+        offlineAudio.volume = isMuted ? 0 : volNum / 100;
+        offlineAudio.playbackRate = activeRate;
+
+        if (autoplay) {
+          setPlayerState("loading");
+          const playPromise = offlineAudio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setPlayerState("playing");
+                preloadNextTrack();
+              })
+              .catch((err) => {
+                console.warn("Autoplay policy or playback blocked:", err);
+                setPlayerState("paused");
+              });
+          }
+        } else {
+          setPlayerState("paused");
+        }
+      }
+    }
+
+    // Save selected song index in localStorage
+    safeStorageSet(STORAGE_KEYS.LAST_SONG, validIndex.toString());
+  }
+
+  function displaySongInfo(index) {
+    if (!songs[index]) return;
+    const s = songs[index];
+    const isEn = currentLang === "en";
+
+    let title = isEn ? (s.titleEn || s.title) : s.title;
+    let singer = isEn ? (s.artistEn || s.artist) : s.artist;
+
+    if (isOnlineMode) {
+      title = isEn ? (s.ytNameEn || title) : (s.ytName || title);
+      singer = isEn ? (s.ytSingerEn || singer) : (s.ytSinger || singer);
+    }
+
+    const fullSinger = singer || (isEn ? "Chhath Devotional" : "छठ भक्ति");
+
+    if (songName) songName.textContent = title;
+    if (songSinger) songSinger.textContent = fullSinger;
+  }
+
+  // ---------------------------------------------------------
+  // PLAYBACK CONTROLS (togglePlay, playPrevious, playNext, setPlayerState)
+  // ---------------------------------------------------------
+  function setPlayerState(state) {
+    playbackState = state;
+    isPlaying = (state === "playing");
+
+    if (playIcon) {
+      if (state === "playing") {
+        playIcon.textContent = "❚❚";
+      } else if (state === "loading") {
+        playIcon.textContent = "⏳";
+      } else {
+        playIcon.textContent = "▶";
+      }
+    }
+
+    if (playButton) {
+      playButton.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+      playButton.setAttribute("aria-label", isPlaying ? "Pause Audio" : "Play Audio");
+      if (state === "loading") {
+        playButton.classList.add("loading");
+      } else {
+        playButton.classList.remove("loading");
+      }
+    }
+
+    if (albumCover) {
+      if (state === "playing") {
+        albumCover.classList.add("spinning");
+        albumCover.classList.remove("loading");
+      } else if (state === "loading") {
+        albumCover.classList.add("loading");
+      } else {
+        albumCover.classList.remove("spinning", "loading");
+      }
+    }
+
+    if (playerElem) {
+      if (state === "playing") {
+        playerElem.classList.add("playing");
+      } else {
+        playerElem.classList.remove("playing");
+      }
+    }
+
+    if (MEDIA_SESSION_SUPPORTED) {
+      try {
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : (state === "ended" ? "none" : "paused");
+      } catch (e) { }
+    }
+
+    if (isPlaying) {
+      startProgressSync();
+    } else {
+      stopProgressSync();
+    }
+
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+  }
+
+  function togglePlay() {
+    if (isActionLocked) return;
+    isActionLocked = true;
+    setTimeout(() => { isActionLocked = false; }, 200);
+
+    if (isPlaying) {
+      // Pause
+      if (isOnlineMode) {
+        if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
+          try { ytPlayer.pauseVideo(); } catch (e) { }
+        }
+      } else {
+        if (offlineAudio && !offlineAudio.paused) {
+          offlineAudio.pause();
+        }
+      }
+      setPlayerState("paused");
+      showToast("⏸️ " + (currentLang === "en" ? "Audio Paused" : "गीत पॉज़ किया गया"));
+    } else {
+      // Play
+      if (isOnlineMode) {
+        if (offlineAudio && !offlineAudio.paused) offlineAudio.pause();
+        if (isYtReady && ytPlayer && typeof ytPlayer.playVideo === "function") {
+          try {
+            const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+            if (!isMuted) {
+              ytPlayer.unMute();
+              ytPlayer.setVolume(volNum);
+            }
+            ytPlayer.playVideo();
+          } catch (e) { }
+        } else {
+          playOnlineSong(currentSong);
+        }
+        setPlayerState("playing");
+      } else {
+        if (offlineAudio) {
+          const song = songs[currentSong];
+          if (song && offlineAudio.src !== (song.src || song.file)) {
+            offlineAudio.src = song.src || song.file;
+          }
+          const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+          const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
+          offlineAudio.volume = isMuted ? 0 : volNum / 100;
+          offlineAudio.playbackRate = activeRate;
+
+          setPlayerState("loading");
+          const playPromise = offlineAudio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setPlayerState("playing");
+                preloadNextTrack();
+              })
+              .catch((err) => {
+                console.warn("Playback could not start:", err);
+                setPlayerState("paused");
+                showToast("⚠️ " + (currentLang === "en" ? "Click play to start" : "गीत शुरू करने के लिए प्ले दबाएं"));
+              });
+          }
+        }
+      }
+      showToast("▶️ " + (currentLang === "en" ? "Playing Chhath Geet" : "छठ गीत शुरू हुआ!"));
+    }
+  }
+
+  // Alias for backward compatibility
+  const togglePlayback = togglePlay;
+
+  function playPrevious() {
+    if (isActionLocked || !songs || songs.length === 0) return;
+    isActionLocked = true;
+    setTimeout(() => { isActionLocked = false; }, 250);
+
+    const prevIndex = (currentSong - 1 + songs.length) % songs.length;
+    loadSong(prevIndex, true);
+  }
+
+  function playNext(autoEnded = false) {
+    if (!songs || songs.length === 0) return;
+    if (!autoEnded && isActionLocked) return;
+    isActionLocked = true;
+    setTimeout(() => { isActionLocked = false; }, 250);
+
+    const nextIndex = (currentSong + 1) % songs.length;
+    loadSong(nextIndex, true);
+  }
+
+  // ---------------------------------------------------------
+  // PROGRESS / SEEKING
+  // ---------------------------------------------------------
+  function startProgressSync() {
+    stopProgressSync();
+    progressInterval = setInterval(updateLiveProgress, 250);
+  }
+
+  function stopProgressSync() {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+  }
+
+  function getActiveDuration() {
+    let dur = 0;
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
+      try { dur = ytPlayer.getDuration() || 0; } catch (e) { }
+    }
+    if (!dur && offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      dur = offlineAudio.duration || 0;
+    }
+    return dur > 0 && isFinite(dur) ? dur : 0;
+  }
+
+  function getActiveCurrentTime() {
+    let cur = 0;
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
+      try { cur = ytPlayer.getCurrentTime() || 0; } catch (e) { }
+    } else if (offlineAudio && offlineAudio.currentTime && isFinite(offlineAudio.currentTime)) {
+      cur = offlineAudio.currentTime || 0;
+    }
+    return cur > 0 && isFinite(cur) ? cur : 0;
+  }
+
+  function formatTime(seconds) {
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return "0:00";
+    const totalSec = Math.floor(seconds);
+    const hrs = Math.floor(totalSec / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    const secStr = secs.toString().padStart(2, "0");
+
+    if (hrs > 0) {
+      const minStr = mins.toString().padStart(2, "0");
+      return `${hrs}:${minStr}:${secStr}`;
+    }
+    return `${mins}:${secStr}`;
+  }
+
+  function updateLiveProgress() {
+    if (isSeeking) return;
+
+    const cur = getActiveCurrentTime();
+    const dur = getActiveDuration();
+
+    // Optimize DOM rendering to avoid unnecessary layout thrashing
+    const curSecRounded = Math.floor(cur);
+    if (curSecRounded !== lastRenderedCurrentTimeSec) {
+      lastRenderedCurrentTimeSec = curSecRounded;
+      if (currentTime) currentTime.textContent = formatTime(cur);
+    }
+
+    const durSecRounded = Math.floor(dur);
+    if (durSecRounded !== lastRenderedDurationSec && dur > 0) {
+      lastRenderedDurationSec = durSecRounded;
+      if (totalTime) totalTime.textContent = formatTime(dur);
+    }
+
+    if (dur > 0) {
+      const pct = Math.min(100, Math.max(0, (cur / dur) * 100));
+      if (Math.abs(pct - lastRenderedProgressPct) > 0.1) {
+        lastRenderedProgressPct = pct;
+        if (progress) progress.value = pct;
+        if (progressFill) progressFill.style.width = `${pct}%`;
+      }
+    }
+
+    updateMediaSessionPosition(cur, dur);
+  }
+
+  function seekToTime(targetSec, fast = false) {
+    const dur = getActiveDuration();
+    if (!isFinite(dur) || dur <= 0) return;
+
+    const safeSec = Math.max(0, Math.min(dur, targetSec));
+
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
+      try {
+        ytPlayer.seekTo(safeSec, true);
+        if (isPlaying && typeof ytPlayer.playVideo === "function") {
+          ytPlayer.playVideo();
+        }
+      } catch (e) { }
+    } else if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
+      try {
+        if (fast && "fastSeek" in offlineAudio) {
+          offlineAudio.fastSeek(safeSec);
+        } else {
+          offlineAudio.currentTime = safeSec;
+        }
+      } catch (e) {
+        offlineAudio.currentTime = safeSec;
+      }
+    }
+
+    // Immediately update UI
+    const pct = (safeSec / dur) * 100;
+    if (progress) progress.value = pct;
+    if (progressFill) progressFill.style.width = `${pct}%`;
+    if (currentTime) currentTime.textContent = formatTime(safeSec);
+
+    isSeeking = true;
+    if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
+    seekDebounceTimeout = setTimeout(() => {
+      isSeeking = false;
+      updateLiveProgress();
+      savePlayerStatePeriodic(true);
+    }, 200);
+  }
+
+  function seekRelative(deltaSec) {
+    const cur = getActiveCurrentTime();
+    const dur = getActiveDuration();
+    if (!isFinite(dur) || dur <= 0) return;
+
+    const target = Math.max(0, Math.min(dur, cur + deltaSec));
+    seekToTime(target);
+    showToast(deltaSec > 0 ? `⏩ +${deltaSec}s` : `⏪ ${deltaSec}s`);
+  }
+
+  // Smooth progress bar click-and-drag seek handler
+  if (progress) {
+    const handleProgressInput = () => {
+      isSeeking = true;
+      if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
+      const dur = getActiveDuration();
+      const pct = parseFloat(progress.value) || 0;
+      if (progressFill) progressFill.style.width = `${pct}%`;
+      if (currentTime && dur > 0) {
+        currentTime.textContent = formatTime((pct / 100) * dur);
+      }
+    };
+
+    const handleProgressCommit = () => {
+      const dur = getActiveDuration();
+      const pct = parseFloat(progress.value) || 0;
+      if (dur > 0) {
+        const targetSec = (pct / 100) * dur;
+        seekToTime(targetSec, false);
+      } else {
+        isSeeking = false;
+      }
+    };
+
+    progress.addEventListener("mousedown", () => { isSeeking = true; });
+    progress.addEventListener("touchstart", () => { isSeeking = true; }, { passive: true });
+    progress.addEventListener("input", handleProgressInput);
+    progress.addEventListener("change", handleProgressCommit);
+    progress.addEventListener("mouseup", handleProgressCommit);
+    progress.addEventListener("touchend", handleProgressCommit);
+  }
+
+  // ---------------------------------------------------------
+  // VOLUME & MUTE SYSTEM
+  // ---------------------------------------------------------
+  const VOL_HIGH_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M19.5 5.5C21.5 7.5 22.6 9.7 22.6 12s-1.1 4.5-3.1 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
+  const VOL_MED_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
+  const VOL_LOW_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
+  const VOL_MUTE_ICON = `
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <line x1="22" y1="9" x2="16" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="16" y1="9" x2="22" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  function updateVolumeIcon(volFraction) {
+    if (!muteBtn) return;
+    if (isMuted || volFraction <= 0) {
+      muteBtn.innerHTML = VOL_MUTE_ICON;
+      muteBtn.setAttribute("aria-label", "Unmute Volume");
+    } else if (volFraction <= 0.33) {
+      muteBtn.innerHTML = VOL_LOW_ICON;
+      muteBtn.setAttribute("aria-label", "Mute Volume");
+    } else if (volFraction <= 0.66) {
+      muteBtn.innerHTML = VOL_MED_ICON;
+      muteBtn.setAttribute("aria-label", "Mute Volume");
+    } else {
+      muteBtn.innerHTML = VOL_HIGH_ICON;
+      muteBtn.setAttribute("aria-label", "Mute Volume");
+    }
+  }
+
+  function updateVolumeTrack(volNum) {
+    if (volumeSlider) {
+      volumeSlider.style.setProperty("--vol-percent", `${volNum}%`);
+    }
+  }
+
+  function setVolume(volNum, updateSlider = true, store = true) {
+    const clamped = Math.max(0, Math.min(100, Math.round(volNum)));
+    const fraction = clamped / 100;
+
+    if (clamped > 0) {
+      lastVolume = fraction;
+      isMuted = false;
+    } else {
+      isMuted = true;
+    }
+
+    if (offlineAudio) {
+      offlineAudio.volume = isMuted ? 0 : fraction;
+    }
+
+    if (isYtReady && ytPlayer && typeof ytPlayer.setVolume === "function") {
+      try {
+        if (isMuted) {
+          ytPlayer.mute();
+        } else {
+          ytPlayer.unMute();
+          ytPlayer.setVolume(clamped);
+        }
+      } catch (e) { }
+    }
+
+    if (updateSlider && volumeSlider) {
+      volumeSlider.value = clamped;
+    }
+    updateVolumeTrack(clamped);
+    updateVolumeIcon(fraction);
+
+    if (store) {
+      safeStorageSet(STORAGE_KEYS.VOLUME, clamped.toString());
+      safeStorageSet(STORAGE_KEYS.MUTED, isMuted ? "1" : "0");
+    }
+  }
+
+  function toggleMute() {
+    if (isMuted || (volumeSlider && parseInt(volumeSlider.value, 10) === 0)) {
+      // Unmute: restore last non-zero volume or 100%
+      const restoreVol = lastVolume > 0 ? Math.round(lastVolume * 100) : 100;
+      setVolume(restoreVol, true, true);
+      showToast((i18n[currentLang] && i18n[currentLang].toastUnmuted) || "🔊 Volume Unmuted");
+    } else {
+      // Mute
+      const cur = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+      if (cur > 0) lastVolume = cur / 100;
+      setVolume(0, true, true);
+      showToast((i18n[currentLang] && i18n[currentLang].toastMuted) || "🔇 Volume Muted");
+    }
+  }
+
+  function restoreVolumeAndMuteState() {
+    const savedVol = parseInt(safeStorageGet(STORAGE_KEYS.VOLUME, "100"), 10);
+    const savedMuted = safeStorageGet(STORAGE_KEYS.MUTED, "0") === "1";
+    const volNum = (!isNaN(savedVol) && savedVol >= 0 && savedVol <= 100) ? savedVol : 100;
+
+    if (volNum > 0) lastVolume = volNum / 100;
+    if (savedMuted) {
+      setVolume(0, true, false);
+    } else {
+      setVolume(volNum, true, false);
+    }
+  }
+
+  if (volumeSlider) {
+    volumeSlider.addEventListener("input", (e) => {
+      const val = parseInt(e.target.value, 10) || 0;
+      setVolume(val, false, true);
+    });
+  }
+
+  if (muteBtn) {
+    muteBtn.addEventListener("click", toggleMute);
+  }
+
+  // ---------------------------------------------------------
+  // PLAYBACK SPEED DROPDOWN CONTROLLER
+  // ---------------------------------------------------------
+  function setPlaybackRate(speedObj) {
+    const rateItem = (typeof speedObj === "object" && speedObj !== null)
+      ? speedObj
+      : (PLAYBACK_SPEEDS.find((s) => Math.abs(s.value - parseFloat(speedObj)) < 0.01) || { value: parseFloat(speedObj) || 1.0, label: `${speedObj}x` });
+
+    const r = parseFloat(rateItem.value) || 1.0;
+    const label = rateItem.label || `${r}x`;
+
+    const foundIdx = PLAYBACK_SPEEDS.findIndex((s) => Math.abs(s.value - r) < 0.01);
+    if (foundIdx !== -1) currentSpeedIndex = foundIdx;
+
+    if (offlineAudio) {
+      offlineAudio.playbackRate = r;
+    }
+    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.setPlaybackRate === "function") {
+      try { ytPlayer.setPlaybackRate(r); } catch (e) { }
+    }
+
+    if (speedLabel) speedLabel.textContent = label;
+    if (speedBtn) {
+      if (Math.abs(r - 1.0) > 0.01) {
+        speedBtn.classList.add("custom-speed");
+      } else {
+        speedBtn.classList.remove("custom-speed");
+      }
+    }
+
+    if (speedMenuItems && speedMenuItems.length > 0) {
+      speedMenuItems.forEach((item) => {
+        const itemSpeed = parseFloat(item.getAttribute("data-speed"));
+        if (Math.abs(itemSpeed - r) < 0.01) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+      });
+    }
+
+    const t = i18n[currentLang] || i18n.hi;
+    showToast((t.toastSpeed || "⚡ प्लेबैक स्पीड: ") + label);
+  }
+
+  function cyclePlaybackSpeed() {
+    currentSpeedIndex = (currentSpeedIndex + 1) % PLAYBACK_SPEEDS.length;
+    setPlaybackRate(PLAYBACK_SPEEDS[currentSpeedIndex]);
+  }
+
+  function openSpeedDropdown() {
+    if (!speedDropdown) return;
+    speedDropdown.classList.add("open");
+    if (speedBtn) speedBtn.setAttribute("aria-expanded", "true");
+  }
+
+  function closeSpeedDropdown() {
+    if (!speedDropdown) return;
+    speedDropdown.classList.remove("open");
+    if (speedBtn) speedBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleSpeedDropdown() {
+    if (!speedDropdown) return;
+    if (speedDropdown.classList.contains("open")) {
+      closeSpeedDropdown();
+    } else {
+      openSpeedDropdown();
+    }
+  }
+
+  if (speedBtn) {
+    speedBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSpeedDropdown();
+    });
+  }
+
+  if (speedMenuItems && speedMenuItems.length > 0) {
+    speedMenuItems.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const sp = parseFloat(item.getAttribute("data-speed"));
+        if (!isNaN(sp)) setPlaybackRate(sp);
+        closeSpeedDropdown();
+      });
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (speedDropdown && !speedDropdown.contains(e.target)) {
+      closeSpeedDropdown();
+    }
+  });
+
+  // ---------------------------------------------------------
+  // PLAYLIST UI (Rendering, Search & Active Item Highlight)
+  // ---------------------------------------------------------
+  function renderPlaylist(filterQuery = "") {
+    if (!playlistList) return;
+    const query = filterQuery.toLowerCase().trim();
+    const t = i18n[currentLang] || i18n.en;
+
+    const sourceSongs = isOnlineMode
+      ? songs.filter((s) => Boolean(s.videoId))
+      : songs.filter((s) => Boolean(s.src || s.file));
+
+    const pool = sourceSongs.length > 0 ? sourceSongs : songs;
+
+    const filtered = pool
+      .map((s, idx) => ({ ...s, originalIndex: songs.indexOf(s), displayIndex: idx }))
+      .filter((s) => {
+        if (!query) return true;
+        const name = isOnlineMode
+          ? (currentLang === "en" ? (s.ytNameEn || s.nameEn || s.title) : (s.ytName || s.title))
+          : (currentLang === "en" ? (s.nameEn || s.titleEn || s.title) : s.title);
+        const singer = isOnlineMode
+          ? (currentLang === "en" ? (s.ytSingerEn || s.singerEn || s.artist) : (s.ytSinger || s.artist || ""))
+          : (currentLang === "en" ? (s.singerEn || s.artistEn || s.artist) : (s.artist || ""));
+        return (
+          name.toLowerCase().includes(query) ||
+          singer.toLowerCase().includes(query) ||
+          (s.title && s.title.toLowerCase().includes(query)) ||
+          (s.artist && s.artist.toLowerCase().includes(query))
+        );
+      });
+
+    // Empty state handling
+    if (filtered.length === 0) {
+      playlistList.innerHTML = `
+        <li class="no-songs-found" role="alert">
+          <svg class="no-songs-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+          <span class="no-songs-text">${escapeHTML(t.noSongsFound || "No songs available")}</span>
+        </li>
+      `;
+      return;
+    }
+
+    playlistList.innerHTML = filtered
+      .map((s) => {
+        const idx = s.originalIndex;
+        const displayNum = (s.displayIndex !== undefined ? s.displayIndex : idx) + 1;
+        const isActive = idx === currentSong;
+        const isEn = currentLang === "en";
+        const songTitle = isOnlineMode
+          ? (isEn ? (s.ytNameEn || s.titleEn || s.title) : (s.ytName || s.title))
+          : (isEn ? (s.titleEn || s.title) : s.title);
+        const songSingerName = isOnlineMode
+          ? (isEn ? (s.ytSingerEn || s.artistEn || s.artist) : (s.ytSinger || s.artist || (isEn ? "Devotional Song" : "भक्ति गीत")))
+          : (isEn ? (s.artistEn || s.artist) : (s.artist || (isEn ? "Devotional Song" : "भक्ति गीत")));
+
+        return `
+          <li class="playlist-item ${isActive ? "active" : ""}" data-index="${idx}" role="button" tabindex="0" aria-label="Play ${escapeHTML(songTitle)}">
+            <span class="playlist-item-num">${displayNum}</span>
+            <div class="playlist-item-details">
+              <div class="playlist-item-name">${escapeHTML(songTitle)}</div>
+              <div class="playlist-item-singer">${escapeHTML(songSingerName)}</div>
+            </div>
+            ${isActive && isPlaying
+            ? `
+              <div class="equalizer playing" aria-hidden="true">
+                <span class="equalizer-bar"></span>
+                <span class="equalizer-bar"></span>
+                <span class="equalizer-bar"></span>
+              </div>
+            `
+            : ""
+          }
+          </li>
+        `;
+      })
+      .join("");
+
+    // Safe event listeners for playlist items
+    playlistList.querySelectorAll(".playlist-item").forEach((item) => {
+      const playHandler = (e) => {
+        e.stopPropagation();
+        const songIdx = parseInt(item.getAttribute("data-index"), 10);
+        if (!isNaN(songIdx)) {
+          loadSong(songIdx, true);
+          if (playlistModal) playlistModal.classList.remove("open");
+        }
+      };
+
+      item.addEventListener("click", playHandler);
+      item.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          playHandler(e);
+        }
+      });
+    });
+  }
+
+  function updatePlaylistHeaderUI() {
+    const t = i18n[currentLang] || i18n.hi;
+    const count = songs.length;
+    const titleText = isOnlineMode
+      ? (t.playlistTitleOnline || "छठ वीडियो संग्रह (ऑनलाइन)")
+      : (t.playlistTitleOffline || "छठ गीत संग्रह (ऑफलाइन)");
+    const placeholderText = isOnlineMode
+      ? (t.playlistSearchPlaceholderOnline || "वीडियो या गायक का नाम खोजें...")
+      : (t.playlistSearchPlaceholderOffline || "गीत या गायक का नाम खोजें...");
+
+    if (playlistTitleText) {
+      playlistTitleText.textContent = `${titleText} (${count})`;
+    } else if (playlistTitle) {
+      playlistTitle.textContent = `${titleText} (${count})`;
+    }
+    if (playlistSearch) {
+      playlistSearch.placeholder = placeholderText;
+    }
+  }
+
+  function scrollActivePlaylistItemIntoView() {
+    if (!playlistList) return;
+    const activeItem = playlistList.querySelector(".playlist-item.active");
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  if (playlistSearch) {
+    playlistSearch.addEventListener("input", (e) => {
+      const q = e.target.value;
+      if (searchClearBtn) searchClearBtn.style.display = q ? "block" : "none";
+      renderPlaylist(q);
+    });
+  }
+
+  if (searchClearBtn) {
+    searchClearBtn.addEventListener("click", () => {
+      if (playlistSearch) {
+        playlistSearch.value = "";
+        searchClearBtn.style.display = "none";
+        renderPlaylist("");
+      }
+    });
+  }
+
+  if (playlistToggleBtn && playlistModal) {
+    playlistToggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = playlistModal.classList.toggle("open");
+      if (isOpen) {
+        scrollActivePlaylistItemIntoView();
+        if (playlistSearch) setTimeout(() => playlistSearch.focus(), 150);
+      }
+    });
+  }
+
+  if (playlistCloseBtn && playlistModal) {
+    playlistCloseBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      playlistModal.classList.remove("open");
+    });
+  }
+
+  if (playlistModal) {
+    playlistModal.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  document.addEventListener("click", (e) => {
+    if (
+      playlistModal &&
+      playlistModal.classList.contains("open") &&
+      !playlistModal.contains(e.target) &&
+      e.target !== playlistToggleBtn &&
+      !playlistToggleBtn.contains(e.target)
+    ) {
+      playlistModal.classList.remove("open");
+    }
+  });
+
+  // ---------------------------------------------------------
+  // MEDIA SESSION API INTEGRATION
+  // ---------------------------------------------------------
+  const MEDIA_SESSION_SUPPORTED = ("mediaSession" in navigator && typeof MediaMetadata !== "undefined");
+
+  function updateMediaSessionMetadata() {
+    if (!MEDIA_SESSION_SUPPORTED || !songs[currentSong]) return;
+    try {
+      const s = songs[currentSong];
+      const isEn = currentLang === "en";
+      const songTitle = isEn ? (s.titleEn || s.title) : s.title;
+      const songArtist = isEn ? (s.artistEn || s.artist) : s.artist;
+      const albumName = isEn ? (s.album || "Chhath Ghat") : (s.album || "छठ घाट");
+
+      const origin = window.location.origin || (window.location.protocol + "//" + window.location.host);
+      const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
+      const makeUrl = (rel) => new URL(rel, origin + basePath).href;
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: songTitle,
+        artist: songArtist || (isEn ? "Chhath Mahaparv" : "छठ महापर्व"),
+        album: albumName,
+        artwork: [
+          { src: makeUrl("favicon.io/favicon-32x32.png"), sizes: "96x96", type: "image/png" },
+          { src: makeUrl("favicon.io/apple-touch-icon.png"), sizes: "128x128", type: "image/png" },
+          { src: makeUrl("favicon.io/android-chrome-192x192.png"), sizes: "192x192", type: "image/png" },
+          { src: makeUrl("favicon.io/android-chrome-512x512.png"), sizes: "256x256", type: "image/png" },
+          { src: makeUrl("favicon.io/android-chrome-512x512.png"), sizes: "512x512", type: "image/png" }
+        ]
+      });
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    } catch (e) { }
+  }
+
+  function updateMediaSessionPosition(pos = 0, dur = 0) {
+    if (!MEDIA_SESSION_SUPPORTED || !("setPositionState" in navigator.mediaSession)) return;
+    if (!isFinite(dur) || dur <= 0 || !isFinite(pos) || pos < 0 || pos > dur) return;
+
+    try {
+      const activeRate = (offlineAudio && offlineAudio.playbackRate) || 1.0;
+      navigator.mediaSession.setPositionState({
+        duration: dur,
+        playbackRate: activeRate,
+        position: Math.min(pos, dur)
+      });
+    } catch (e) { }
+  }
+
+  if (MEDIA_SESSION_SUPPORTED) {
+    const actionHandlers = [
+      ["play", () => togglePlay()],
+      ["pause", () => togglePlay()],
+      ["previoustrack", () => playPrevious()],
+      ["nexttrack", () => playNext()],
+      ["seekto", (details) => {
+        if (details.seekTime !== undefined && isFinite(details.seekTime)) {
+          seekToTime(details.seekTime, Boolean(details.fastSeek));
+        }
+      }],
+      ["seekbackward", (details) => {
+        const skip = details.seekOffset || 10;
+        seekRelative(-skip);
+      }],
+      ["seekforward", (details) => {
+        const skip = details.seekOffset || 10;
+        seekRelative(skip);
+      }]
+    ];
+
+    for (const [action, handler] of actionHandlers) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (e) { }
+    }
+  }
+
+  // ---------------------------------------------------------
+  // SCREEN WAKE LOCK & BACKGROUND PRELOAD
+  // ---------------------------------------------------------
+  async function requestWakeLock() {
+    if ("wakeLock" in navigator && !wakeLockSentinel && document.visibilityState === "visible") {
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request("screen");
+        wakeLockSentinel.addEventListener("release", () => {
+          wakeLockSentinel = null;
+        });
+      } catch (err) { }
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockSentinel) {
+      wakeLockSentinel.release().catch(() => { });
+      wakeLockSentinel = null;
+    }
+  }
+
+  function preloadNextTrack() {
+    if (!songs || songs.length <= 1) return;
+    const nextIdx = (currentSong + 1) % songs.length;
+
+    if (nextIdx >= 0 && nextIdx !== lastPreloadedIdx && songs[nextIdx] && (songs[nextIdx].src || songs[nextIdx].file)) {
+      lastPreloadedIdx = nextIdx;
+      const nextFile = songs[nextIdx].src || songs[nextIdx].file;
+      try {
+        bgPreloadAudio.src = nextFile;
+        bgPreloadAudio.preload = "auto";
+        bgPreloadAudio.load();
+      } catch (e) { }
+
+      if ("caches" in window) {
+        caches.open("chhath-media-cache-v2").then((cache) => {
+          cache.match(nextFile).then((matched) => {
+            if (!matched) {
+              fetch(nextFile, { mode: "cors" }).then((res) => {
+                if (res.ok) cache.put(nextFile, res);
+              }).catch(() => { });
+            }
+          });
+        }).catch(() => { });
+      }
+    }
+  }
+
+  // ---------------------------------------------------------
+  // ERROR HANDLING
+  // ---------------------------------------------------------
+  let playbackRetryCount = 0;
+  const MAX_PLAYBACK_RETRIES = 2;
+
+  function handlePlaybackError(err) {
+    console.warn("Audio playback/network error:", err);
+    setPlayerState("error");
+
+    const t = i18n[currentLang] || i18n.en;
+    const msg = (err && err.message) || (t.toastPlaybackError || "⚠️ Audio loading error. Retrying next song...");
+    showToast(msg);
+
+    if (isPlaying && !isOnlineMode && playbackRetryCount < MAX_PLAYBACK_RETRIES) {
+      playbackRetryCount++;
+      setTimeout(() => {
+        if (offlineAudio && songs[currentSong]) {
+          const fileSrc = songs[currentSong].src || songs[currentSong].file;
+          if (fileSrc) {
+            offlineAudio.src = fileSrc;
+            offlineAudio.load();
+            offlineAudio.play().then(() => {
+              playbackRetryCount = 0;
+              setPlayerState("playing");
+            }).catch(() => { });
+          }
+        }
+      }, 1000 * playbackRetryCount);
+    } else {
+      playbackRetryCount = 0;
+      // Keep playlist completely interactive, let user choose another song
+    }
+  }
+
+  // ---------------------------------------------------------
+  // DUAL MODE & YOUTUBE STREAMING INTEGRATION
+  // ---------------------------------------------------------
+  function setMode(online, showNotification = true) {
+    isOnlineMode = Boolean(online);
+    updateModeButtonUI();
+
+    if (isOnlineMode) {
+      ensureYouTubeAPI();
+      document.body.classList.add("live-video-active");
+      if (bgVideoContainer) {
+        bgVideoContainer.classList.add("active");
+        bgVideoContainer.setAttribute("aria-hidden", "false");
+      }
+      if (offlineAudio) {
+        offlineAudio.pause();
+        offlineAudio.currentTime = 0;
+      }
+      playOnlineSong(currentSong);
+      if (showNotification) {
+        showToast((i18n[currentLang] && i18n[currentLang].toastOnline) || "🌐 Online Video Mode Active");
+      }
+    } else {
+      document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
+      if (bgVideoContainer) {
+        bgVideoContainer.classList.remove("active");
+        bgVideoContainer.setAttribute("aria-hidden", "true");
+      }
+      if (isYtReady && ytPlayer) {
+        try {
+          if (typeof ytPlayer.pauseVideo === "function") ytPlayer.pauseVideo();
+          if (typeof ytPlayer.stopVideo === "function") ytPlayer.stopVideo();
+        } catch (e) { }
+      }
+      loadSong(currentSong, isPlaying);
+      if (showNotification) {
+        showToast((i18n[currentLang] && i18n[currentLang].toastOffline) || "📴 Offline Audio Mode Active");
+      }
+    }
+
+    displaySongInfo(currentSong);
+    updatePlaylistHeaderUI();
+    renderPlaylist(playlistSearch ? playlistSearch.value : "");
+  }
+
+  function playOnlineSong(index) {
+    const s = songs[index];
+    if (!s) return;
+    displaySongInfo(index);
+
+    if (offlineAudio) {
+      offlineAudio.pause();
+      offlineAudio.currentTime = 0;
+    }
+
+    document.body.classList.add("live-video-active");
+    if (bgVideoContainer) {
+      bgVideoContainer.classList.add("active");
+      bgVideoContainer.setAttribute("aria-hidden", "false");
+    }
+
+    const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+    const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
+
+    if (isYtReady && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
+      try {
+        if (s.videoId) {
+          ytPlayer.loadVideoById({
+            videoId: s.videoId,
+            startSeconds: 0
+          });
+          if (isMuted) {
+            ytPlayer.mute();
+          } else {
+            ytPlayer.unMute();
+            ytPlayer.setVolume(volNum);
+          }
+          ytPlayer.playVideo();
+          if (typeof ytPlayer.setPlaybackRate === "function") {
+            ytPlayer.setPlaybackRate(activeRate);
+          }
+        }
+      } catch (e) {
+        console.warn("YouTube video load error:", e);
+      }
+    } else {
+      ensureYouTubeAPI();
+    }
+  }
+
+  let isYtScriptLoading = false;
+  function ensureYouTubeAPI() {
+    if (window.YT && window.YT.Player) {
+      if (!ytPlayer) initYouTubePlayer();
+      return;
+    }
+    if (isYtScriptLoading) return;
+    isYtScriptLoading = true;
+
+    window.onYouTubeIframeAPIReady = function () {
+      initYouTubePlayer();
+    };
+
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
+      const firstScript = document.getElementsByTagName("script")[0];
+      if (firstScript && firstScript.parentNode) {
+        firstScript.parentNode.insertBefore(tag, firstScript);
+      } else {
+        document.head.appendChild(tag);
+      }
+    }
+  }
+
+  function initYouTubePlayer() {
+    if (ytPlayer || !window.YT || !window.YT.Player) return;
+    try {
+      const initialVideoId = (songs[currentSong] && songs[currentSong].videoId) || "T_YXL_blE3A";
+      ytPlayer = new YT.Player("ytBgPlayer", {
+        height: "100%",
+        width: "100%",
+        videoId: initialVideoId,
+        playerVars: {
+          autoplay: 0,
+          mute: 0,
+          controls: 0,
+          rel: 0,
+          showinfo: 0,
+          iv_load_policy: 3,
+          modestbranding: 1,
+          playsinline: 1,
+          enablejsapi: 1,
+          disablekb: 1,
+          fs: 0,
+          origin: window.location.origin || (window.location.protocol + "//" + window.location.host)
+        },
+        events: {
+          onReady: (event) => {
+            isYtReady = true;
+            const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+            if (isOnlineMode) {
+              if (isMuted) event.target.mute();
+              else {
+                event.target.unMute();
+                event.target.setVolume(volNum);
+              }
+              if (isPlaying) event.target.playVideo();
+            } else {
+              event.target.mute();
+              event.target.pauseVideo();
+            }
+          },
+          onStateChange: (event) => {
+            if (!window.YT) return;
+            if (event.data === YT.PlayerState.PLAYING) {
+              if (isOnlineMode) {
+                setPlayerState("playing");
+                displaySongInfo(currentSong);
+              }
+            } else if (event.data === YT.PlayerState.PAUSED) {
+              if (isOnlineMode && !isActionLocked) {
+                setPlayerState("paused");
+              }
+            } else if (event.data === YT.PlayerState.ENDED) {
+              if (isOnlineMode) {
+                playNext(true);
+              }
+            }
+          },
+          onError: (e) => {
+            console.warn("YouTube streaming error, falling back to audio:", e);
+            if (isOnlineMode) {
+              setMode(false, false);
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.warn("YouTube player init error:", e);
+    }
+  }
+
+  // ---------------------------------------------------------
+  // EVENT LISTENERS (Buttons, Keyboard & Page Lifecycle)
+  // ---------------------------------------------------------
+  if (playButton) {
+    playButton.addEventListener("click", togglePlay);
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", playPrevious);
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => playNext(false));
+  }
+
+  // Dual mode toggle button
+  if (modeToggleBtn) {
+    modeToggleBtn.addEventListener("click", () => {
+      setMode(!isOnlineMode, true);
+    });
+  }
+
+  // Bilingual language toggle button
+  if (langToggleBtn) {
+    langToggleBtn.addEventListener("click", () => {
+      const nextLang = currentLang === "en" ? "hi" : "en";
+      setLanguage(nextLang, true);
+    });
+  }
+
+  const navHomeBtn = document.getElementById("navHomeBtn");
+  if (navHomeBtn) {
+    navHomeBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  const navAboutBtn = document.getElementById("navAboutBtn");
+  if (navAboutBtn) {
+    navAboutBtn.addEventListener("click", () => {
+      const footer = document.getElementById("appFooter") || document.querySelector(".app-footer") || document.querySelector("footer");
+      if (footer) {
+        footer.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      }
+    });
+  }
 
   function updateModeButtonUI() {
     const t = i18n[currentLang] || i18n.en;
@@ -713,7 +2200,6 @@
     }
   }
 
-  /* Function to switch language between Hindi and English */
   function setLanguage(lang, showToastMsg = false) {
     if (!i18n[lang]) return;
     currentLang = lang;
@@ -721,7 +2207,6 @@
 
     document.documentElement.lang = currentLang;
 
-    // 1. Language Toggle Button
     if (langToggleBtn) {
       langToggleBtn.setAttribute("data-lang", lang);
       langToggleBtn.title = t.langBtnTitle;
@@ -729,75 +2214,32 @@
     }
     if (langText) langText.textContent = t.langBtnText;
 
-    // 2. Offline / Online Mode Toggle Button
     updateModeButtonUI();
 
-    // 3. Navigation Buttons (Home & About)
-    const navHomeBtn = document.getElementById("navHomeBtn");
-    const navHomeText = document.getElementById("navHomeText");
-    if (navHomeBtn) {
-      navHomeBtn.title = t.navHomeTitle;
-      navHomeBtn.setAttribute("aria-label", t.navHomeAria);
+    const homeBtn = document.getElementById("navHomeBtn");
+    const homeTxt = document.getElementById("navHomeText");
+    if (homeBtn) {
+      homeBtn.title = t.navHomeTitle;
+      homeBtn.setAttribute("aria-label", t.navHomeAria);
     }
-    if (navHomeText) navHomeText.textContent = t.navHomeText;
+    if (homeTxt) homeTxt.textContent = t.navHomeText;
 
-    const navAboutBtn = document.getElementById("navAboutBtn");
-    const navAboutText = document.getElementById("navAboutText");
-    if (navAboutBtn) {
-      navAboutBtn.title = t.navAboutTitle;
-      navAboutBtn.setAttribute("aria-label", t.navAboutAria);
+    const aboutBtn = document.getElementById("navAboutBtn");
+    const aboutTxt = document.getElementById("navAboutText");
+    if (aboutBtn) {
+      aboutBtn.title = t.navAboutTitle;
+      aboutBtn.setAttribute("aria-label", t.navAboutAria);
     }
-    if (navAboutText) navAboutText.textContent = t.navAboutText;
+    if (aboutTxt) aboutTxt.textContent = t.navAboutText;
 
-    const navHindiSongBtn = document.getElementById("navHindiSongBtn");
-    const navHindiSongText = document.getElementById("navHindiSongText");
-    if (navHindiSongBtn) {
-      navHindiSongBtn.title = t.navHindiSongTitle;
-      navHindiSongBtn.setAttribute("aria-label", t.navHindiSongAria);
+    const hindiSongBtn = document.getElementById("navHindiSongBtn");
+    const hindiSongTxt = document.getElementById("navHindiSongText");
+    if (hindiSongBtn) {
+      hindiSongBtn.title = t.navHindiSongTitle;
+      hindiSongBtn.setAttribute("aria-label", t.navHindiSongAria);
     }
-    if (navHindiSongText) navHindiSongText.textContent = t.navHindiSongText;
+    if (hindiSongTxt) hindiSongTxt.textContent = t.navHindiSongText;
 
-    // 4. Main Share Button
-    const shareMainBtn = document.getElementById("shareMainBtn");
-    const shareBtnLabel = document.getElementById("shareBtnLabel");
-    if (shareMainBtn) {
-      shareMainBtn.title = t.shareBtnTitle;
-      shareMainBtn.setAttribute("aria-label", t.shareBtnAria);
-    }
-    if (shareBtnLabel) shareBtnLabel.textContent = t.shareBtnLabel;
-
-    // 5. Social Share Menu Buttons (WhatsApp, Facebook, Instagram)
-    const waShareBtn = document.getElementById("whatsappShareBtn");
-    const fbShareBtn = document.getElementById("facebookShareBtn");
-    const instaShareBtn = document.getElementById("instagramShareBtn");
-    const whatsappShareText = document.getElementById("whatsappShareText");
-    const facebookShareText = document.getElementById("facebookShareText");
-    const instagramShareText = document.getElementById("instagramShareText");
-
-    if (waShareBtn) {
-      waShareBtn.title = t.whatsappTitle;
-      waShareBtn.setAttribute("aria-label", t.whatsappAria);
-    }
-    if (whatsappShareText) whatsappShareText.textContent = t.whatsappLabel;
-
-    if (fbShareBtn) {
-      fbShareBtn.title = t.facebookTitle;
-      fbShareBtn.setAttribute("aria-label", t.facebookAria);
-    }
-    if (facebookShareText) facebookShareText.textContent = t.facebookLabel;
-
-    if (instaShareBtn) {
-      instaShareBtn.title = t.instagramTitle;
-      instaShareBtn.setAttribute("aria-label", t.instagramAria);
-    }
-    if (instagramShareText) instagramShareText.textContent = t.instagramLabel;
-
-    // 6. Time Widget Tooltip
-    if (timeWidget) {
-      timeWidget.title = t.timeWidgetTitle;
-    }
-
-    // 7. Audio Player Controls & Seekbar Tooltips
     if (prevBtn) prevBtn.title = t.prevSongTitle;
     if (playButton) playButton.title = t.playBtnTitle;
     if (nextBtn) nextBtn.title = t.nextSongTitle;
@@ -808,14 +2250,12 @@
     if (volumeSlider) volumeSlider.title = t.volumeSliderTitle;
     if (progress) progress.title = t.seekSliderTitle;
 
-    // 8. Headlines, Mantras, Rituals
     if (mainLogoText) mainLogoText.textContent = t.mainLogoText;
     if (taglineText) taglineText.textContent = t.taglineText;
 
     updatePlaylistHeaderUI();
 
     if (ritualsHeading) ritualsHeading.textContent = t.ritualsHeading;
-
     if (ritual1DayBadge) ritual1DayBadge.textContent = t.ritual1DayBadge;
     if (ritual1Title) ritual1Title.textContent = t.ritual1Title;
     if (ritual1Desc) ritual1Desc.textContent = t.ritual1Desc;
@@ -879,15 +2319,10 @@
         <p>
           Welcome to <strong>Chhath Ghat (छठ घाट)</strong>, a dedicated spiritual platform to listen to traditional Chhath Puja Geet, Bhojpuri Chhath songs, Chhathi Maiya Bhajan, and Lord Surya Dev devotional music online. Our high-definition music player brings you soul-stirring melodies by legends like Sharda Sinha, Anuradha Paudwal, Pawan Singh, Kalpana Patowary, Devi, and Neelkamal Singh.
         </p>
-
         <h2>Mythological & Cultural Significance of Chhath Mahaparv</h2>
         <p>
           Chhath Mahaparv is one of the most sacred, ancient, and austere Vedic festivals in Hindu culture, dedicated to the visible cosmic deity Lord Surya (the Sun God) and His sister Shashthi Devi (Chhathi Maiya). Celebrated on the Shashthi of Kartik Shukla Paksha, this four-day festival represents unwavering faith, deep spiritual purity, and intimate communion with nature. It is enthusiastically celebrated in Bihar, Jharkhand, Uttar Pradesh, the Terai of Nepal, and across the globe by millions of devotees.
         </p>
-        <p>
-          Chhath Puja is renowned for its profound environmental and social harmony. Devotees offer gratitude to the life-giving Sun, celebrating nature, water conservation, and cleanliness. Without any priestly intermediaries or caste barriers, people from all walks of life gather together at riverbanks to venerate both the setting and the rising Sun.
-        </p>
-
         <h2>Popular Chhath Devotional Songs Collection</h2>
         <ul class="seo-song-list">
           <li><strong>Ugi Hey Dinanath</strong> — Kalpana Patowary</li>
@@ -899,12 +2334,6 @@
           <li><strong>Kaanch Hi Baans Ke Bahangiya</strong> — Sharda Sinha</li>
           <li><strong>Koshiya Bharaye Lagal</strong> — Neelkamal Singh & Priyanka Singh</li>
         </ul>
-
-        <div class="seo-footer-credit">
-          <p class="seo-note">
-            ॥ Jai Chhathi Maiya • Om Suryaya Namah ॥ — Warm greetings and divine blessings on Chhath Mahaparv to all devotees from Chhath Ghat.
-          </p>
-        </div>
       `;
     } else {
       seoContainer.innerHTML = `
@@ -912,15 +2341,10 @@
         <p>
           <strong>छठ घाट (Chhath Ghat)</strong> पर आपका हार्दिक स्वागत है। यह पारंपरिक छठ पूजा के मधुर गीत, भोजपुरी छठ गीत, छठी मईया के भजन और प्रत्यक्ष देव भगवान सूर्य की उपासना का एक पावन भक्ति मंच है। हमारे आधुनिक प्लेयर पर आप शारदा सिन्हा, अनुराधा पौडवाल, पवन सिंह, कल्पना पटवारी, देवी और नीलकमल सिंह जैसे महान कलाकारों के पावन भजन सुन सकते हैं।
         </p>
-
         <h2>छठ पर्व का पौराणिक एवं सांस्कृतिक महत्व</h2>
         <p>
-          छठ पर्व (छठि या षष्ठी पूजा) सनातन धर्म का अत्यंत पवित्र, कठिन और लोक-आस्था का महापर्व है जिसमें प्रत्यक्ष देव भगवान भास्कर (सूर्य) तथा उनकी बहन षष्ठी देवी (छठी मईया) की आराधना की जाती है। यह पर्व कार्तिक मास के शुक्ल पक्ष की षष्ठी को श्रद्धाभाव से मनाया जाता है। यह महापर्व मुख्य रूप से बिहार, झारखण्ड, उत्तर प्रदेश, नेपाल के तराई क्षेत्रों सहित अब संपूर्ण विश्व में भारतीय समुदाय द्वारा धूमधाम से मनाया जाता है।
+          छठ पर्व सनातन धर्म का अत्यंत पवित्र, कठिन और लोक-आस्था का महापर्व है जिसमें प्रत्यक्ष देव भगवान भास्कर (सूर्य) तथा उनकी बहन षष्ठी देवी (छठी मईया) की आराधना की जाती है। यह पर्व कार्तिक मास के शुक्ल पक्ष की षष्ठी को श्रद्धाभाव से मनाया जाता है।
         </p>
-        <p>
-          छठ व्रत केवल एक धार्मिक अनुष्ठान नहीं बल्कि प्रकृति संरक्षण, जल-शुद्धता और स्वच्छता का अनुपम संदेश देने वाला महापर्व है। इसमें बिना किसी पुरोहित और बिना किसी भेदभाव के समाज के सभी वर्ग एक साथ घाटों पर एकत्रित होकर अस्ताचलगामी और उदीयमान भगवान सूर्य को नमन करते हैं।
-        </p>
-
         <h2>लोकप्रिय छठ पूजा गीत संग्रह (Popular Chhath Geet Collection)</h2>
         <ul class="seo-song-list">
           <li><strong>उगी हे दीनानाथ</strong> — कल्पना पटवारी</li>
@@ -932,847 +2356,20 @@
           <li><strong>काँच ही बाँस के बहंगिया</strong> — शारदा सिन्हा</li>
           <li><strong>कोशिया भराये लागल</strong> — नीलकमल सिंह व प्रियंका सिंह</li>
         </ul>
-
-        <div class="seo-footer-credit">
-          <p class="seo-note">
-            ॥ जय छठी मईया • ॐ सूर्याय नमः ॥ — छठ घाट की ओर से सभी भक्तों को पावन छठ महापर्व की कोटि-कोटि शुभकामनाएं।
-          </p>
-        </div>
       `;
     }
   }
 
-  /* Escape helper */
   function escapeHTML(text) {
     const div = document.createElement("div");
     div.textContent = text || "";
     return div.innerHTML;
   }
 
-  /* Format seconds to M:SS */
-  function formatTime(seconds) {
-    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return "0:00";
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  }
-
-  /* =========================================================
-     7.1 DYNAMIC YOUTUBE IFRAME API LAZY LOADER
-     ========================================================= */
-  let isSwitchingTrack = false;
-  let isYtScriptLoading = false;
-
-  function ensureYouTubeAPI() {
-    if (window.YT && window.YT.Player) {
-      if (!ytPlayer) {
-        initYouTubePlayer();
-      }
-      return;
-    }
-
-    if (isYtScriptLoading) return;
-    isYtScriptLoading = true;
-
-    window.onYouTubeIframeAPIReady = function () {
-      initYouTubePlayer();
-    };
-
-    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      tag.async = true;
-      const firstScript = document.getElementsByTagName("script")[0];
-      if (firstScript && firstScript.parentNode) {
-        firstScript.parentNode.insertBefore(tag, firstScript);
-      } else {
-        document.head.appendChild(tag);
-      }
-    }
-  }
-
-  // Pre-register callback immediately
-  window.onYouTubeIframeAPIReady = function () {
-    initYouTubePlayer();
-  };
-
-  function initYouTubePlayer() {
-    if (ytPlayer || !window.YT || !window.YT.Player) return;
-    try {
-      const initialVideoId = (songs[currentSong] && songs[currentSong].videoId) || "T_YXL_blE3A";
-
-      const playerVars = {
-        autoplay: 0,
-        mute: 0,
-        controls: 0,
-        rel: 0,
-        showinfo: 0,
-        iv_load_policy: 3,
-        modestbranding: 1,
-        playsinline: 1,
-        enablejsapi: 1,
-        disablekb: 1,
-        fs: 0,
-        origin: window.location.origin || (window.location.protocol + "//" + window.location.host)
-      };
-
-      ytPlayer = new YT.Player("ytBgPlayer", {
-        height: "100%",
-        width: "100%",
-        videoId: initialVideoId,
-        playerVars: playerVars,
-        events: {
-          onReady: onYTPlayerReady,
-          onStateChange: onYTPlayerStateChange,
-          onPlaybackQualityChange: onYTPlaybackQualityChange,
-          onError: onYTPlayerError
-        }
-      });
-    } catch (e) {
-      console.warn("YouTube API init error:", e);
-    }
-  }
-
-  function onYTPlaybackQualityChange(event) {
-    const actualQuality = event.data;
-    console.log("YouTube actual playback quality updated to:", actualQuality);
-  }
-
-  function disableCaptions(player) {
-    if (!player) return;
-    try {
-      if (typeof player.unloadModule === "function") {
-        player.unloadModule("captions");
-        player.unloadModule("cc");
-      }
-      if (typeof player.setOption === "function") {
-        player.setOption("captions", "track", {});
-        player.setOption("cc", "track", {});
-        player.setOption("captions", "fontSize", 0);
-      }
-    } catch (e) { }
-  }
-
-  function onYTPlayerReady(event) {
-    isYtReady = true;
-    disableCaptions(event.target);
-    const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-    try {
-      if (typeof event.target.setPlaybackQuality === "function") {
-        event.target.setPlaybackQuality("hd1080");
-      }
-      if (typeof event.target.setPlaybackQualityRange === "function") {
-        event.target.setPlaybackQualityRange("hd1080", "highres");
-      }
-    } catch (e) { }
-
-    try {
-      if (isOnlineMode) {
-        event.target.unMute();
-        event.target.setVolume(volNum);
-        if (isPlaying) {
-          event.target.playVideo();
-        }
-      } else {
-        event.target.mute();
-        event.target.pauseVideo();
-      }
-    } catch (e) { }
-
-    // If playback was triggered in Online mode before ready event
-    if (isPlaying && isOnlineMode) {
-      const s = songs[currentSong];
-      if (s && s.videoId) {
-        try {
-          event.target.loadVideoById({
-            videoId: s.videoId,
-            startSeconds: 0,
-            suggestedQuality: "hd1080"
-          });
-          event.target.unMute();
-          event.target.setVolume(volNum);
-          if (typeof event.target.setPlaybackQuality === "function") {
-            event.target.setPlaybackQuality("hd1080");
-          }
-          disableCaptions(event.target);
-          event.target.playVideo();
-        } catch (e) {
-          event.target.playVideo();
-        }
-      } else {
-        event.target.playVideo();
-      }
-    }
-  }
-
-  function setBufferingState(isBuffering) {
-    // Clean seamless playback without spinner animations
-  }
-
-  function onYTPlayerStateChange(event) {
-    if (!window.YT) return;
-
-    if (event.data === YT.PlayerState.PLAYING) {
-      isSwitchingTrack = false;
-      disableCaptions(event.target);
-      try {
-        if (typeof event.target.setPlaybackQuality === "function") {
-          event.target.setPlaybackQuality("hd1080");
-        }
-      } catch (e) { }
-      setBufferingState(false);
-      document.body.classList.remove("video-paused", "video-buffering");
-      if (isOnlineMode) {
-        setPlaybackState(true);
-        displaySongInfo(currentSong);
-      }
-    } else if (event.data === YT.PlayerState.PAUSED) {
-      setBufferingState(false);
-      if (isOnlineMode) {
-        document.body.classList.add("video-paused");
-        if (!isSwitchingTrack) {
-          setPlaybackState(false);
-        }
-      }
-    } else if (event.data === YT.PlayerState.ENDED) {
-      setBufferingState(false);
-      if (isOnlineMode) {
-        playNext();
-      }
-    } else if (event.data === YT.PlayerState.BUFFERING) {
-      if (isOnlineMode) {
-        setBufferingState(true);
-        document.body.classList.add("video-buffering");
-      }
-    }
-  }
-
-  function onYTPlayerError(e) {
-    console.warn("YouTube player error, falling back to seamless audio:", e);
-    if (isOnlineMode && offlineAudio) {
-      const s = songs[currentSong];
-      if (s && offlineAudio.src !== s.file) {
-        offlineAudio.src = s.file;
-      }
-      const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-      offlineAudio.volume = volNum / 100;
-      offlineAudio.play().catch(console.warn);
-      setPlaybackState(true);
-    }
-  }
-
-  /* =========================================================
-     7.2 DUAL MODE (OFFLINE / ONLINE) SWITCHER
-     ========================================================= */
-  function setMode(online, showNotification = true) {
-    isOnlineMode = Boolean(online);
-
-    updateModeButtonUI();
-
-    if (isOnlineMode) {
-      // Dynamically load YouTube API on demand (Lazy Loading for faster FCP)
-      ensureYouTubeAPI();
-
-      // Switched to Online Mode: activate video background
-      document.body.classList.add("live-video-active");
-      if (bgVideoContainer) {
-        bgVideoContainer.classList.add("active");
-        bgVideoContainer.setAttribute("aria-hidden", "false");
-      }
-
-      // Pick a random song when switching to Online Mode
-      if (songs && songs.length > 0) {
-        const validIndices = [];
-        songs.forEach((s, idx) => {
-          if (s && (s.videoId || s.embedUrl)) validIndices.push(idx);
-        });
-        const pool = validIndices.length > 0 ? validIndices : songs.map((_, i) => i);
-        if (pool.length > 1) {
-          const otherChoices = pool.filter(idx => idx !== currentSong);
-          const choices = otherChoices.length > 0 ? otherChoices : pool;
-          currentSong = choices[Math.floor(Math.random() * choices.length)];
-        } else {
-          currentSong = pool[0];
-        }
-      }
-
-      // Automatically start playback of the selected song
-      playSong(currentSong);
-
-      if (showNotification) {
-        const msg = (i18n[currentLang] && i18n[currentLang].toastOnline) || "🌐 Online Video Mode Active";
-        showToast(msg);
-      }
-    } else {
-      // Switched to Offline Mode: deactivate video background and completely stop YouTube video
-      document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
-      if (bgVideoContainer) {
-        bgVideoContainer.classList.remove("active");
-        bgVideoContainer.setAttribute("aria-hidden", "true");
-      }
-      if (isYtReady && ytPlayer) {
-        try {
-          if (typeof ytPlayer.pauseVideo === "function") ytPlayer.pauseVideo();
-          if (typeof ytPlayer.stopVideo === "function") ytPlayer.stopVideo();
-        } catch (e) { }
-      }
-
-      // Automatically start offline audio playback immediately
-      playSong(currentSong);
-
-      if (showNotification) {
-        const msg = (i18n[currentLang] && i18n[currentLang].toastOffline) || "📴 Offline Audio Mode Active";
-        showToast(msg);
-      }
-    }
-
-    displaySongInfo(currentSong);
-    updatePlaylistHeaderUI();
-    renderPlaylist(playlistSearch ? playlistSearch.value : "");
-  }
-
-  function updatePlaylistHeaderUI() {
-    const t = i18n[currentLang] || i18n.hi;
-    const validCount = isOnlineMode
-      ? songs.filter(s => Boolean(s.videoId)).length
-      : songs.filter(s => Boolean(s.file)).length;
-
-    const titleText = isOnlineMode
-      ? (t.playlistTitleOnline || "छठ वीडियो संग्रह (ऑनलाइन)")
-      : (t.playlistTitleOffline || "छठ गीत संग्रह (ऑफलाइन)");
-    const placeholderText = isOnlineMode
-      ? (t.playlistSearchPlaceholderOnline || "वीडियो या गायक का नाम खोजें...")
-      : (t.playlistSearchPlaceholderOffline || "गीत या गायक का नाम खोजें...");
-
-    const playlistTitleText = document.getElementById("playlistTitleText");
-    if (playlistTitleText) {
-      playlistTitleText.textContent = `${titleText} (${validCount || songs.length})`;
-    } else if (playlistTitle) {
-      playlistTitle.textContent = `${titleText} (${validCount || songs.length})`;
-    }
-    if (playlistSearch) {
-      playlistSearch.placeholder = placeholderText;
-    }
-  }
-
-  const navHomeBtn = document.getElementById("navHomeBtn");
-  if (navHomeBtn) {
-    navHomeBtn.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }
-
-  const navAboutBtn = document.getElementById("navAboutBtn");
-  if (navAboutBtn) {
-    navAboutBtn.addEventListener("click", () => {
-      const footer = document.getElementById("appFooter") || document.querySelector(".app-footer") || document.querySelector("footer");
-      if (footer) {
-        footer.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-      }
-    });
-  }
-
-  if (modeToggleBtn) {
-    modeToggleBtn.addEventListener("click", () => {
-      setMode(!isOnlineMode, true);
-    });
-  }
-
-  if (langToggleBtn) {
-    langToggleBtn.addEventListener("click", () => {
-      const nextLang = currentLang === "en" ? "hi" : "en";
-      setLanguage(nextLang, true);
-    });
-  }
-
-  /* =========================================================
-     7.3 PLAYBACK STATE MANAGEMENT
-     ========================================================= */
-  function setPlaybackState(playing) {
-    isPlaying = playing;
-
-    if (isOnlineMode) {
-      document.body.classList.add("live-video-active");
-      if (bgVideoContainer) {
-        bgVideoContainer.classList.add("active");
-        bgVideoContainer.setAttribute("aria-hidden", "false");
-      }
-      if (playing) {
-        document.body.classList.remove("video-paused", "video-buffering");
-      } else {
-        document.body.classList.add("video-paused");
-      }
-    } else {
-      document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
-      if (bgVideoContainer) {
-        bgVideoContainer.classList.remove("active");
-        bgVideoContainer.setAttribute("aria-hidden", "true");
-      }
-    }
-
-    if (playing) {
-      if (playIcon) playIcon.textContent = "❚❚";
-      if (albumCover) albumCover.classList.add("spinning");
-      if (playerElem) playerElem.classList.add("playing");
-
-      startProgressSync();
-    } else {
-      if (playIcon) playIcon.textContent = "▶";
-      if (albumCover) albumCover.classList.remove("spinning");
-      if (playerElem) playerElem.classList.remove("playing");
-
-      stopProgressSync();
-    }
-
-    renderPlaylist(playlistSearch ? playlistSearch.value : "");
-    updateMediaSessionMetadata();
-  }
-
-  function startProgressSync() {
-    stopProgressSync();
-    progressInterval = setInterval(updateLiveProgress, 250);
-  }
-
-  function stopProgressSync() {
-    if (progressInterval) {
-      clearInterval(progressInterval);
-      progressInterval = null;
-    }
-  }
-
-  function getActiveDuration() {
-    let dur = 0;
-    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
-      try {
-        dur = ytPlayer.getDuration() || 0;
-      } catch (e) { }
-    }
-    if (!dur && offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
-      dur = offlineAudio.duration || 0;
-    }
-    return dur > 0 ? dur : 0;
-  }
-
-  function getActiveCurrentTime() {
-    let cur = 0;
-    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getCurrentTime === "function") {
-      try {
-        cur = ytPlayer.getCurrentTime() || 0;
-      } catch (e) { }
-    } else if (offlineAudio && offlineAudio.currentTime && isFinite(offlineAudio.currentTime)) {
-      cur = offlineAudio.currentTime || 0;
-    }
-    return cur > 0 ? cur : 0;
-  }
-
-  function updateLiveProgress() {
-    if (isSeeking) return;
-
-    const cur = getActiveCurrentTime();
-    const dur = getActiveDuration();
-
-    if (dur > 0 && isFinite(dur)) {
-      const pct = (cur / dur) * 100;
-      if (progress) progress.value = pct;
-      if (progressFill) progressFill.style.width = `${pct}%`;
-      if (totalTime) totalTime.textContent = formatTime(dur);
-    }
-    if (currentTime) currentTime.textContent = formatTime(cur);
-    updateMediaSessionPosition(cur, dur);
-  }
-
-  /* =========================================================
-     7.4 SONG & PLAYLIST MANAGEMENT
-     ========================================================= */
-  async function loadOfflineSongs() {
-    try {
-      let cloudList = [];
-      let ytList = [];
-
-      // 1. Fetch Cloudinary songs from data/cloudinary folder
-      try {
-        const cloudRes = await fetch("data/cloudinary/cloudinary_songs.json", { cache: "no-store" });
-        if (cloudRes.ok) cloudList = await cloudRes.json();
-      } catch (e) {
-        console.warn("Cloudinary songs fetch warning:", e);
-      }
-
-      // 2. Fetch YouTube songs from data/youtube folder
-      try {
-        const ytRes = await fetch("data/youtube/youtube_songs.json", { cache: "no-store" });
-        if (ytRes.ok) ytList = await ytRes.json();
-      } catch (e) {
-        console.warn("YouTube songs fetch warning:", e);
-      }
-
-      const maxLen = Math.max(cloudList.length, ytList.length);
-      songs = [];
-      for (let i = 0; i < maxLen; i++) {
-        const c = cloudList[i] || {};
-        const y = ytList[i] || {};
-        songs.push({
-          name: c.name || y.name || `Song ${i + 1}`,
-          nameEn: c.nameEn || y.nameEn || `Song ${i + 1}`,
-          singer: c.singer || y.singer || "Chhath Bhakti",
-          singerEn: c.singerEn || y.singerEn || "Chhath Bhakti",
-          file: c.file || "",
-          ytName: y.name || c.name || "",
-          ytNameEn: y.nameEn || c.nameEn || "",
-          ytSinger: y.singer || c.singer || "",
-          ytSingerEn: y.singerEn || c.singerEn || "",
-          videoId: y.videoId || c.videoId || "",
-          embedUrl: y.embedUrl || ""
-        });
-      }
-
-      if (!Array.isArray(songs) || songs.length === 0) {
-        if (songName) songName.textContent = "No Song Found";
-        return;
-      }
-
-      const t = i18n[currentLang] || i18n.en;
-      if (playlistTitleText) {
-        playlistTitleText.textContent = `${t.playlistTitle} (${songs.length})`;
-      } else if (playlistTitle) {
-        playlistTitle.textContent = `${t.playlistTitle} (${songs.length})`;
-      }
-
-      renderPlaylist();
-      displaySongInfo(0);
-
-      // Preload current song file in offline audio with .load() for 0ms latency start
-      if (offlineAudio && songs[0] && songs[0].file) {
-        offlineAudio.src = songs[0].file;
-        offlineAudio.load();
-      }
-
-      // Preload all audio tracks in background cache for instant zero-delay playback
-      if ("requestIdleCallback" in window) {
-        requestIdleCallback(() => {
-          songs.forEach((s) => {
-            if (s.file) {
-              const a = new Audio();
-              a.preload = "auto";
-              a.src = s.file;
-            }
-          });
-        });
-      } else {
-        setTimeout(() => {
-          songs.forEach((s) => {
-            if (s.file) {
-              const a = new Audio();
-              a.preload = "auto";
-              a.src = s.file;
-            }
-          });
-        }, 1200);
-      }
-    } catch (error) {
-      console.error("Songs fetch failed:", error);
-      if (songName) songName.textContent = currentLang === "en" ? "Failed to load songs" : "गीत लोड नहीं हो सके";
-    }
-  }
-
-  function displaySongInfo(index) {
-    if (!songs[index]) return;
-    currentSong = index;
-    const s = songs[index];
-    const t = i18n[currentLang] || i18n.en;
-
-    let title = "";
-    let singer = "";
-
-    if (isOnlineMode) {
-      title = currentLang === "en"
-        ? (s.ytNameEn || s.nameEn || s.ytName || s.name)
-        : (s.ytName || s.name);
-      singer = currentLang === "en"
-        ? (s.ytSingerEn || s.singerEn || s.ytSinger || s.singer)
-        : (s.ytSinger || s.singer);
-    } else {
-      title = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-      singer = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
-    }
-
-    const fullSinger = singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत");
-
-    if (songName) songName.textContent = title;
-    if (songSinger) songSinger.textContent = fullSinger;
-
-    if (currentTime) currentTime.textContent = "0:00";
-    if (totalTime) totalTime.textContent = "0:00";
-    if (progress) progress.value = 0;
-    if (progressFill) progressFill.style.width = "0%";
-
-    renderPlaylist(playlistSearch ? playlistSearch.value : "");
-    updateMediaSessionMetadata();
-  }
-
-  function renderPlaylist(filterQuery = "") {
-    if (!playlistList) return;
-    const query = filterQuery.toLowerCase().trim();
-    const t = i18n[currentLang] || i18n.en;
-
-    const sourceSongs = isOnlineMode
-      ? songs.filter(s => Boolean(s.videoId))
-      : songs.filter(s => Boolean(s.file));
-
-    const filtered = sourceSongs
-      .map((s, idx) => ({ ...s, originalIndex: songs.indexOf(s), displayIndex: idx }))
-      .filter((s) => {
-        if (!query) return true;
-        const name = isOnlineMode
-          ? (currentLang === "en" ? (s.ytNameEn || s.nameEn || s.ytName || s.name) : (s.ytName || s.name))
-          : (currentLang === "en" ? (s.nameEn || s.name) : s.name);
-        const singer = isOnlineMode
-          ? (currentLang === "en" ? (s.ytSingerEn || s.singerEn || s.ytSinger || s.singer) : (s.ytSinger || s.singer || ""))
-          : (currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || ""));
-        return (
-          name.toLowerCase().includes(query) ||
-          singer.toLowerCase().includes(query) ||
-          (s.name && s.name.toLowerCase().includes(query)) ||
-          (s.nameEn && s.nameEn.toLowerCase().includes(query)) ||
-          (s.singer && s.singer.toLowerCase().includes(query)) ||
-          (s.singerEn && s.singerEn.toLowerCase().includes(query)) ||
-          (s.ytName && s.ytName.toLowerCase().includes(query)) ||
-          (s.ytNameEn && s.ytNameEn.toLowerCase().includes(query))
-        );
-      });
-
-    if (filtered.length === 0) {
-      playlistList.innerHTML = `
-        <li class="no-songs-found">
-          <svg class="no-songs-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            <line x1="8" y1="11" x2="14" y2="11"></line>
-          </svg>
-          <span class="no-songs-text">${escapeHTML(t.noSongsFound)}</span>
-        </li>
-      `;
-      return;
-    }
-
-    playlistList.innerHTML = filtered
-      .map((s) => {
-        const idx = s.originalIndex;
-        const displayNum = (s.displayIndex !== undefined ? s.displayIndex : idx) + 1;
-        const isActive = idx === currentSong;
-        const songTitle = isOnlineMode
-          ? (currentLang === "en" ? (s.ytNameEn || s.nameEn || s.ytName || s.name) : (s.ytName || s.name))
-          : (currentLang === "en" ? (s.nameEn || s.name) : s.name);
-        const songSingerName = isOnlineMode
-          ? (currentLang === "en" ? (s.ytSingerEn || s.singerEn || s.ytSinger || s.singer) : (s.ytSinger || s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")))
-          : (currentLang === "en" ? (s.singerEn || s.singer) : (s.singer || (currentLang === "en" ? "Devotional Song" : "भक्ति गीत")));
-        return `
-          <li class="playlist-item ${isActive ? "active" : ""}" data-index="${idx}">
-            <span class="playlist-item-num">${displayNum}</span>
-            <div class="playlist-item-details">
-              <div class="playlist-item-name">${escapeHTML(songTitle)}</div>
-              <div class="playlist-item-singer">${escapeHTML(songSingerName)}</div>
-            </div>
-            ${isActive && isPlaying
-            ? `
-              <div class="equalizer playing" aria-hidden="true">
-                <span class="equalizer-bar"></span>
-                <span class="equalizer-bar"></span>
-                <span class="equalizer-bar"></span>
-              </div>
-            `
-            : ""
-          }
-          </li>
-        `;
-      })
-      .join("");
-
-    playlistList.querySelectorAll(".playlist-item").forEach((item) => {
-      item.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const songIdx = parseInt(item.getAttribute("data-index"), 10);
-        playSong(songIdx);
-        if (playlistModal) playlistModal.classList.remove("open");
-      });
-    });
-  }
-
-  function playSong(index) {
-    if (!songs[index]) return;
-    currentSong = index;
-    displaySongInfo(index);
-
-    if (isOnlineMode) {
-      playOnlineSong(index);
-    } else {
-      playOfflineSong(index);
-    }
-
-    setPlaybackState(true);
-    const s = songs[index];
-    const t = i18n[currentLang] || i18n.en;
-    const nowTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-    showToast(`${t.nowPlayingPrefix || "🎶 Now Playing: "}${nowTitle}`);
-  }
-
-  /* =========================================================
-     7.4.1 SCREEN WAKE LOCK & BACKGROUND KEEPALIVE ENGINE
-     ========================================================= */
-  let wakeLockSentinel = null;
-
-  async function requestWakeLock() {
-    if ("wakeLock" in navigator && !wakeLockSentinel && document.visibilityState === "visible") {
-      try {
-        wakeLockSentinel = await navigator.wakeLock.request("screen");
-        wakeLockSentinel.addEventListener("release", () => {
-          wakeLockSentinel = null;
-        });
-      } catch (err) {
-        // Handled silently for low battery/background tabs
-      }
-    }
-  }
-
-  function releaseWakeLock() {
-    if (wakeLockSentinel) {
-      wakeLockSentinel.release().catch(() => {});
-      wakeLockSentinel = null;
-    }
-  }
-
-  /* Background speculative preloader for smooth gapless track transitions */
-  const bgPreloadAudio = document.getElementById("bgPreloadAudio") || (function() {
-    const a = document.createElement("audio");
-    a.id = "bgPreloadAudio";
-    a.preload = "none";
-    a.style.display = "none";
-    a.setAttribute("aria-hidden", "true");
-    document.body.appendChild(a);
-    return a;
-  })();
-
-  let lastPreloadedIdx = -1;
-  function preloadNextTrack() {
-    if (!songs || songs.length <= 1) return;
-    const valid = isOnlineMode
-      ? songs.map((s, i) => s.videoId ? i : -1).filter(i => i !== -1)
-      : songs.map((s, i) => s.file ? i : -1).filter(i => i !== -1);
-    if (!valid.length) return;
-    const curPos = valid.indexOf(currentSong);
-    const nextIdx = valid[(curPos + 1) % valid.length];
-    
-    if (nextIdx >= 0 && nextIdx !== lastPreloadedIdx && songs[nextIdx] && songs[nextIdx].file) {
-      lastPreloadedIdx = nextIdx;
-      try {
-        bgPreloadAudio.src = songs[nextIdx].file;
-        bgPreloadAudio.preload = "auto";
-        bgPreloadAudio.load();
-      } catch (e) {}
-
-      // Cache API background pre-warm
-      if ("caches" in window) {
-        caches.open("chhath-media-cache-v2").then((cache) => {
-          cache.match(songs[nextIdx].file).then((matched) => {
-            if (!matched) {
-              fetch(songs[nextIdx].file, { mode: "cors" }).then((res) => {
-                if (res.ok) cache.put(songs[nextIdx].file, res);
-              }).catch(() => {});
-            }
-          });
-        }).catch(() => {});
-      }
-    }
-  }
-
-  /* Audio network recovery engine */
-  let playbackRetryCount = 0;
-  const MAX_PLAYBACK_RETRIES = 3;
-  function handlePlaybackError(err) {
-    console.warn("Background audio streaming error:", err);
-    if (isPlaying && !isOnlineMode && playbackRetryCount < MAX_PLAYBACK_RETRIES) {
-      playbackRetryCount++;
-      setTimeout(() => {
-        if (offlineAudio && songs[currentSong] && songs[currentSong].file) {
-          const savedPos = offlineAudio.currentTime;
-          offlineAudio.src = songs[currentSong].file;
-          offlineAudio.load();
-          if (savedPos > 0) {
-            offlineAudio.currentTime = savedPos;
-          }
-          const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-          offlineAudio.volume = volNum / 100;
-          offlineAudio.play().then(() => {
-            playbackRetryCount = 0;
-            setPlaybackState(true);
-          }).catch(() => {});
-        }
-      }, 800 * playbackRetryCount);
-    }
-  }
-
-  if (offlineAudio) {
-    offlineAudio.addEventListener("play", () => {
-      if (!isPlaying && !isOnlineMode) setPlaybackState(true);
-      if (MEDIA_SESSION_SUPPORTED) {
-        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
-      }
-      requestWakeLock();
-      playbackRetryCount = 0;
-    });
-
-    offlineAudio.addEventListener("pause", () => {
-      if (isPlaying && !isOnlineMode) setPlaybackState(false);
-      if (MEDIA_SESSION_SUPPORTED) {
-        try { navigator.mediaSession.playbackState = "paused"; } catch (e) {}
-      }
-      releaseWakeLock();
-    });
-
-    offlineAudio.addEventListener("playing", () => {
-      if (!isPlaying && !isOnlineMode) setPlaybackState(true);
-      if (MEDIA_SESSION_SUPPORTED) {
-        try { navigator.mediaSession.playbackState = "playing"; } catch (e) {}
-      }
-      playbackRetryCount = 0;
-      updateLiveProgress();
-    });
-
-    offlineAudio.addEventListener("timeupdate", () => {
-      updateLiveProgress();
-      if (offlineAudio.duration && (offlineAudio.currentTime / offlineAudio.duration > 0.65 || (offlineAudio.duration - offlineAudio.currentTime) < 25)) {
-        preloadNextTrack();
-      }
-    });
-
-    offlineAudio.addEventListener("durationchange", () => {
-      updateLiveProgress();
-      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
-    });
-
-    offlineAudio.addEventListener("ratechange", () => {
-      updateMediaSessionPosition(offlineAudio.currentTime, offlineAudio.duration);
-    });
-
-    offlineAudio.addEventListener("error", handlePlaybackError);
-
-    offlineAudio.addEventListener("ended", () => {
-      lastPreloadedIdx = -1;
-      playNext();
-    });
-  }
-
+  // Page Visibility & Lifecycle
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       updateLiveProgress();
-      if (!isOnlineMode && offlineAudio) {
-        if (!offlineAudio.paused && !isPlaying) {
-          setPlaybackState(true);
-        } else if (offlineAudio.paused && isPlaying) {
-          setPlaybackState(false);
-        }
-      }
       if (isPlaying) {
         requestWakeLock();
       }
@@ -1783,12 +2380,21 @@
           const cur = getActiveCurrentTime();
           const dur = getActiveDuration();
           updateMediaSessionPosition(cur, dur);
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   });
 
-  window.addEventListener("pagehide", releaseWakeLock);
+  window.addEventListener("beforeunload", () => {
+    savePlayerStatePeriodic(true);
+    releaseWakeLock();
+  });
+
+  window.addEventListener("pagehide", () => {
+    savePlayerStatePeriodic(true);
+    releaseWakeLock();
+  });
+
   window.addEventListener("pageshow", () => {
     if (isPlaying) {
       requestWakeLock();
@@ -1796,706 +2402,8 @@
     }
   });
 
-  function playOfflineSong(index) {
-    const s = songs[index];
-    if (!s) return;
-    displaySongInfo(index);
-
-    // Completely pause and stop YouTube video if running
-    if (isYtReady && ytPlayer) {
-      try {
-        if (typeof ytPlayer.pauseVideo === "function") ytPlayer.pauseVideo();
-        if (typeof ytPlayer.stopVideo === "function") ytPlayer.stopVideo();
-      } catch (e) { }
-    }
-    document.body.classList.remove("live-video-active", "video-paused", "video-buffering");
-    if (bgVideoContainer) {
-      bgVideoContainer.classList.remove("active");
-      bgVideoContainer.setAttribute("aria-hidden", "true");
-    }
-
-    // Play high quality audio directly from Cloudinary MP3 file ONLY in offline mode
-    if (offlineAudio) {
-      if (offlineAudio.src !== s.file) {
-        offlineAudio.src = s.file;
-        offlineAudio.load();
-      }
-      const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-      const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
-      offlineAudio.volume = volNum / 100;
-      offlineAudio.playbackRate = activeRate;
-
-      const playPromise = offlineAudio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setPlaybackState(true);
-            preloadNextTrack();
-          })
-          .catch((err) => {
-            console.warn("Audio play blocked/error:", err);
-          });
-      }
-    }
-  }
-
-  function playOnlineSong(index) {
-    const s = songs[index];
-    if (!s) return;
-    displaySongInfo(index);
-
-    // 1. Completely stop and pause Cloudinary audio so it NEVER plays in Online mode
-    if (offlineAudio) {
-      offlineAudio.pause();
-      offlineAudio.currentTime = 0;
-    }
-
-    document.body.classList.add("live-video-active");
-    if (bgVideoContainer) {
-      bgVideoContainer.classList.add("active");
-      bgVideoContainer.setAttribute("aria-hidden", "false");
-    }
-
-    const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-    const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
-
-    // 2. Play live YouTube video with audio directly in Online mode
-    setBufferingState(true);
-    if (isYtReady && ytPlayer && typeof ytPlayer.loadVideoById === "function") {
-      try {
-        if (s.videoId) {
-          ytPlayer.loadVideoById({
-            videoId: s.videoId,
-            startSeconds: 0
-          });
-          ytPlayer.unMute();
-          ytPlayer.setVolume(volNum);
-          ytPlayer.playVideo();
-          if (typeof ytPlayer.setPlaybackRate === "function") {
-            ytPlayer.setPlaybackRate(activeRate);
-          }
-          if (typeof ytPlayer.setPlaybackQuality === "function") {
-            ytPlayer.setPlaybackQuality("hd1080");
-          }
-        }
-      } catch (e) {
-        console.warn("YouTube video load error:", e);
-        try {
-          ytPlayer.playVideo();
-        } catch (err) { }
-      }
-    } else {
-      ensureYouTubeAPI();
-    }
-  }
-
-  function togglePlayback() {
-    if (isPlaying) {
-      // Pause
-      if (isOnlineMode) {
-        if (isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-          try { ytPlayer.pauseVideo(); } catch (e) { }
-        }
-      } else {
-        if (offlineAudio && !offlineAudio.paused) {
-          offlineAudio.pause();
-        }
-      }
-      setPlaybackState(false);
-      showToast("⏸️ गीत पॉज़ किया गया");
-    } else {
-      // Play
-      if (isOnlineMode) {
-        if (offlineAudio && !offlineAudio.paused) {
-          offlineAudio.pause();
-        }
-        if (isYtReady && ytPlayer && typeof ytPlayer.playVideo === "function") {
-          try {
-            const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-            ytPlayer.unMute();
-            ytPlayer.setVolume(volNum);
-            ytPlayer.playVideo();
-          } catch (e) { }
-        } else {
-          playOnlineSong(currentSong);
-        }
-      } else {
-        // Offline Mode: Play Cloudinary audio ONLY
-        if (offlineAudio) {
-          const s = songs[currentSong];
-          if (s && offlineAudio.src !== s.file) {
-            offlineAudio.src = s.file;
-          }
-          const volNum = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-          const activeRate = PLAYBACK_SPEEDS[currentSpeedIndex] ? PLAYBACK_SPEEDS[currentSpeedIndex].value : 1.0;
-          offlineAudio.volume = volNum / 100;
-          offlineAudio.playbackRate = activeRate;
-          offlineAudio.play().then(() => {
-            preloadNextTrack();
-          }).catch((err) => {
-            console.warn("Audio play error:", err);
-            playSong(currentSong);
-          });
-        }
-      }
-      setPlaybackState(true);
-      showToast("▶️ छठ गीत शुरू हुआ!");
-    }
-  }
-
-  function playPrevious() {
-    const valid = isOnlineMode
-      ? songs.map((s, i) => s.videoId ? i : -1).filter(i => i !== -1)
-      : songs.map((s, i) => s.file ? i : -1).filter(i => i !== -1);
-    if (!valid.length) return;
-    const pos = valid.indexOf(currentSong);
-    const prevPos = (pos - 1 + valid.length) % valid.length;
-    playSong(valid[prevPos]);
-  }
-
-  function playNext() {
-    const valid = isOnlineMode
-      ? songs.map((s, i) => s.videoId ? i : -1).filter(i => i !== -1)
-      : songs.map((s, i) => s.file ? i : -1).filter(i => i !== -1);
-    if (!valid.length) return;
-    const pos = valid.indexOf(currentSong);
-    const nextPos = (pos + 1) % valid.length;
-    playSong(valid[nextPos]);
-  }
-
-  /* Robust Seek Controller (Online & Offline) */
-  function seekToTime(targetSec) {
-    const dur = getActiveDuration();
-    const safeSec = Math.max(0, dur > 0 ? Math.min(dur, targetSec) : targetSec);
-
-    // Apply seek to online YouTube player
-    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
-      try {
-        ytPlayer.seekTo(safeSec, true);
-        if (isPlaying && typeof ytPlayer.playVideo === "function") {
-          ytPlayer.playVideo();
-        }
-      } catch (e) {
-        console.warn("YouTube seekTo error:", e);
-      }
-    }
-
-    // Apply seek to offline audio with fastSeek support
-    if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
-      try {
-        if ("fastSeek" in offlineAudio) {
-          offlineAudio.fastSeek(safeSec);
-        } else {
-          offlineAudio.currentTime = safeSec;
-        }
-      } catch (e) {
-        offlineAudio.currentTime = safeSec;
-      }
-    }
-
-    // Immediately update visual UI so it doesn't flicker or snap
-    if (dur > 0) {
-      const pct = (safeSec / dur) * 100;
-      if (progress) progress.value = pct;
-      if (progressFill) progressFill.style.width = `${pct}%`;
-      if (currentTime) currentTime.textContent = formatTime(safeSec);
-    }
-
-    // Keep isSeeking true for 250ms to allow smooth audio stream sync
-    isSeeking = true;
-    if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
-    seekDebounceTimeout = setTimeout(() => {
-      isSeeking = false;
-      updateLiveProgress();
-    }, 250);
-  }
-
-  function seekRelative(deltaSec) {
-    const cur = getActiveCurrentTime();
-    const dur = getActiveDuration();
-    if (dur > 0) {
-      const target = Math.max(0, Math.min(dur, cur + deltaSec));
-      seekToTime(target);
-      showToast(deltaSec > 0 ? `⏩ +${deltaSec}s` : `⏪ ${deltaSec}s`);
-    }
-  }
-
-  /* Player Button Event Listeners */
-  if (playButton) {
-    playButton.addEventListener("click", togglePlayback);
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener("click", playPrevious);
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener("click", playNext);
-  }
-
-  /* Seek interactions (Forward / Backward Scrubbing) */
-  if (progress) {
-    const handleSeekInput = () => {
-      isSeeking = true;
-      if (seekDebounceTimeout) clearTimeout(seekDebounceTimeout);
-      const dur = getActiveDuration();
-      const pct = parseFloat(progress.value) || 0;
-      if (progressFill) progressFill.style.width = `${pct}%`;
-      if (currentTime && dur > 0) {
-        currentTime.textContent = formatTime((pct / 100) * dur);
-      }
-    };
-
-    const handleSeekCommit = () => {
-      const dur = getActiveDuration();
-      const pct = parseFloat(progress.value) || 0;
-      if (dur > 0) {
-        const targetSec = (pct / 100) * dur;
-        seekToTime(targetSec);
-      } else {
-        isSeeking = false;
-      }
-    };
-
-    progress.addEventListener("mousedown", () => { isSeeking = true; });
-    progress.addEventListener("touchstart", () => { isSeeking = true; }, { passive: true });
-    progress.addEventListener("input", handleSeekInput);
-    progress.addEventListener("change", handleSeekCommit);
-    progress.addEventListener("mouseup", handleSeekCommit);
-    progress.addEventListener("touchend", handleSeekCommit);
-  }
-
-  /* Volume & Mute Controls */
-  const VOL_HIGH_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
-      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <path d="M19.5 5.5C21.5 7.5 22.6 9.7 22.6 12s-1.1 4.5-3.1 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  `;
-  const VOL_MED_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
-      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <path d="M16.5 7.5C17.9 8.9 18.7 10.4 18.7 12s-.8 3.1-2.2 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  `;
-  const VOL_LOW_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
-      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-      <path d="M13.5 9.5C14.3 10.3 14.8 11.1 14.8 12s-.5 1.7-1.3 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  `;
-  const VOL_MUTE_ICON = `
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
-      <path d="M10 5L5 9H2v6h3l5 4V5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-      <line x1="22" y1="9" x2="16" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="16" y1="9" x2="22" y2="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-    </svg>
-  `;
-
-  function updateVolumeIcon(vol) {
-    if (!muteBtn) return;
-    if (vol === 0) {
-      muteBtn.innerHTML = VOL_MUTE_ICON;
-    } else if (vol <= 0.33) {
-      muteBtn.innerHTML = VOL_LOW_ICON;
-    } else if (vol <= 0.66) {
-      muteBtn.innerHTML = VOL_MED_ICON;
-    } else {
-      muteBtn.innerHTML = VOL_HIGH_ICON;
-    }
-  }
-
-  function updateVolumeTrack(volNum) {
-    if (volumeSlider) {
-      volumeSlider.style.setProperty('--vol-percent', `${volNum}%`);
-    }
-  }
-
-  if (volumeSlider) {
-    updateVolumeTrack(parseInt(volumeSlider.value, 10) || 100);
-
-    volumeSlider.addEventListener("input", () => {
-      const volNum = parseInt(volumeSlider.value, 10);
-      const volFraction = volNum / 100;
-
-      updateVolumeTrack(volNum);
-
-      if (isYtReady && ytPlayer && typeof ytPlayer.setVolume === "function") {
-        try {
-          ytPlayer.setVolume(volNum);
-          if (volNum > 0 && typeof ytPlayer.isMuted === "function" && ytPlayer.isMuted()) {
-            ytPlayer.unMute();
-          }
-        } catch (e) { }
-      }
-
-      if (offlineAudio) {
-        offlineAudio.volume = volFraction;
-      }
-
-      updateVolumeIcon(volFraction);
-    });
-  }
-
-  if (muteBtn) {
-    muteBtn.addEventListener("click", () => {
-      let isCurrentlyMuted = false;
-      if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.isMuted === "function") {
-        try {
-          isCurrentlyMuted = ytPlayer.isMuted() || (typeof ytPlayer.getVolume === "function" && ytPlayer.getVolume() === 0);
-        } catch (e) { }
-      } else if (offlineAudio) {
-        isCurrentlyMuted = offlineAudio.volume === 0;
-      } else {
-        isCurrentlyMuted = volumeSlider ? parseInt(volumeSlider.value, 10) === 0 : false;
-      }
-
-      if (isCurrentlyMuted) {
-        // Unmute
-        const targetVol = lastVolume > 0 ? Math.round(lastVolume * 100) : 100;
-        if (isYtReady && ytPlayer) {
-          try {
-            if (typeof ytPlayer.unMute === "function") ytPlayer.unMute();
-            if (typeof ytPlayer.setVolume === "function") ytPlayer.setVolume(targetVol);
-          } catch (e) { }
-        }
-        if (offlineAudio) {
-          offlineAudio.volume = targetVol / 100;
-        }
-        if (volumeSlider) volumeSlider.value = targetVol;
-        updateVolumeTrack(targetVol);
-        updateVolumeIcon(targetVol / 100);
-        showToast((i18n[currentLang] && i18n[currentLang].toastUnmuted) || "🔊 Volume Unmuted");
-      } else {
-        // Mute
-        const currentVol = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
-        if (currentVol > 0) {
-          lastVolume = currentVol / 100;
-        }
-        if (isYtReady && ytPlayer) {
-          try {
-            if (typeof ytPlayer.mute === "function") ytPlayer.mute();
-            if (typeof ytPlayer.setVolume === "function") ytPlayer.setVolume(0);
-          } catch (e) { }
-        }
-        if (offlineAudio) {
-          offlineAudio.volume = 0;
-        }
-        if (volumeSlider) volumeSlider.value = 0;
-        updateVolumeTrack(0);
-        updateVolumeIcon(0);
-        showToast((i18n[currentLang] && i18n[currentLang].toastMuted) || "🔇 Volume Muted");
-      }
-    });
-  }
-
-  /* =========================================================
-     PLAYBACK SPEED DROPDOWN CONTROLLER
-     ========================================================= */
-  function openSpeedDropdown() {
-    if (!speedDropdown) return;
-    speedDropdown.classList.add("open");
-    if (speedBtn) speedBtn.setAttribute("aria-expanded", "true");
-  }
-
-  function closeSpeedDropdown() {
-    if (!speedDropdown) return;
-    speedDropdown.classList.remove("open");
-    if (speedBtn) speedBtn.setAttribute("aria-expanded", "false");
-  }
-
-  function toggleSpeedDropdown() {
-    if (!speedDropdown) return;
-    if (speedDropdown.classList.contains("open")) {
-      closeSpeedDropdown();
-    } else {
-      openSpeedDropdown();
-    }
-  }
-
-  /* Playback Speed Controller Function */
-  function setPlaybackRate(speedObj) {
-    const rateItem = (typeof speedObj === "object" && speedObj !== null)
-      ? speedObj
-      : (PLAYBACK_SPEEDS.find((s) => Math.abs(s.value - parseFloat(speedObj)) < 0.01) || { value: parseFloat(speedObj) || 1.0, label: `${speedObj}x` });
-
-    const r = parseFloat(rateItem.value) || 1.0;
-    const label = rateItem.label || `${r}x`;
-
-    const foundIdx = PLAYBACK_SPEEDS.findIndex((s) => Math.abs(s.value - r) < 0.01);
-    if (foundIdx !== -1) {
-      currentSpeedIndex = foundIdx;
-    }
-
-    if (offlineAudio) {
-      offlineAudio.playbackRate = r;
-    }
-    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.setPlaybackRate === "function") {
-      try {
-        ytPlayer.setPlaybackRate(r);
-      } catch (e) { }
-    }
-
-    if (speedLabel) {
-      speedLabel.textContent = label;
-    }
-    if (speedBtn) {
-      if (Math.abs(r - 1.0) > 0.01) {
-        speedBtn.classList.add("custom-speed");
-      } else {
-        speedBtn.classList.remove("custom-speed");
-      }
-    }
-
-    // Sync active item in dropdown
-    if (speedMenuItems && speedMenuItems.length > 0) {
-      speedMenuItems.forEach((item) => {
-        const itemSpeed = parseFloat(item.getAttribute("data-speed"));
-        if (Math.abs(itemSpeed - r) < 0.01) {
-          item.classList.add("active");
-        } else {
-          item.classList.remove("active");
-        }
-      });
-    }
-
-    const t = i18n[currentLang] || i18n.hi;
-    const speedMsg = (t.toastSpeed || "⚡ प्लेबैक गति: ") + label;
-    showToast(speedMsg);
-  }
-
-  function cyclePlaybackSpeed() {
-    currentSpeedIndex = (currentSpeedIndex + 1) % PLAYBACK_SPEEDS.length;
-    const nextSpeed = PLAYBACK_SPEEDS[currentSpeedIndex];
-    setPlaybackRate(nextSpeed);
-  }
-
-  if (speedBtn) {
-    speedBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleSpeedDropdown();
-    });
-  }
-
-  if (speedMenuItems && speedMenuItems.length > 0) {
-    speedMenuItems.forEach((item) => {
-      item.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const sp = parseFloat(item.getAttribute("data-speed"));
-        if (!isNaN(sp)) {
-          setPlaybackRate(sp);
-        }
-        closeSpeedDropdown();
-      });
-    });
-  }
-
-  if (speedDropdownMenu) {
-    speedDropdownMenu.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-  }
-
-  document.addEventListener("click", (e) => {
-    if (speedDropdown && !speedDropdown.contains(e.target)) {
-      closeSpeedDropdown();
-    }
-  });
-
-  document.addEventListener("touchstart", (e) => {
-    if (speedDropdown && !speedDropdown.contains(e.target)) {
-      closeSpeedDropdown();
-    }
-  }, { passive: true });
-
-  /* Playlist Search & Drawer */
-  if (playlistSearch) {
-    playlistSearch.addEventListener("input", (e) => {
-      const q = e.target.value;
-      if (searchClearBtn) searchClearBtn.style.display = q ? "block" : "none";
-      renderPlaylist(q);
-    });
-  }
-
-  if (searchClearBtn) {
-    searchClearBtn.addEventListener("click", () => {
-      if (playlistSearch) {
-        playlistSearch.value = "";
-        searchClearBtn.style.display = "none";
-        renderPlaylist("");
-      }
-    });
-  }
-
-  function scrollActivePlaylistItemIntoView() {
-    if (!playlistList) return;
-    const activeItem = playlistList.querySelector(".playlist-item.active");
-    if (activeItem) {
-      activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }
-
-  if (playlistToggleBtn && playlistModal) {
-    playlistToggleBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const isOpen = playlistModal.classList.toggle("open");
-      if (isOpen) {
-        scrollActivePlaylistItemIntoView();
-        if (playlistSearch) {
-          setTimeout(() => playlistSearch.focus(), 150);
-        }
-      }
-    });
-  }
-
-  if (playlistCloseBtn && playlistModal) {
-    playlistCloseBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      playlistModal.classList.remove("open");
-    });
-  }
-
-  if (playlistModal) {
-    playlistModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  document.addEventListener("click", (e) => {
-    if (
-      playlistModal &&
-      !playlistModal.contains(e.target) &&
-      e.target !== playlistToggleBtn &&
-      !playlistToggleBtn.contains(e.target)
-    ) {
-      playlistModal.classList.remove("open");
-    }
-  });
-
-  /* =========================================================
-     8. MEDIA SESSION API INTEGRATION
-     ========================================================= */
-  const MEDIA_SESSION_SUPPORTED = "mediaSession" in navigator;
-
-  function updateMediaSessionPosition(pos = 0, dur = 0) {
-    if (!MEDIA_SESSION_SUPPORTED || !("setPositionState" in navigator.mediaSession)) return;
-    if (!isFinite(dur) || dur <= 0 || !isFinite(pos) || pos < 0) return;
-
-    try {
-      navigator.mediaSession.setPositionState({
-        duration: dur,
-        playbackRate: 1,
-        position: Math.min(pos, dur)
-      });
-    } catch (e) { }
-  }
-
-  function updateMediaSessionMetadata() {
-    if (!MEDIA_SESSION_SUPPORTED || !songs[currentSong]) return;
-    try {
-      const s = songs[currentSong];
-      const songTitle = currentLang === "en" ? (s.nameEn || s.name) : s.name;
-      const songSingerName = currentLang === "en" ? (s.singerEn || s.singer) : s.singer;
-      const origin = window.location.origin || (window.location.protocol + "//" + window.location.host);
-      const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
-      const makeUrl = (rel) => new URL(rel, origin + basePath).href;
-
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: songTitle,
-        artist: songSingerName || (currentLang === "en" ? "Chhath Mahaparv" : "छठ महापर्व"),
-        album: currentLang === "en" ? "Chhath Ghat (छठ घाट)" : "छठ घाट",
-        artwork: [
-          { src: makeUrl("favicon.io/favicon-32x32.png"), sizes: "32x32", type: "image/png" },
-          { src: makeUrl("favicon.io/apple-touch-icon.png"), sizes: "180x180", type: "image/png" },
-          { src: makeUrl("favicon.io/android-chrome-192x192.png"), sizes: "192x192", type: "image/png" },
-          { src: makeUrl("favicon.io/android-chrome-512x512.png"), sizes: "512x512", type: "image/png" },
-          { src: makeUrl("images/image_background.png"), sizes: "1200x630", type: "image/png" }
-        ]
-      });
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-    } catch (e) { }
-  }
-
-  if (MEDIA_SESSION_SUPPORTED) {
-    const actionHandlers = [
-      ["play", togglePlayback],
-      ["pause", togglePlayback],
-      ["previoustrack", playPrevious],
-      ["nexttrack", playNext],
-      ["seekto", (details) => {
-        if (details.seekTime !== undefined && isFinite(details.seekTime)) {
-          if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
-            ytPlayer.seekTo(details.seekTime, true);
-          } else if (offlineAudio) {
-            offlineAudio.currentTime = details.seekTime;
-            updateLiveProgress();
-          }
-        }
-      }],
-      ["seekbackward", (details) => {
-        const skip = details.seekOffset || 10;
-        seekRelative(-skip);
-      }],
-      ["seekforward", (details) => {
-        const skip = details.seekOffset || 10;
-        seekRelative(skip);
-      }],
-      ["stop", () => {
-        if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.pauseVideo === "function") {
-          ytPlayer.pauseVideo();
-        } else if (offlineAudio) {
-          offlineAudio.pause();
-          offlineAudio.currentTime = 0;
-        }
-        setPlaybackState(false);
-        try { navigator.mediaSession.playbackState = "none"; } catch (e) {}
-      }]
-    ];
-
-    for (const [action, handler] of actionHandlers) {
-      try {
-        navigator.mediaSession.setActionHandler(action, handler);
-      } catch (e) { }
-    }
-  }
-
-  /* =========================================================
-     8.5 KEYBOARD SHORTCUTS & ACCESSIBILITY CONTROLS
-     ========================================================= */
-  function seekRelative(deltaSeconds) {
-    let dur = 0;
-    let cur = 0;
-
-    if (offlineAudio && offlineAudio.duration && isFinite(offlineAudio.duration)) {
-      dur = offlineAudio.duration;
-      cur = offlineAudio.currentTime || 0;
-    } else if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.getDuration === "function") {
-      try {
-        dur = ytPlayer.getDuration() || 0;
-        cur = ytPlayer.getCurrentTime() || 0;
-      } catch (e) { }
-    }
-
-    const target = Math.max(0, Math.min(dur || 9999, cur + deltaSeconds));
-
-    if (offlineAudio) {
-      offlineAudio.currentTime = target;
-    }
-    if (isOnlineMode && isYtReady && ytPlayer && typeof ytPlayer.seekTo === "function") {
-      try {
-        ytPlayer.seekTo(target, true);
-      } catch (e) { }
-    }
-
-    updateLiveProgress();
-
-    const sign = deltaSeconds > 0 ? `⏩ +${deltaSeconds}s` : `⏪ ${deltaSeconds}s`;
-    showToast(`${sign} (${formatTime(target)})`);
-  }
-
+  // Keyboard Shortcuts
   window.addEventListener("keydown", (e) => {
-    // Ignore keyboard shortcuts if the user is typing in an input field or textarea
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
     if (activeTag === "input" || activeTag === "textarea" || (document.activeElement && document.activeElement.isContentEditable)) {
       if (e.key === "Escape" && playlistModal && playlistModal.classList.contains("open")) {
@@ -2505,70 +2413,76 @@
       return;
     }
 
-    // Spacebar or 'k'/'K' -> Toggle Play / Pause
-    if (e.code === "Space" || e.key === " " || e.key === "k" || e.key === "K") {
+    // Space -> Toggle Play / Pause
+    if (e.code === "Space" || e.key === " ") {
       e.preventDefault();
-      togglePlayback();
+      togglePlay();
       return;
     }
 
-    // 'm' or 'M' -> Toggle Mute / Unmute
+    // 'M' or 'm' -> Toggle Mute / Unmute
     if (e.key === "m" || e.key === "M") {
       e.preventDefault();
-      if (muteBtn) {
-        muteBtn.click();
-      }
+      toggleMute();
       return;
     }
 
-    // Arrow Right -> Seek Forward +5s
+    // 'N' or 'n' -> Next Song
+    if (e.key === "n" || e.key === "N") {
+      e.preventDefault();
+      playNext();
+      return;
+    }
+
+    // 'P' or 'p' -> Previous Song
+    if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      playPrevious();
+      return;
+    }
+
+    // Arrow Right -> Seek Forward (+5s)
     if (e.key === "ArrowRight") {
       e.preventDefault();
       seekRelative(5);
       return;
     }
 
-    // Arrow Left -> Seek Backward -5s
+    // Arrow Left -> Seek Backward (-5s)
     if (e.key === "ArrowLeft") {
       e.preventDefault();
       seekRelative(-5);
       return;
     }
 
-    // Arrow Up -> Volume Up +5%
+    // Arrow Up -> Volume Up (+5%)
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (volumeSlider) {
-        const curVol = parseInt(volumeSlider.value, 10) || 0;
-        const newVol = Math.min(100, curVol + 5);
-        volumeSlider.value = newVol;
-        volumeSlider.dispatchEvent(new Event("input"));
-        showToast(`🔊 ${newVol}%`);
-      }
+      const curVol = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+      const newVol = Math.min(100, curVol + 5);
+      setVolume(newVol, true, true);
+      showToast(`🔊 ${newVol}%`);
       return;
     }
 
-    // Arrow Down -> Volume Down -5%
+    // Arrow Down -> Volume Down (-5%)
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (volumeSlider) {
-        const curVol = parseInt(volumeSlider.value, 10) || 0;
-        const newVol = Math.max(0, curVol - 5);
-        volumeSlider.value = newVol;
-        volumeSlider.dispatchEvent(new Event("input"));
-        showToast(newVol === 0 ? "🔇 Muted" : `🔉 ${newVol}%`);
-      }
+      const curVol = volumeSlider ? parseInt(volumeSlider.value, 10) : 100;
+      const newVol = Math.max(0, curVol - 5);
+      setVolume(newVol, true, true);
+      showToast(newVol === 0 ? "🔇 Muted" : `🔉 ${newVol}%`);
       return;
     }
 
-    // Shift + '>' (Period) -> Increase/Cycle Speed
+    // Shift + '>' -> Cycle Speed
     if ((e.shiftKey && e.key === ">") || (e.shiftKey && e.key === ".")) {
       e.preventDefault();
       cyclePlaybackSpeed();
       return;
     }
 
-    // Shift + '<' (Comma) -> Decrease Speed
+    // Shift + '<' -> Decrease Speed
     if ((e.shiftKey && e.key === "<") || (e.shiftKey && e.key === ",")) {
       e.preventDefault();
       currentSpeedIndex = (currentSpeedIndex - 1 + PLAYBACK_SPEEDS.length) % PLAYBACK_SPEEDS.length;
@@ -2576,7 +2490,7 @@
       return;
     }
 
-    // Escape -> Close Playlist Modal or Speed Dropdown
+    // Escape -> Close Playlist Modal / Dropdowns
     if (e.key === "Escape") {
       if (playlistModal && playlistModal.classList.contains("open")) {
         e.preventDefault();
@@ -2586,14 +2500,11 @@
     }
   });
 
-  /* =========================================================
-     9. STARTUP INITIALIZATION & AUDIO UNLOCK ENGINE
-     ========================================================= */
-  if (volumeSlider) volumeSlider.value = 100;
-  updateVolumeIcon(1);
+  // ---------------------------------------------------------
+  // STARTUP INITIALIZATION
+  // ---------------------------------------------------------
   setLanguage("en", false);
   loadOfflineSongs();
-  ensureYouTubeAPI();
 
   // Register High-Performance Service Worker for instant offline audio caching
   if ("serviceWorker" in navigator) {
@@ -2604,12 +2515,12 @@
     });
   }
 
-  // Mobile audio & media unlock on first user gesture across touch/click/pointer
+  // Unlock audio pipeline on first user gesture across touch/click/pointer
   function unlockAudioPipeline() {
     ensureAudioContext();
     ensureYouTubeAPI();
-    if (offlineAudio && !offlineAudio.src && songs && songs[0] && songs[0].file) {
-      offlineAudio.src = songs[0].file;
+    if (offlineAudio && !offlineAudio.src && songs && songs[0] && (songs[0].src || songs[0].file)) {
+      offlineAudio.src = songs[0].src || songs[0].file;
       offlineAudio.load();
     }
   }

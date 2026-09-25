@@ -14,6 +14,7 @@ const STATIC_ASSETS = [
   "./script.js",
   "./hindi-song.js",
   "./site.webmanifest",
+  "./songs.json",
   "./data/cloudinary/cloudinary_songs.json",
   "./data/youtube/youtube_songs.json",
   "./data/hindi_songs/hindi_songs.json",
